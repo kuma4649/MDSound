@@ -1,0 +1,15 @@
+\\psf\home\Documents\Visual Studio 2015\Projects\MDSound\test\bin\Debug\test.exe.config
+C:\Users\uta\Source\Repos\MDSound\MDSound\test\bin\Debug\test.exe.config
+C:\Users\uta\Source\Repos\MDSound\MDSound\test\bin\Debug\test.exe
+C:\Users\uta\Source\Repos\MDSound\MDSound\test\bin\Debug\test.pdb
+C:\Users\uta\Source\Repos\MDSound\MDSound\test\obj\Debug\test.csprojResolveAssemblyReference.cache
+C:\Users\uta\Source\Repos\MDSound\MDSound\test\obj\Debug\test.Form1.resources
+C:\Users\uta\Source\Repos\MDSound\MDSound\test\obj\Debug\test.Properties.Resources.resources
+C:\Users\uta\Source\Repos\MDSound\MDSound\test\obj\Debug\test.csproj.GenerateResource.Cache
+C:\Users\uta\Source\Repos\MDSound\MDSound\test\obj\Debug\test.exe
+C:\Users\uta\Source\Repos\MDSound\MDSound\test\obj\Debug\test.pdb
+C:\Users\uta\Source\Repos\MDSound\MDSound\test\bin\Debug\MDSound.dll
+C:\Users\uta\Source\Repos\MDSound\MDSound\test\bin\Debug\SdlDotNet.dll
+C:\Users\uta\Source\Repos\MDSound\MDSound\test\bin\Debug\Tao.Sdl.dll
+C:\Users\uta\Source\Repos\MDSound\MDSound\test\bin\Debug\MDSound.pdb
+C:\Users\uta\Source\Repos\MDSound\MDSound\test\bin\Debug\Tao.Sdl.xml

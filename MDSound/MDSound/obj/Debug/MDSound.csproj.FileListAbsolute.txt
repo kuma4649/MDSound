@@ -1,0 +1,4 @@
+C:\Users\uta\Source\Repos\MDSound\MDSound\MDSound\bin\Debug\MDSound.dll
+C:\Users\uta\Source\Repos\MDSound\MDSound\MDSound\bin\Debug\MDSound.pdb
+C:\Users\uta\Source\Repos\MDSound\MDSound\MDSound\obj\Debug\MDSound.dll
+C:\Users\uta\Source\Repos\MDSound\MDSound\MDSound\obj\Debug\MDSound.pdb
