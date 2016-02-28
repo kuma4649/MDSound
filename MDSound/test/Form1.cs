@@ -71,7 +71,7 @@ namespace test
 
         private void btnStop_Click(object sender, EventArgs e)
         {
-            sdl.Paused = true;
+            if (sdl != null) sdl.Paused = true;
             btnPlay.Enabled = true;
             btnStop.Enabled = false;
         }
