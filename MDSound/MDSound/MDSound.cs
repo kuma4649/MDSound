@@ -22,6 +22,7 @@ namespace MDSound
         private ym2612 ym2612 = null;
         private ym2612_ ym2612_ = null;
         private int[][] buffer = null;
+        private int[][] buffer2 = null;
 
 
         public MDSound()
@@ -51,6 +52,7 @@ namespace MDSound
             ym2612.YM2612_Reset(ym2612_);
 
             buffer = new int[2][] { new int[SamplingBuffer], new int[SamplingBuffer] };
+            buffer2 = new int[2][] { new int[1], new int[1] };
 
         }
 
@@ -60,6 +62,34 @@ namespace MDSound
             sn76489.SN76489_Update(sn76489_context, buffer, SamplingBuffer);
             ym2612.YM2612_Update(ym2612_, buffer, SamplingBuffer);
             ym2612.YM2612_DacAndTimers_Update(ym2612_, buffer, SamplingBuffer);
+
+            return buffer;
+
+        }
+
+        public int[][] Update2(Action frame)
+        {
+            for (int i = 0; i < SamplingBuffer; i++)
+            {
+
+                if (frame != null) { frame(); }
+
+                sn76489.SN76489_Update(sn76489_context, buffer2, 1);
+                buffer[0][i] = (int)((double)buffer2[0][0] * 0.9);
+                buffer[1][i] = (int)((double)buffer2[1][0] * 0.9);
+
+                buffer2[0][0] = 0;
+                buffer2[1][0] = 0;
+                ym2612.YM2612_Update(ym2612_, buffer2, 1);
+                buffer[0][i] += (int)((double)buffer2[0][0] * 1.6);
+                buffer[1][i] += (int)((double)buffer2[1][0] * 1.6);
+
+                buffer2[0][0] = 0;
+                buffer2[1][0] = 0;
+                ym2612.YM2612_DacAndTimers_Update(ym2612_, buffer2, 1);
+                buffer[0][i] += buffer2[0][0];
+                buffer[1][i] += buffer2[1][0];
+            }
 
             return buffer;
 
