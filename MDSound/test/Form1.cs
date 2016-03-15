@@ -3,6 +3,7 @@ using System.IO;
 using System.Windows.Forms;
 using SdlDotNet.Audio;
 using System.Threading;
+using System.Runtime.InteropServices;
 
 namespace test
 {
@@ -14,8 +15,11 @@ namespace test
         static int FMClockValue = 7670454;
         static int samplingBuffer = 512;
         static short[] frames = new short[samplingBuffer * 2];
-        MDSound.MDSound mds = new MDSound.MDSound(SamplingRate, samplingBuffer, FMClockValue, PSGClockValue);
+        static MDSound.MDSound mds = new MDSound.MDSound(SamplingRate, samplingBuffer, FMClockValue, PSGClockValue);
         static private byte[] srcBuf = null;
+        static AudioCallback cb = new AudioCallback(callback);
+        static IntPtr ptr;
+        GCHandle handle;
 
         public Form1()
         {
@@ -58,8 +62,9 @@ namespace test
 
             btnPlay.Enabled = false;
             btnStop.Enabled = true;
-
-            sdl = new SdlDotNet.Audio.AudioStream(SamplingRate, AudioFormat.Signed16Little, SoundChannel.Stereo, (short)samplingBuffer, new AudioCallback(callback), null);
+            handle = GCHandle.Alloc(cb);
+            ptr = Marshal.GetFunctionPointerForDelegate(cb);
+            sdl = new SdlDotNet.Audio.AudioStream(SamplingRate, AudioFormat.Signed16Little, SoundChannel.Stereo, (short)samplingBuffer, cb, null);
             sdl.Paused = false;
 
             Thread thread = new Thread(new ThreadStart(FromVGM));
@@ -72,11 +77,13 @@ namespace test
         private void btnStop_Click(object sender, EventArgs e)
         {
             if (sdl != null) sdl.Paused = true;
+            if (handle.IsAllocated) handle.Free();
             btnPlay.Enabled = true;
             btnStop.Enabled = false;
         }
 
-        private void callback(IntPtr userData, IntPtr stream, int len)
+        
+        internal static void callback(IntPtr userData, IntPtr stream, int len)
         {
             int i;
 
