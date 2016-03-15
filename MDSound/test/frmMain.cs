@@ -2,35 +2,44 @@
 using System.IO;
 using System.Windows.Forms;
 using SdlDotNet.Audio;
-using System.Threading;
 using System.Runtime.InteropServices;
 
 namespace test
 {
-    public partial class Form1 : Form
+    public partial class frmMain : Form
     {
-        static SdlDotNet.Audio.AudioStream sdl;
-        static int SamplingRate = 44100;
-        static int PSGClockValue = 3579545;
-        static int FMClockValue = 7670454;
-        static int samplingBuffer = 1024;
-        static short[] frames = new short[samplingBuffer * 2];
-        static MDSound.MDSound mds = new MDSound.MDSound(SamplingRate, samplingBuffer, FMClockValue, PSGClockValue);
-        static private byte[] srcBuf = null;
-        static AudioCallback cb = new AudioCallback(callback);
-        static IntPtr ptr;
-        static Form me;
-        static GCHandle handle;
 
-        public Form1()
+        private static int SamplingRate = 44100;
+        private static int PSGClockValue = 3579545;
+        private static int FMClockValue = 7670454;
+        private static int samplingBuffer = 1024;
+
+        private static short[] frames = new short[samplingBuffer * 2];
+        private static MDSound.MDSound mds = new MDSound.MDSound(SamplingRate, samplingBuffer, FMClockValue, PSGClockValue);
+
+        private static AudioStream sdl;
+        private static AudioCallback sdlCb = new AudioCallback(callback);
+        private static IntPtr sdlCbPtr;
+        private static GCHandle sdlCbHandle;
+
+        private static byte[] vgmBuf = null;
+        private static uint vgmAdr;
+        private static int vgmWait;
+        private static uint vgmEof;
+        private static bool vgmAnalyze;
+
+
+        public frmMain()
         {
 
             InitializeComponent();
-            me = this;
+
         }
+
 
         private void btnRef_Click(object sender, EventArgs e)
         {
+
             OpenFileDialog ofd = new OpenFileDialog();
             ofd.Filter =
                 "VGMファイル(*.vgm)|*.vgm";
@@ -42,15 +51,51 @@ namespace test
             {
                 tbFile.Text = ofd.FileName;
             }
+
         }
 
         private void btnPlay_Click(object sender, EventArgs e)
         {
 
+            stop();
+            play(tbFile.Text);
+
+        }
+
+        private void btnStop_Click(object sender, EventArgs e)
+        {
+
+            stop();
+
+        }
+
+        private void frmMain_FormClosed(object sender, FormClosedEventArgs e)
+        {
+
+            stop();
+
+        }
+
+
+        private static void stop()
+        {
+
+            if (sdl == null) return;
+
+            sdl.Paused = true;
+            sdl.Dispose();
+            sdl = null;
+            if (sdlCbHandle.IsAllocated) sdlCbHandle.Free();
+
+        }
+
+        private static void play(string fileName)
+        {
+
             try
             {
 
-                srcBuf = File.ReadAllBytes(tbFile.Text);
+                vgmBuf = File.ReadAllBytes(fileName);
 
             }
             catch
@@ -62,24 +107,15 @@ namespace test
             }
 
             //ヘッダーを読み込めるサイズをもっているかチェック
-            if (srcBuf.Length < 0x40)
-            {
-                return;
-            }
+            if (vgmBuf.Length < 0x40) return;
 
             //ヘッダーから情報取得
 
             uint vgm = getLE32(0x00);
-            if (vgm != 0x206d6756)
-            {
-                return;
-            }
+            if (vgm != 0x206d6756) return;
 
             uint version = getLE32(0x08);
-            if (version < 0x0150)
-            {
-                return;
-            }
+            if (version < 0x0150) return;
 
             vgmEof = getLE32(0x04);
 
@@ -93,94 +129,72 @@ namespace test
                 vgmDataOffset += 0x34;
             }
 
-
             vgmAdr = vgmDataOffset;
             vgmWait = 0;
+            vgmAnalyze = true;
 
-
-
-            handle = GCHandle.Alloc(cb);
-            ptr = Marshal.GetFunctionPointerForDelegate(cb);
-            sdl = new SdlDotNet.Audio.AudioStream(SamplingRate, AudioFormat.Signed16Little, SoundChannel.Stereo, (short)samplingBuffer, cb, null);
+            sdlCbHandle = GCHandle.Alloc(sdlCb);
+            sdlCbPtr = Marshal.GetFunctionPointerForDelegate(sdlCb);
+            sdl = new SdlDotNet.Audio.AudioStream(SamplingRate, AudioFormat.Signed16Little, SoundChannel.Stereo, (short)samplingBuffer, sdlCb, null);
             sdl.Paused = false;
 
-
-
         }
 
-        static UInt32 vgmAdr;
-        static int vgmWait;
-        static uint vgmEof;
-
-        private void btnStop_Click(object sender, EventArgs e)
+        private static void callback(IntPtr userData, IntPtr stream, int len)
         {
-            stop();
-        }
-
-        private static void stop()
-        {
-            if (sdl != null) sdl.Paused = true;
-            if (handle.IsAllocated) handle.Free();
-        }
-
-
-        internal static void callback(IntPtr userData, IntPtr stream, int len)
-        {
-            int i;
 
             int[][] buf= mds.Update2(oneFrameVGM);
 
-            for (i = 0; i < len / 4; i++)
+            for (int i = 0; i < len / 4; i++)
             {
                 frames[i * 2 + 0] = (short)buf[0][i];
                 frames[i * 2 + 1] = (short)buf[1][i];
             }
 
+            Marshal.Copy(frames, 0, stream, len / 2);
 
-            System.Runtime.InteropServices.Marshal.Copy(frames, 0, stream, len / 2);
         }
 
         private static void oneFrameVGM()
         {
+
             if (vgmWait > 0)
             {
                 vgmWait--;
                 return;
             }
 
+            if (!vgmAnalyze)
+            {
+                stop();
+                return;
+            }
 
             byte p = 0;
             byte rAdr = 0;
             byte rDat = 0;
 
-            while (vgmWait<=0)// || vgmAdr < srcBuf.Length || vgmAdr < vgmEof)
+            while (vgmWait<=0)
             {
-                if (vgmAdr == srcBuf.Length)
+                if (vgmAdr == vgmBuf.Length || vgmAdr == vgmEof)
                 {
-                    //me.Invoke(new Action(()=> stop()));
-                    stop();
-                    return;
-                }
-                if (vgmAdr == vgmEof)
-                {
-                    stop();
+                    vgmAnalyze=false;
                     return;
                 }
 
-                byte cmd = srcBuf[vgmAdr];
+                byte cmd = vgmBuf[vgmAdr];
                 switch (cmd)
                 {
                     case 0x4f: //GG PSG
                     case 0x50: //PSG
-                        mds.Write(srcBuf[vgmAdr + 1]);
+                        mds.Write(vgmBuf[vgmAdr + 1]);
                         vgmAdr += 2;
                         break;
                     case 0x52: //YM2612 Port0
                     case 0x53: //YM2612 Port1
                         p = (byte)((cmd == 0x52) ? 0 : 1);
-                        rAdr = srcBuf[vgmAdr + 1];
-                        rDat = srcBuf[vgmAdr + 2];
-                        //YM2612RegMap[rAdr + p * 0x100] = rDat;
+                        rAdr = vgmBuf[vgmAdr + 1];
+                        rDat = vgmBuf[vgmAdr + 2];
                         vgmAdr += 3;
                         mds.Write(p, rAdr, rDat);
 
@@ -206,7 +220,7 @@ namespace test
                         vgmAdr += 4;
                         break;
                     case 0x66: //end of sound data
-                        vgmAdr = (uint)srcBuf.Length;
+                        vgmAdr = (uint)vgmBuf.Length;
                         break;
                     case 0x67: //data block
                         vgmAdr += getLE32(vgmAdr + 3) + 7;
@@ -270,17 +284,20 @@ namespace test
                         break;
                     default:
                         //わからんコマンド
-                        Console.WriteLine("{0:X}", srcBuf[vgmAdr]);
+                        Console.WriteLine("{0:X}", vgmBuf[vgmAdr]);
                         return;
                 }
             }
+
             vgmWait--;
+
         }
+
 
         private static UInt32 getLE16(UInt32 adr)
         {
             UInt32 dat;
-            dat = (UInt32)srcBuf[adr] + (UInt32)srcBuf[adr + 1] * 0x100;
+            dat = (UInt32)vgmBuf[adr] + (UInt32)vgmBuf[adr + 1] * 0x100;
 
             return dat;
         }
@@ -288,14 +305,10 @@ namespace test
         private static UInt32 getLE32(UInt32 adr)
         {
             UInt32 dat;
-            dat = (UInt32)srcBuf[adr] + (UInt32)srcBuf[adr + 1] * 0x100 + (UInt32)srcBuf[adr + 2] * 0x10000 + (UInt32)srcBuf[adr + 3] * 0x1000000;
+            dat = (UInt32)vgmBuf[adr] + (UInt32)vgmBuf[adr + 1] * 0x100 + (UInt32)vgmBuf[adr + 2] * 0x10000 + (UInt32)vgmBuf[adr + 3] * 0x1000000;
 
             return dat;
         }
 
-        private void Form1_FormClosed(object sender, FormClosedEventArgs e)
-        {
-            btnStop_Click(null, null);
-        }
     }
 }

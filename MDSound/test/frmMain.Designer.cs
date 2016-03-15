@@ -1,6 +1,6 @@
 ﻿namespace test
 {
-    partial class Form1
+    partial class frmMain
     {
         /// <summary>
         /// 必要なデザイナー変数です。
@@ -94,7 +94,7 @@
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedToolWindow;
             this.Name = "Form1";
             this.Text = "TestPlayer";
-            this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.Form1_FormClosed);
+            this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.frmMain_FormClosed);
             this.ResumeLayout(false);
             this.PerformLayout();
 
