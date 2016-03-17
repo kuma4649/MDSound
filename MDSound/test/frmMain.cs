@@ -133,6 +133,8 @@ namespace test
             vgmWait = 0;
             vgmAnalyze = true;
 
+            mds.Init(SamplingRate, samplingBuffer, FMClockValue, PSGClockValue);
+
             sdlCbHandle = GCHandle.Alloc(sdlCb);
             sdlCbPtr = Marshal.GetFunctionPointerForDelegate(sdlCb);
             sdl = new SdlDotNet.Audio.AudioStream(SamplingRate, AudioFormat.Signed16Little, SoundChannel.Stereo, (short)samplingBuffer, sdlCb, null);
@@ -187,7 +189,7 @@ namespace test
                 {
                     case 0x4f: //GG PSG
                     case 0x50: //PSG
-                        mds.Write(vgmBuf[vgmAdr + 1]);
+                        mds.WritePSG(vgmBuf[vgmAdr + 1]);
                         vgmAdr += 2;
                         break;
                     case 0x52: //YM2612 Port0
@@ -196,7 +198,7 @@ namespace test
                         rAdr = vgmBuf[vgmAdr + 1];
                         rDat = vgmBuf[vgmAdr + 2];
                         vgmAdr += 3;
-                        mds.Write(p, rAdr, rDat);
+                        mds.WriteFM(p, rAdr, rDat);
 
                         break;
                     case 0x55: //YM2203
@@ -310,5 +312,10 @@ namespace test
             return dat;
         }
 
+        private void timer1_Tick(object sender, EventArgs e)
+        {
+            label2.Location = new System.Drawing.Point(Math.Min((mds.getTotalVolumeL() / 600) * 3 - 174, 0), label2.Location.Y);
+            label3.Location = new System.Drawing.Point(Math.Min((mds.getTotalVolumeR() / 600) * 3 - 174, 0), label3.Location.Y);
+        }
     }
 }

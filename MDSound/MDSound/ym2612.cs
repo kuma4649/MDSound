@@ -2349,6 +2349,18 @@ namespace MDSound
             */
         }
 
+        public void YM2612_SetMute(ym2612_ YM2612, int val)
+        {
+            YM2612.CHANNEL[0].Mute = val & 1;
+            YM2612.CHANNEL[1].Mute = val & 2;
+            YM2612.CHANNEL[2].Mute = val & 4;
+            YM2612.CHANNEL[3].Mute = val & 8;
+            YM2612.CHANNEL[4].Mute = val & 16;
+            YM2612.CHANNEL[5].Mute = val & 32;
+            YM2612.DAC_Mute = val & 32;
+        }
+
+
     }
 
     public class slot_

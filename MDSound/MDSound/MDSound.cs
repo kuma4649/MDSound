@@ -23,6 +23,8 @@ namespace MDSound
         private ym2612_ ym2612_ = null;
         private int[][] buffer = null;
         private int[][] buffer2 = null;
+        private int psgMask = 15;// psgはmuteを基準にしているのでビットが逆です
+        private int fmMask = 0;
 
 
         public MDSound()
@@ -53,6 +55,10 @@ namespace MDSound
 
             buffer = new int[2][] { new int[SamplingBuffer], new int[SamplingBuffer] };
             buffer2 = new int[2][] { new int[1], new int[1] };
+
+            psgMask = 15; 
+            fmMask = 0;
+
 
         }
 
@@ -95,12 +101,12 @@ namespace MDSound
 
         }
 
-        public void Write(byte data)
+        public void WritePSG(byte data)
         {
             sn76489.SN76489_Write(sn76489_context, data);
         }
 
-        public void Write(byte port,byte adr,byte data)
+        public void WriteFM(byte port,byte adr,byte data)
         {
             ym2612.YM2612_Write(ym2612_, (byte)(0 + (port & 1) * 2), adr);
             ym2612.YM2612_Write(ym2612_, (byte)(1 + (port & 1) * 2), data);
@@ -114,6 +120,57 @@ namespace MDSound
         public int[][] ReadFMRegister()
         {
             return ym2612_.REG;
+        }
+
+        public void setPSGMask(int ch)
+        {
+            psgMask &= ~ch;
+            sn76489.SN76489_SetMute(sn76489_context, psgMask);
+        }
+
+        public void setFMMask(int ch)
+        {
+            fmMask |= ch;
+            ym2612.YM2612_SetMute(ym2612_,fmMask);
+        }
+
+        public void resetPSGMask(int ch)
+        {
+            psgMask |= ch;
+            sn76489.SN76489_SetMute(sn76489_context, psgMask);
+        }
+
+        public void resetFMMask(int ch)
+        {
+            fmMask &= ~ch;
+            ym2612.YM2612_SetMute(ym2612_, fmMask);
+        }
+
+        public int getTotalVolumeL()
+        {
+            int v = 0;
+            for(int i = 0; i < buffer[0].Length; i++)
+            {
+                v = Math.Max(v, abs(buffer[0][i]));
+            }
+            return v;
+
+        }
+
+        public int getTotalVolumeR()
+        {
+            int v = 0;
+            for (int i = 0; i < buffer[1].Length; i++)
+            {
+                v = Math.Max(v, abs(buffer[1][i]));
+            }
+            return v;
+
+        }
+
+        private int abs(int n)
+        {
+            return (n > 0) ? n : -n;
         }
 
     }

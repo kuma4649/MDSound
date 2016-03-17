@@ -67,7 +67,7 @@ namespace MDSound
             {
                 chip.dClock = (float)(PSGClockValue & 0x7FFFFFF) / 16 / SamplingRate;
 
-                SN76489_SetMute(chip, mute_values.MUTE_ALLON);
+                SN76489_SetMute(chip, 15);
                 SN76489_Config(chip, /*MUTE_ALLON,*/ feedback_patterns.FB_SEGAVDP, sr_widths.SRW_SEGAVDP, 1);
 
                 for (i = 0; i <= 3; i++)
@@ -214,7 +214,7 @@ namespace MDSound
             {
                 /* Tone channels */
                 for (i = 0; i <= 2; ++i)
-                    if (((int)chip_t.Mute >> i & 1) > 0)
+                    if ((chip_t.Mute >> i & 1) > 0)
                     {
                         if (chip_t.IntermediatePos[i] != float.MinValue)
                             /* Intermediate position (antialiasing) */
@@ -228,7 +228,7 @@ namespace MDSound
                         chip.Channels[i] = 0;
 
                 /* Noise channel */
-                if (((int)chip_n.Mute >> 3 & 1) > 0)
+                if ((chip_n.Mute >> 3 & 1) > 0)
                 {
                     //chip->Channels[3] = PSGVolumeValues[chip->Registers[7]] * ( chip_n->NoiseShiftRegister & 0x1 ) * 2; /* double noise volume */
                     // Now the noise is bipolar, too. -Valley Bell
@@ -394,7 +394,7 @@ namespace MDSound
           return chip->Mute;
         }*/
 
-        public void SN76489_SetMute(SN76489_Context chip, mute_values val)
+        public void SN76489_SetMute(SN76489_Context chip, int val)
         {
             chip.Mute = val;
         }
@@ -436,7 +436,7 @@ namespace MDSound
 
     public class SN76489_Context
     {
-        public sn76489.mute_values Mute; // per-channel muting
+        public int Mute; // per-channel muting
         public int BoostNoise; // double noise volume when non-zero
 
         /* Variables */
