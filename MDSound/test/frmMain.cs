@@ -23,6 +23,8 @@ namespace test
         private static GCHandle sdlCbHandle;
 
         private static byte[] vgmBuf = null;
+        private static uint vgmPcmPtr;
+        private static uint vgmPcmBaseAdr;
         private static uint vgmAdr;
         private static int vgmWait;
         private static uint vgmEof;
@@ -225,6 +227,7 @@ namespace test
                         vgmAdr = (uint)vgmBuf.Length;
                         break;
                     case 0x67: //data block
+                        vgmPcmBaseAdr = vgmAdr + 7;
                         vgmAdr += getLE32(vgmAdr + 3) + 7;
                         break;
                     case 0x70: //Wait 1 sample
@@ -262,6 +265,7 @@ namespace test
                     case 0x8d: //Write adr2A and Wait 13 sample
                     case 0x8e: //Write adr2A and Wait 14 sample
                     case 0x8f: //Write adr2A and Wait 15 sample
+                        mds.WriteFM(0, 0x2a, vgmBuf[vgmPcmPtr++]);
                         vgmWait += (int)(cmd - 0x80);
                         vgmAdr++;
                         break;
@@ -282,6 +286,7 @@ namespace test
                         vgmAdr += 5;
                         break;
                     case 0xe0: //seek to offset in PCM data bank
+                        vgmPcmPtr = getLE32(vgmAdr + 1) + vgmPcmBaseAdr;
                         vgmAdr += 5;
                         break;
                     default:

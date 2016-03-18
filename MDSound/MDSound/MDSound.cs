@@ -81,8 +81,8 @@ namespace MDSound
                 if (frame != null) { frame(); }
 
                 sn76489.SN76489_Update(sn76489_context, buffer2, 1);
-                buffer[0][i] = (int)((double)buffer2[0][0] * 0.9);
-                buffer[1][i] = (int)((double)buffer2[1][0] * 0.9);
+                buffer[0][i] = (int)((double)buffer2[0][0] * 1.0);
+                buffer[1][i] = (int)((double)buffer2[1][0] * 1.0);
 
                 buffer2[0][0] = 0;
                 buffer2[1][0] = 0;
@@ -93,8 +93,11 @@ namespace MDSound
                 buffer2[0][0] = 0;
                 buffer2[1][0] = 0;
                 ym2612.YM2612_DacAndTimers_Update(ym2612_, buffer2, 1);
-                buffer[0][i] += buffer2[0][0];
-                buffer[1][i] += buffer2[1][0];
+                buffer[0][i] += (int)((double)buffer2[0][0] * 1.7);
+                buffer[1][i] += (int)((double)buffer2[1][0] * 1.7);
+
+                buffer[0][i] = Math.Max(Math.Min(buffer[0][i], short.MaxValue), short.MinValue);
+                buffer[1][i] = Math.Max(Math.Min(buffer[1][i], short.MaxValue), short.MinValue);
             }
 
             return buffer;

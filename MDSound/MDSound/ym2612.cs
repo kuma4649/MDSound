@@ -2118,7 +2118,7 @@ namespace MDSound
                     // Trivial optimisation
                     if (YM2612.OPNAadr == 0x2A)
                     {
-                        YM2612.DACdata = ((int)data - 0x80) << DAC_SHIFT;
+                        YM2612.DACdata = data << DAC_SHIFT; //((int)data - 0x80) << DAC_SHIFT;
                         return 0;
                     }
 
@@ -2295,6 +2295,7 @@ namespace MDSound
                         YM2612.dac_highpass += dac >> 9;
                     //dac >>= highpass.fract;
                     dac >>= 15;
+                    dac = YM2612.DACdata;
                     bufL[i] += (int)(dac & YM2612.CHANNEL[5].LEFT);
                     bufR[i] += (int)(dac & YM2612.CHANNEL[5].RIGHT);
                 }
