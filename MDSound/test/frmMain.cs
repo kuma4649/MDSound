@@ -29,6 +29,7 @@ namespace test
         private static int vgmWait;
         private static uint vgmEof;
         private static bool vgmAnalyze;
+        private static vgmStream[] vgmStreams = new vgmStream[0x100];
 
 
         public frmMain()
@@ -147,7 +148,7 @@ namespace test
         private static void callback(IntPtr userData, IntPtr stream, int len)
         {
 
-            int[][] buf= mds.Update2(oneFrameVGM);
+            int[][] buf = mds.Update2(oneFrameVGM);
 
             for (int i = 0; i < len / 4; i++)
             {
@@ -164,6 +165,7 @@ namespace test
 
             if (vgmWait > 0)
             {
+                oneFrameVGMStream();
                 vgmWait--;
                 return;
             }
@@ -175,14 +177,15 @@ namespace test
             }
 
             byte p = 0;
+            byte si = 0;
             byte rAdr = 0;
             byte rDat = 0;
 
-            while (vgmWait<=0)
+            while (vgmWait <= 0)
             {
                 if (vgmAdr == vgmBuf.Length || vgmAdr == vgmEof)
                 {
-                    vgmAnalyze=false;
+                    vgmAnalyze = false;
                     return;
                 }
 
@@ -270,20 +273,66 @@ namespace test
                         vgmAdr++;
                         break;
                     case 0x90:
+                        vgmAdr++;
+                        si = vgmBuf[vgmAdr++];
+                        vgmStreams[si].chipId = vgmBuf[vgmAdr++];
+                        vgmStreams[si].port = vgmBuf[vgmAdr++];
+                        vgmStreams[si].cmd = vgmBuf[vgmAdr++];
+                        break;
                     case 0x91:
-                        vgmAdr += 5;
+                        vgmAdr++;
+                        si = vgmBuf[vgmAdr++];
+                        vgmStreams[si].databankId = vgmBuf[vgmAdr++];
+                        vgmStreams[si].stepsize = vgmBuf[vgmAdr++];
+                        vgmStreams[si].stepbase = vgmBuf[vgmAdr++];
                         break;
                     case 0x92:
-                        vgmAdr += 6;
+                        vgmAdr++;
+                        si = vgmBuf[vgmAdr++];
+                        vgmStreams[si].frequency = getLE32(vgmAdr);
+                        vgmAdr += 4;
                         break;
                     case 0x93:
-                        vgmAdr += 11;
+                        vgmAdr++;
+                        si = vgmBuf[vgmAdr++];
+                        vgmStreams[si].dataStartOffset = getLE32(vgmAdr);
+                        vgmAdr += 4;
+                        vgmStreams[si].lengthMode = vgmBuf[vgmAdr++];//用途がいまいちわかってません
+                        vgmStreams[si].dataLength = getLE32(vgmAdr);
+                        vgmAdr += 4;
+
+                        vgmStreams[si].sw = true;
+                        vgmStreams[si].wkDataAdr = vgmStreams[si].dataStartOffset;
+                        vgmStreams[si].wkDataLen = vgmStreams[si].dataLength;
+                        vgmStreams[si].wkDataStep = 1.0;
+
                         break;
                     case 0x94:
-                        vgmAdr += 2;
+                        vgmAdr++;
+                        si = vgmBuf[vgmAdr++];
+                        vgmStreams[si].sw = false;
                         break;
                     case 0x95:
-                        vgmAdr += 5;
+                        //使い方がいまいちわかってません
+                        vgmAdr++;
+                        si = vgmBuf[vgmAdr++];
+                        vgmStreams[si].blockId = getLE16(vgmAdr);
+                        vgmAdr += 2;
+                        p = vgmBuf[vgmAdr++];
+                        if ((p & 1) > 0)
+                        {
+                            vgmStreams[si].lengthMode |= 0x80;
+                        }
+                        if ((p & 16) > 0)
+                        {
+                            vgmStreams[si].lengthMode |= 0x10;
+                        }
+
+                        vgmStreams[si].sw = true;
+                        vgmStreams[si].wkDataAdr = vgmStreams[si].dataStartOffset;
+                        vgmStreams[si].wkDataLen = vgmStreams[si].dataLength;
+                        vgmStreams[si].wkDataStep = 1.0;
+
                         break;
                     case 0xe0: //seek to offset in PCM data bank
                         vgmPcmPtr = getLE32(vgmAdr + 1) + vgmPcmBaseAdr;
@@ -296,10 +345,62 @@ namespace test
                 }
             }
 
+            oneFrameVGMStream();
             vgmWait--;
 
         }
 
+        private static void oneFrameVGMStream()
+        {
+            for (int i = 0; i < 0x100; i++)
+            {
+
+                if (!vgmStreams[i].sw) continue;
+                if (vgmStreams[i].chipId!=0x02) continue;//とりあえずYM2612のみ
+
+                while (vgmStreams[i].wkDataStep >= 1.0)
+                {
+                    mds.WriteFM(vgmStreams[i].port, vgmStreams[i].cmd, vgmBuf[vgmPcmBaseAdr + vgmStreams[i].wkDataAdr]);
+                    vgmStreams[i].wkDataAdr++;
+                    vgmStreams[i].dataLength--;
+                    vgmStreams[i].wkDataStep -= 1.0;
+                }
+                vgmStreams[i].wkDataStep += (double)vgmStreams[i].frequency / (double)SamplingRate;
+
+                if (vgmStreams[i].dataLength <= 0)
+                {
+                    vgmStreams[i].sw = false;
+                }
+
+            }
+        }
+
+
+        private struct vgmStream
+        {
+
+            public byte chipId;
+            public byte port;
+            public byte cmd;
+
+            public byte databankId;
+            public byte stepsize;
+            public byte stepbase;
+
+            public uint frequency;
+
+            public uint dataStartOffset;
+            public byte lengthMode;
+            public uint dataLength;
+
+            public bool sw;
+
+            public uint blockId;
+
+            public uint wkDataAdr;
+            public uint wkDataLen;
+            public double wkDataStep;
+        }
 
         private static UInt32 getLE16(UInt32 adr)
         {
