@@ -243,6 +243,8 @@ namespace MDSound
                 // Build stereo result into buffer
                 buffer[0][j] = 0;
                 buffer[1][j] = 0;
+                int bl = 0;
+                int br = 0;
                 if (chip.NgpFlags == 0)
                 {
                     // For all 4 channels
@@ -253,21 +255,28 @@ namespace MDSound
                             // no GG stereo for this channel
                             if (chip.panning[i][0] == 1.0f)
                             {
-                                buffer[0][j] += chip.Channels[i]; // left
-                                buffer[1][j] += chip.Channels[i]; // right
+                                bl = chip.Channels[i]; // left
+                                br = chip.Channels[i]; // right
+
                             }
                             else
                             {
-                                buffer[0][j] += (int)(chip.panning[i][0] * chip.Channels[i]); // left
-                                buffer[1][j] += (int)(chip.panning[i][1] * chip.Channels[i]); // right
+                                bl = (int)(chip.panning[i][0] * chip.Channels[i]); // left
+                                br = (int)(chip.panning[i][1] * chip.Channels[i]); // right
+
                             }
                         }
                         else
                         {
                             // GG stereo overrides panning
-                            buffer[0][j] += (chip.PSGStereo >> (i + 4) & 0x1) * chip.Channels[i]; // left
-                            buffer[1][j] += (chip.PSGStereo >> i & 0x1) * chip.Channels[i]; // right
+                            bl = (chip.PSGStereo >> (i + 4) & 0x1) * chip.Channels[i]; // left
+                            br = (chip.PSGStereo >> i & 0x1) * chip.Channels[i]; // right
                         }
+
+                        buffer[0][j] += bl;
+                        buffer[1][j] += br;
+                        chip.volume[i][0] = Math.Abs(bl);// Math.Max(bl, chip.volume[i][0]);
+                        chip.volume[i][1] = Math.Abs(br);// Math.Max(br, chip.volume[i][1]);
                     }
                 }
                 else
@@ -277,19 +286,28 @@ namespace MDSound
                         // For all 3 tone channels
                         for (i = 0; i < 3; i++)
                         {
-                            buffer[0][j] += (chip.PSGStereo >> (i + 4) & 0x1) * chip.Channels[i]; // left
-                            buffer[1][j] += (chip.PSGStereo >> i & 0x1) * chip2.Channels[i]; // right
+                            bl = (chip.PSGStereo >> (i + 4) & 0x1) * chip.Channels[i]; // left
+                            br = (chip.PSGStereo >> i & 0x1) * chip2.Channels[i]; // right
+                            buffer[0][j] += bl;
+                            buffer[1][j] += br;
+                            chip.volume[i][0] = Math.Abs(bl);// Math.Max(bl, chip.volume[i][0]);
+                            chip.volume[i][1] = Math.Abs(br);// Math.Max(br, chip.volume[i][1]);
                         }
                     }
                     else
                     {
                         // noise channel
                         i = 3;
-                        buffer[0][j] += (chip.PSGStereo >> (i + 4) & 0x1) * chip2.Channels[i]; // left
-                        buffer[1][j] += (chip.PSGStereo >> i & 0x1) * chip.Channels[i]; // right
+                        bl = (chip.PSGStereo >> (i + 4) & 0x1) * chip2.Channels[i]; // left
+                        br = (chip.PSGStereo >> i & 0x1) * chip.Channels[i]; // right
+                        buffer[0][j] += bl;
+                        buffer[1][j] += br;
+                        chip.volume[i][0] = Math.Abs(bl);// Math.Max(bl, chip.volume[i][0]);
+                        chip.volume[i][1] = Math.Abs(br);// Math.Max(br, chip.volume[i][1]);
                     }
                 }
 
+                
                 /* Increment clock by 1 sample length */
                 chip.Clock += chip.dClock;
                 chip.NumClocksForSample = (int)chip.Clock;  /* truncate */
@@ -460,7 +478,8 @@ namespace MDSound
         public float[] IntermediatePos = new float[4];   /* intermediate values used at boundaries between + and - (does not need double accuracy)*/
 
         public float[][] panning = new float[4][] { new float[2], new float[2], new float[2], new float[2] };            /* fake stereo */
-
+        public int[][] volume = new int[4][] { new int[2], new int[2], new int[2], new int[2] };
+        
         public int NgpFlags;       /* bit 7 - NGP Mode on/off, bit 0 - is 2nd NGP chip */
 
         public SN76489_Context NgpChip2;

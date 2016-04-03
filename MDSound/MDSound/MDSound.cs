@@ -25,6 +25,10 @@ namespace MDSound
         private int[][] buffer2 = null;
         private int psgMask = 15;// psgはmuteを基準にしているのでビットが逆です
         private int fmMask = 0;
+        private int[][] fmVol = new int[6][] { new int[2], new int[2], new int[2], new int[2], new int[2], new int[2] };
+        private int[] fmCh3SlotVol = new int[4];
+        private int[][] psgVol = new int[4][] { new int[2], new int[2], new int[2], new int[2]};
+        private int[] fmKey = new int[6];
 
 
         public MDSound()
@@ -75,8 +79,24 @@ namespace MDSound
 
         public int[][] Update2(Action frame)
         {
+            for (int i = 0; i < 6; i++)
+            {
+                fmVol[i][0] = 0;
+                fmVol[i][1] = 0;
+            }
+            for (int i = 0; i < 4; i++)
+            {
+                fmCh3SlotVol[i] = 0;
+            }
+            for (int i = 0; i < 4; i++)
+            {
+                psgVol[i][0] = 0;
+                psgVol[i][1] = 0;
+            }
+
             for (int i = 0; i < SamplingBuffer; i++)
             {
+
 
                 if (frame != null) { frame(); }
 
@@ -87,17 +107,34 @@ namespace MDSound
                 buffer2[0][0] = 0;
                 buffer2[1][0] = 0;
                 ym2612.YM2612_Update(ym2612_, buffer2, 1);
-                buffer[0][i] += (int)((double)buffer2[0][0] * 1.6);
-                buffer[1][i] += (int)((double)buffer2[1][0] * 1.6);
+                buffer[0][i] += (int)((double)buffer2[0][0] * 1.5);
+                buffer[1][i] += (int)((double)buffer2[1][0] * 1.5);
 
                 buffer2[0][0] = 0;
                 buffer2[1][0] = 0;
                 ym2612.YM2612_DacAndTimers_Update(ym2612_, buffer2, 1);
-                buffer[0][i] += (int)((double)buffer2[0][0] * 1.7);
-                buffer[1][i] += (int)((double)buffer2[1][0] * 1.7);
+                buffer[0][i] += (int)((double)buffer2[0][0] * 1.6);
+                buffer[1][i] += (int)((double)buffer2[1][0] * 1.6);
 
                 buffer[0][i] = Math.Max(Math.Min(buffer[0][i], short.MaxValue), short.MinValue);
                 buffer[1][i] = Math.Max(Math.Min(buffer[1][i], short.MaxValue), short.MinValue);
+
+                for (int ch = 0; ch < 6; ch++)
+                {
+                    fmVol[ch][0] = Math.Max(fmVol[ch][0], ym2612_.CHANNEL[ch].fmVol[0]);
+                    fmVol[ch][1] = Math.Max(fmVol[ch][1], ym2612_.CHANNEL[ch].fmVol[1]);
+                }
+
+                for (int slot = 0; slot < 4; slot++)
+                {
+                    fmCh3SlotVol[slot] = Math.Max(fmCh3SlotVol[slot], ym2612_.CHANNEL[2].fmSlotVol[slot]);
+                }
+
+                for (int ch = 0; ch < 4; ch++)
+                {
+                    psgVol[ch][0] = Math.Max(psgVol[ch][0], sn76489_context.volume[ch][0]);
+                    psgVol[ch][1] = Math.Max(psgVol[ch][1], sn76489_context.volume[ch][0]);
+                }
             }
 
             return buffer;
@@ -123,6 +160,30 @@ namespace MDSound
         public int[][] ReadFMRegister()
         {
             return ym2612_.REG;
+        }
+
+        public int[][] ReadFMVolume()
+        {
+            return fmVol;
+        }
+
+        public int[] ReadFMCh3SlotVolume()
+        {
+            return fmCh3SlotVol;
+        }
+
+        public int[][] ReadPSGVolume()
+        {
+            return psgVol;
+        }
+
+        public int[] ReadFMKeyOn()
+        {
+            for (int i = 0; i < 6; i++)
+            {
+                fmKey[i] = ym2612_.CHANNEL[i].KeyOn;
+            }
+            return fmKey;
         }
 
         public void setPSGMask(int ch)

@@ -236,6 +236,8 @@ namespace MDSound
         private static int YM2612_Enable_SSGEG = 1; // enable SSG-EG envelope (causes inacurate sound sometimes - rodrigo)
         private int DAC_Highpass_Enable = 1; // sometimes it creates a terrible noise
 
+        public static int[] vol = new int[2];
+
         /* end */
 
         private static void Env_NULL_Next(slot_ SL)
@@ -494,9 +496,12 @@ namespace MDSound
             DO_LIMIT(CH);
         }
 
-        private static void DO_OUTPUT(channel_ CH, int[][] buf,int i) {
+        private static void DO_OUTPUT(channel_ CH, int[][] buf, int i)
+        {
             buf[0][i] += CH.OUTd & CH.LEFT;
             buf[1][i] += CH.OUTd & CH.RIGHT;
+            vol[0] = Math.Max(vol[0], Math.Abs(CH.OUTd & CH.LEFT));
+            vol[1] = Math.Max(vol[1], Math.Abs(CH.OUTd & CH.RIGHT));
         }
 
         private static void DO_OUTPUT_INT(ym2612_ YM2612, channel_ CH, int[][] buf,ref int i) {
@@ -506,6 +511,8 @@ namespace MDSound
                 CH.Old_OUTd = (((int_cnt ^ 0x3FFF) * CH.OUTd) + (int_cnt * CH.Old_OUTd)) >> 14;
                 buf[0][i] += CH.Old_OUTd & CH.LEFT;
                 buf[1][i] += CH.Old_OUTd & CH.RIGHT;
+                vol[0] = Math.Max(vol[0], Math.Abs(CH.Old_OUTd & CH.LEFT));
+                vol[1] = Math.Max(vol[1], Math.Abs(CH.Old_OUTd & CH.RIGHT));
             }
             else i--;
             CH.Old_OUTd = CH.OUTd;
@@ -1700,6 +1707,8 @@ namespace MDSound
                     if ((data & 4) > 0) nch += 3;
                     CH = YM2612.CHANNEL[nch];
 
+                    CH.KeyOn = data & 0xf0;
+
                     YM2612_Special_Update(YM2612);
 
                     if ((data & 0x10) > 0) KEY_ON(CH, S0);  // On appuie sur la touche pour le slot 1
@@ -2252,14 +2261,60 @@ namespace MDSound
             }
 
 
-            if (YM2612.CHANNEL[0].Mute == 0) UPDATE_CHAN[YM2612.CHANNEL[0].ALGO + algo_type](YM2612, YM2612.CHANNEL[0], buf, length);
-            if (YM2612.CHANNEL[1].Mute == 0) UPDATE_CHAN[YM2612.CHANNEL[1].ALGO + algo_type](YM2612, YM2612.CHANNEL[1], buf, length);
-            if (YM2612.CHANNEL[2].Mute == 0) UPDATE_CHAN[YM2612.CHANNEL[2].ALGO + algo_type](YM2612, YM2612.CHANNEL[2], buf, length);
-            if (YM2612.CHANNEL[3].Mute == 0) UPDATE_CHAN[YM2612.CHANNEL[3].ALGO + algo_type](YM2612, YM2612.CHANNEL[3], buf, length);
-            if (YM2612.CHANNEL[4].Mute == 0) UPDATE_CHAN[YM2612.CHANNEL[4].ALGO + algo_type](YM2612, YM2612.CHANNEL[4], buf, length);
+            if (YM2612.CHANNEL[0].Mute == 0)
+            {
+                vol[0] = 0;
+                vol[1] = 0;
+                UPDATE_CHAN[YM2612.CHANNEL[0].ALGO + algo_type](YM2612, YM2612.CHANNEL[0], buf, length);
+                YM2612.CHANNEL[0].fmVol[0] = vol[0];
+                YM2612.CHANNEL[0].fmVol[1] = vol[1];
+            }
+            if (YM2612.CHANNEL[1].Mute == 0)
+            {
+                vol[0] = 0;
+                vol[1] = 0;
+                UPDATE_CHAN[YM2612.CHANNEL[1].ALGO + algo_type](YM2612, YM2612.CHANNEL[1], buf, length);
+                YM2612.CHANNEL[1].fmVol[0] = vol[0];
+                YM2612.CHANNEL[1].fmVol[1] = vol[1];
+            }
+            if (YM2612.CHANNEL[2].Mute == 0)
+            {
+                vol[0] = 0;
+                vol[1] = 0;
+                UPDATE_CHAN[YM2612.CHANNEL[2].ALGO + algo_type](YM2612, YM2612.CHANNEL[2], buf, length);
+                YM2612.CHANNEL[2].fmVol[0] = vol[0];
+                YM2612.CHANNEL[2].fmVol[1] = vol[1];
+            }
+                YM2612.CHANNEL[2].fmSlotVol[0] = (TL_TAB[SIN_TAB[(YM2612.in0 >> SIN_LBITS) & SIN_MASK] + YM2612.en0]) >> OUT_SHIFT;
+                YM2612.CHANNEL[2].fmSlotVol[1] = (TL_TAB[SIN_TAB[(YM2612.in1 >> SIN_LBITS) & SIN_MASK] + YM2612.en1]) >> OUT_SHIFT;
+                YM2612.CHANNEL[2].fmSlotVol[2] = (TL_TAB[SIN_TAB[(YM2612.in2 >> SIN_LBITS) & SIN_MASK] + YM2612.en2]) >> OUT_SHIFT;
+                YM2612.CHANNEL[2].fmSlotVol[3] = (TL_TAB[SIN_TAB[(YM2612.in3 >> SIN_LBITS) & SIN_MASK] + YM2612.en3]) >> OUT_SHIFT;
+
+            if (YM2612.CHANNEL[3].Mute == 0)
+            {
+                vol[0] = 0;
+                vol[1] = 0;
+                UPDATE_CHAN[YM2612.CHANNEL[3].ALGO + algo_type](YM2612, YM2612.CHANNEL[3], buf, length);
+                YM2612.CHANNEL[3].fmVol[0] = vol[0];
+                YM2612.CHANNEL[3].fmVol[1] = vol[1];
+            }
+            if (YM2612.CHANNEL[4].Mute == 0)
+            {
+                vol[0] = 0;
+                vol[1] = 0;
+                UPDATE_CHAN[YM2612.CHANNEL[4].ALGO + algo_type](YM2612, YM2612.CHANNEL[4], buf, length);
+                YM2612.CHANNEL[4].fmVol[0] = vol[0];
+                YM2612.CHANNEL[4].fmVol[1] = vol[1];
+            }
             if (YM2612.CHANNEL[5].Mute == 0
                 && (YM2612.DAC == 0))
+            {
+                vol[0] = 0;
+                vol[1] = 0;
                 UPDATE_CHAN[YM2612.CHANNEL[5].ALGO + algo_type](YM2612, YM2612.CHANNEL[5], buf, length);
+                YM2612.CHANNEL[5].fmVol[0] = vol[0];
+                YM2612.CHANNEL[5].fmVol[1] = vol[1];
+            }
 
             YM2612.Inter_Cnt = (uint)int_cnt;
 
@@ -2298,6 +2353,8 @@ namespace MDSound
                     dac = YM2612.DACdata;
                     bufL[i] += (int)(dac & YM2612.CHANNEL[5].LEFT);
                     bufR[i] += (int)(dac & YM2612.CHANNEL[5].RIGHT);
+                    YM2612.CHANNEL[5].fmVol[0] = (int)(dac & YM2612.CHANNEL[5].LEFT);
+                    YM2612.CHANNEL[5].fmVol[1] = (int)(dac & YM2612.CHANNEL[5].RIGHT);
                 }
             }
 
@@ -2426,6 +2483,9 @@ namespace MDSound
         public slot_[] SLOT = new slot_[4] { new slot_(), new slot_(), new slot_(), new slot_() }; // four slot.operators = les 4 slots de la voie
         public int FFlag;              // Frequency step recalculation flag
         public int Mute;         // Maxim: channel mute flag
+        public int KeyOn;
+        public int[] fmVol = new int[2];
+        public int[] fmSlotVol = new int[4];        
     }
 
     public class ym2612_
