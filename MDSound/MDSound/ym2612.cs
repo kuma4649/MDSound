@@ -1740,7 +1740,7 @@ namespace MDSound
         }
 
         // Initialisation de l'駑ulateur YM2612
-        public ym2612_ YM2612_Init(int Clock, int Rate, int Interpolation)
+        public ym2612_ YM2612_Init(uint Clock, uint Rate, int Interpolation)
         {
             ym2612_ YM2612;
             int i, j;
@@ -1758,8 +1758,8 @@ namespace MDSound
             //}
 #endif
 
-            YM2612.Clock = Clock;
-            YM2612.Rate = Rate;
+            YM2612.Clock = (int)Clock;
+            YM2612.Rate = (int)Rate;
 
             // 144 = 12 * (prescale * 2) = 12 * 6 * 2
             // prescale set to 6 by default

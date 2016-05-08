@@ -43,6 +43,8 @@
   <ItemGroup>
     <Compile Include="MDSound.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="pwm.cs" />
+    <Compile Include="scd_pcm.cs" />
     <Compile Include="sn76489.cs" />
     <Compile Include="ym2612.cs" />
   </ItemGroup>

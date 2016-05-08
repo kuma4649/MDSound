@@ -59,7 +59,7 @@ namespace MDSound
         //static unsigned short int FNumLimit;
 
 
-        public SN76489_Context SN76489_Init(int PSGClockValue, int SamplingRate)
+        public SN76489_Context SN76489_Init(uint PSGClockValue, uint SamplingRate)
         {
             int i;
             SN76489_Context chip = new SN76489_Context();

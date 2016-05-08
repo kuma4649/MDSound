@@ -9,13 +9,15 @@ namespace test
     public partial class frmMain : Form
     {
 
-        private static int SamplingRate = 44100;
-        private static int PSGClockValue = 3579545;
-        private static int FMClockValue = 7670454;
-        private static int samplingBuffer = 1024;
+        private static uint SamplingRate = 44100;
+        private static uint PSGClockValue = 3579545;
+        private static uint FMClockValue = 7670454;
+        private static uint rf5c164ClockValue = 12500000;
+        private static uint pwmClockValue = 23011361;
 
+        private static uint samplingBuffer = 1024;
         private static short[] frames = new short[samplingBuffer * 2];
-        private static MDSound.MDSound mds = new MDSound.MDSound(SamplingRate, samplingBuffer, FMClockValue, PSGClockValue);
+        private static MDSound.MDSound mds = new MDSound.MDSound(SamplingRate, samplingBuffer, FMClockValue, PSGClockValue, rf5c164ClockValue, pwmClockValue);
 
         private static AudioStream sdl;
         private static AudioCallback sdlCb = new AudioCallback(callback);
@@ -136,11 +138,11 @@ namespace test
             vgmWait = 0;
             vgmAnalyze = true;
 
-            mds.Init(SamplingRate, samplingBuffer, FMClockValue, PSGClockValue);
+            mds.Init(SamplingRate, samplingBuffer, FMClockValue, PSGClockValue, rf5c164ClockValue, pwmClockValue);
 
             sdlCbHandle = GCHandle.Alloc(sdlCb);
             sdlCbPtr = Marshal.GetFunctionPointerForDelegate(sdlCb);
-            sdl = new SdlDotNet.Audio.AudioStream(SamplingRate, AudioFormat.Signed16Little, SoundChannel.Stereo, (short)samplingBuffer, sdlCb, null);
+            sdl = new SdlDotNet.Audio.AudioStream((int)SamplingRate, AudioFormat.Signed16Little, SoundChannel.Stereo, (short)samplingBuffer, sdlCb, null);
             sdl.Paused = false;
 
         }
@@ -194,7 +196,7 @@ namespace test
                 {
                     case 0x4f: //GG PSG
                     case 0x50: //PSG
-                        mds.WritePSG(vgmBuf[vgmAdr + 1]);
+                        mds.WriteSN76489(vgmBuf[vgmAdr + 1]);
                         vgmAdr += 2;
                         break;
                     case 0x52: //YM2612 Port0
@@ -203,7 +205,7 @@ namespace test
                         rAdr = vgmBuf[vgmAdr + 1];
                         rDat = vgmBuf[vgmAdr + 2];
                         vgmAdr += 3;
-                        mds.WriteFM(p, rAdr, rDat);
+                        mds.WriteYM2612(p, rAdr, rDat);
 
                         break;
                     case 0x55: //YM2203
@@ -268,7 +270,7 @@ namespace test
                     case 0x8d: //Write adr2A and Wait 13 sample
                     case 0x8e: //Write adr2A and Wait 14 sample
                     case 0x8f: //Write adr2A and Wait 15 sample
-                        mds.WriteFM(0, 0x2a, vgmBuf[vgmPcmPtr++]);
+                        mds.WriteYM2612(0, 0x2a, vgmBuf[vgmPcmPtr++]);
                         vgmWait += (int)(cmd - 0x80);
                         vgmAdr++;
                         break;
@@ -360,7 +362,7 @@ namespace test
 
                 while (vgmStreams[i].wkDataStep >= 1.0)
                 {
-                    mds.WriteFM(vgmStreams[i].port, vgmStreams[i].cmd, vgmBuf[vgmPcmBaseAdr + vgmStreams[i].wkDataAdr]);
+                    mds.WriteYM2612(vgmStreams[i].port, vgmStreams[i].cmd, vgmBuf[vgmPcmBaseAdr + vgmStreams[i].wkDataAdr]);
                     vgmStreams[i].wkDataAdr++;
                     vgmStreams[i].dataLength--;
                     vgmStreams[i].wkDataStep -= 1.0;
