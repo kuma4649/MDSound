@@ -149,14 +149,7 @@ namespace test
 
         private static void callback(IntPtr userData, IntPtr stream, int len)
         {
-
-            int[][] buf = mds.Update2(oneFrameVGM);
-
-            for (int i = 0; i < len / 4; i++)
-            {
-                frames[i * 2 + 0] = (short)buf[0][i];
-                frames[i * 2 + 1] = (short)buf[1][i];
-            }
+            mds.Update2(frames, 0, frames.Length, oneFrameVGM);
 
             Marshal.Copy(frames, 0, stream, len / 2);
 
