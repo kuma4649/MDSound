@@ -39,6 +39,13 @@ namespace MDSound
         private int[][] rf5c164Vol = new int[8][] { new int[2], new int[2], new int[2], new int[2], new int[2], new int[2], new int[2], new int[2] };
 
         private bool incFlag = false;
+        private object lockobj = new object();
+
+        private int YM2612Volume = 170;
+        private int SN76489Volume = 100;
+        private int RF5C164Volume =90;
+        private int PWMVolume = 100;
+
 
 
         public MDSound()
@@ -51,344 +58,423 @@ namespace MDSound
             Init(SamplingRate, SamplingBuffer, FMClockValue, PSGClockValue, rf5c164ClockValue, pwmClockValue);
         }
 
-        public void Init(uint SamplingRate, uint SamplingBuffer, uint FMClockValue, uint PSGClockValue, uint rf5c164ClockValue, uint pwmClockValue)
+        public void setVolume(int ym2612Vol , int sn76489Vol , int rf5c164Vol , int pwmVol)
         {
+            YM2612Volume = ym2612Vol;
+            SN76489Volume = sn76489Vol;
+            RF5C164Volume = rf5c164Vol;
+            PWMVolume = pwmVol;
+        }
 
-            this.SamplingRate = SamplingRate;
-            this.SamplingBuffer = SamplingBuffer;
-            this.PSGClockValue = PSGClockValue;
-            this.FMClockValue = FMClockValue;
-            this.rf5c164ClockValue = rf5c164ClockValue;
-            this.pwmClockValue = pwmClockValue;
-
-            sn76489 = null;
-            if (PSGClockValue != uint.MaxValue)
+    public void Init(uint SamplingRate, uint SamplingBuffer, uint FMClockValue, uint PSGClockValue, uint rf5c164ClockValue, uint pwmClockValue)
+        {
+            lock (lockobj)
             {
-                sn76489 = new sn76489();
-                sn76489_context = sn76489.SN76489_Init(PSGClockValue, SamplingRate);
-                sn76489.SN76489_Reset(sn76489_context);
+                this.SamplingRate = SamplingRate;
+                this.SamplingBuffer = SamplingBuffer;
+                this.PSGClockValue = PSGClockValue;
+                this.FMClockValue = FMClockValue;
+                this.rf5c164ClockValue = rf5c164ClockValue;
+                this.pwmClockValue = pwmClockValue;
+
+                sn76489 = null;
+                if (PSGClockValue != uint.MaxValue && PSGClockValue != 0)
+                {
+                    sn76489 = new sn76489();
+                    sn76489_context = sn76489.SN76489_Init(PSGClockValue, SamplingRate);
+                    sn76489.SN76489_Reset(sn76489_context);
+                }
+
+                ym2612 = null;
+                if (FMClockValue != uint.MaxValue && FMClockValue!=0)
+                {
+                    ym2612 = new ym2612();
+                    ym2612_ = ym2612.YM2612_Init(FMClockValue, SamplingRate, 0);
+                    ym2612.YM2612_Reset(ym2612_);
+                }
+
+                rf5c164 = null;
+                if (rf5c164ClockValue != uint.MaxValue && rf5c164ClockValue!=0)
+                {
+                    rf5c164 = new scd_pcm();
+                    rf5c164.device_start_rf5c164(0, rf5c164ClockValue);
+                }
+
+                pwm = null;
+                if (pwmClockValue != uint.MaxValue && pwmClockValue != 0)
+                {
+                    pwm = new pwm();
+                    pwm.device_start_pwm(0, pwmClockValue);
+                }
+
+                buffer = new int[2][] { new int[SamplingBuffer], new int[SamplingBuffer] };
+                buffer2 = new int[2][] { new int[1], new int[1] };
+
+                psgMask = 15;
+                fmMask = 0;
+
+                incFlag = false;
             }
-
-            ym2612 = null;
-            if (FMClockValue != uint.MaxValue)
-            {
-                ym2612 = new ym2612();
-                ym2612_ = ym2612.YM2612_Init(FMClockValue, SamplingRate, 0);
-                ym2612.YM2612_Reset(ym2612_);
-            }
-
-            rf5c164 = null;
-            if (rf5c164ClockValue != uint.MaxValue)
-            {
-                rf5c164 = new scd_pcm();
-                rf5c164.device_start_rf5c164(0, rf5c164ClockValue);
-            }
-
-            pwm = null;
-            if (pwmClockValue != uint.MaxValue)
-            {
-                pwm = new pwm();
-                pwm.device_start_pwm(0, pwmClockValue);
-            }
-
-            buffer = new int[2][] { new int[SamplingBuffer], new int[SamplingBuffer] };
-            buffer2 = new int[2][] { new int[1], new int[1] };
-
-            psgMask = 15;
-            fmMask = 0;
-
-            incFlag = false;
         }
 
         public int[][] Update()
         {
 
-            if (sn76489 != null) sn76489.SN76489_Update(sn76489_context, buffer, (int)SamplingBuffer);
-            if (ym2612 != null) ym2612.YM2612_Update(ym2612_, buffer, (int)SamplingBuffer);
-            if (ym2612 != null) ym2612.YM2612_DacAndTimers_Update(ym2612_, buffer, (int)SamplingBuffer);
-
-            int[][] pcmBuffer = new int[2][] { new int[SamplingBuffer], new int[SamplingBuffer] };
-
-            if (rf5c164 != null)
+            lock(lockobj)
             {
-                rf5c164.rf5c164_update(0, pcmBuffer, (int)SamplingBuffer);
-                for (int i = 0; i < SamplingBuffer; i++)
-                {
-                    buffer[0][i] += pcmBuffer[0][i];
-                    buffer[1][i] += pcmBuffer[1][i];
-                }
-            }
+                if (sn76489 != null) sn76489.SN76489_Update(sn76489_context, buffer, (int)SamplingBuffer);
+                if (ym2612 != null) ym2612.YM2612_Update(ym2612_, buffer, (int)SamplingBuffer);
+                if (ym2612 != null) ym2612.YM2612_DacAndTimers_Update(ym2612_, buffer, (int)SamplingBuffer);
 
-            if (pwm != null)
-            {
-                pwm.pwm_update(0, pcmBuffer, (int)SamplingBuffer);
-                for (int i = 0; i < SamplingBuffer; i++)
-                {
-                    buffer[0][i] += pcmBuffer[0][i];
-                    buffer[1][i] += pcmBuffer[1][i];
-                }
-            }
-
-            return buffer;
-
-        }
-
-        public int Update2(short[] buf, int offset, int sampleCount, Action frame)
-        {
-            int a, b;
-
-            for (int i = 0; i < 6; i++)
-            {
-                fmVol[i][0] = 0;
-                fmVol[i][1] = 0;
-            }
-            for (int i = 0; i < 4; i++)
-            {
-                fmCh3SlotVol[i] = 0;
-            }
-            for (int i = 0; i < 4; i++)
-            {
-                psgVol[i][0] = 0;
-                psgVol[i][1] = 0;
-            }
-            for (int i = 0; i < 8; i++)
-            {
-                rf5c164Vol[i][0] = 0;
-                rf5c164Vol[i][1] = 0;
-            }
-
-            for (int i = 0; i < sampleCount / 2; i++)
-            {
-
-                if (frame != null) frame();
-
-                a = 0;
-                b = 0;
-
-                if (sn76489 != null)
-                {
-                    buffer2[0][0] = 0;
-                    buffer2[1][0] = 0;
-                    sn76489.SN76489_Update(sn76489_context, buffer2, 1);
-                    a += (int)(buffer2[0][0] * 1.0);
-                    b += (int)(buffer2[1][0] * 1.0);
-                }
-
-                if (ym2612 != null)
-                {
-                    buffer2[0][0] = 0;
-                    buffer2[1][0] = 0;
-                    ym2612.YM2612_Update(ym2612_, buffer2, 1);
-                    a += (int)(buffer2[0][0] * 1.7);
-                    b += (int)(buffer2[1][0] * 1.7);
-
-                    buffer2[0][0] = 0;
-                    buffer2[1][0] = 0;
-                    ym2612.YM2612_DacAndTimers_Update(ym2612_, buffer2, 1);
-                    a += (int)(buffer2[0][0] * 1.6);
-                    b += (int)(buffer2[1][0] * 1.6);
-                }
+                int[][] pcmBuffer = new int[2][] { new int[SamplingBuffer], new int[SamplingBuffer] };
 
                 if (rf5c164 != null)
                 {
-                    buffer2[0][0] = 0;
-                    buffer2[1][0] = 0;
-                    rf5c164.rf5c164_update(0, buffer2, 1);
-                    a += (int)(buffer2[0][0] * 0.9);
-                    b += (int)(buffer2[1][0] * 0.9);
+                    rf5c164.rf5c164_update(0, pcmBuffer, (int)SamplingBuffer);
+                    for (int i = 0; i < SamplingBuffer; i++)
+                    {
+                        buffer[0][i] += pcmBuffer[0][i];
+                        buffer[1][i] += pcmBuffer[1][i];
+                    }
                 }
 
                 if (pwm != null)
                 {
-                    buffer2[0][0] = 0;
-                    buffer2[1][0] = 0;
-                    pwm.pwm_update(0, buffer2, 1);
-                    a += (int)(buffer2[0][0] * 1.0);
-                    b += (int)(buffer2[1][0] * 1.0);
+                    pwm.pwm_update(0, pcmBuffer, (int)SamplingBuffer);
+                    for (int i = 0; i < SamplingBuffer; i++)
+                    {
+                        buffer[0][i] += pcmBuffer[0][i];
+                        buffer[1][i] += pcmBuffer[1][i];
+                    }
                 }
 
-                if (incFlag)
+                return buffer;
+            }
+        }
+
+        public int Update2(short[] buf, int offset, int sampleCount, Action frame)
+        {
+            lock(lockobj)
+            {
+                int a, b;
+
+                for (int i = 0; i < 6; i++)
                 {
-                    buf[offset + i * 2 + 0] += (short)Math.Max(Math.Min(a, short.MaxValue), short.MinValue);
-                    buf[offset + i * 2 + 1] += (short)Math.Max(Math.Min(b, short.MaxValue), short.MinValue);
+                    fmVol[i][0] = 0;
+                    fmVol[i][1] = 0;
                 }
-                else
+                for (int i = 0; i < 4; i++)
                 {
-                    buf[offset + i * 2 + 0] = (short)Math.Max(Math.Min(a, short.MaxValue), short.MinValue);
-                    buf[offset + i * 2 + 1] = (short)Math.Max(Math.Min(b, short.MaxValue), short.MinValue);
+                    fmCh3SlotVol[i] = 0;
+                }
+                for (int i = 0; i < 4; i++)
+                {
+                    psgVol[i][0] = 0;
+                    psgVol[i][1] = 0;
+                }
+                for (int i = 0; i < 8; i++)
+                {
+                    rf5c164Vol[i][0] = 0;
+                    rf5c164Vol[i][1] = 0;
                 }
 
-                for (int ch = 0; ch < 6; ch++)
+                for (int i = 0; i < sampleCount / 2; i++)
                 {
-                    fmVol[ch][0] = Math.Max(fmVol[ch][0], ym2612_.CHANNEL[ch].fmVol[0]);
-                    fmVol[ch][1] = Math.Max(fmVol[ch][1], ym2612_.CHANNEL[ch].fmVol[1]);
+
+                    if (frame != null) frame();
+
+                    a = 0;
+                    b = 0;
+
+                    if (sn76489 != null)
+                    {
+                        buffer2[0][0] = 0;
+                        buffer2[1][0] = 0;
+                        sn76489.SN76489_Update(sn76489_context, buffer2, 1);
+                        a += (int)(buffer2[0][0] * SN76489Volume / 100.0);
+                        b += (int)(buffer2[1][0] * SN76489Volume / 100.0);
+                    }
+
+                    if (ym2612 != null)
+                    {
+                        buffer2[0][0] = 0;
+                        buffer2[1][0] = 0;
+                        ym2612.YM2612_Update(ym2612_, buffer2, 1);
+                        a += (int)(buffer2[0][0] * YM2612Volume / 100.0);
+                        b += (int)(buffer2[1][0] * YM2612Volume / 100.0);
+
+                        buffer2[0][0] = 0;
+                        buffer2[1][0] = 0;
+                        ym2612.YM2612_DacAndTimers_Update(ym2612_, buffer2, 1);
+                        a += (int)(buffer2[0][0] * YM2612Volume / 100.0);
+                        b += (int)(buffer2[1][0] * YM2612Volume / 100.0);
+                    }
+
+                    if (rf5c164 != null)
+                    {
+                        buffer2[0][0] = 0;
+                        buffer2[1][0] = 0;
+                        rf5c164.rf5c164_update(0, buffer2, 1);
+                        a += (int)(buffer2[0][0] * RF5C164Volume / 100.0);
+                        b += (int)(buffer2[1][0] * RF5C164Volume / 100.0);
+                    }
+
+                    if (pwm != null)
+                    {
+                        buffer2[0][0] = 0;
+                        buffer2[1][0] = 0;
+                        pwm.pwm_update(0, buffer2, 1);
+                        a += (int)(buffer2[0][0] * PWMVolume / 100.0);
+                        b += (int)(buffer2[1][0] * PWMVolume / 100.0);
+                    }
+
+                    if (incFlag)
+                    {
+                        buf[offset + i * 2 + 0] += (short)Math.Max(Math.Min(a, short.MaxValue), short.MinValue);
+                        buf[offset + i * 2 + 1] += (short)Math.Max(Math.Min(b, short.MaxValue), short.MinValue);
+                    }
+                    else
+                    {
+                        buf[offset + i * 2 + 0] = (short)Math.Max(Math.Min(a, short.MaxValue), short.MinValue);
+                        buf[offset + i * 2 + 1] = (short)Math.Max(Math.Min(b, short.MaxValue), short.MinValue);
+                    }
+
+                    for (int ch = 0; ch < 6; ch++)
+                    {
+                        fmVol[ch][0] = Math.Max(fmVol[ch][0], ym2612_.CHANNEL[ch].fmVol[0]);
+                        fmVol[ch][1] = Math.Max(fmVol[ch][1], ym2612_.CHANNEL[ch].fmVol[1]);
+                    }
+
+                    for (int slot = 0; slot < 4; slot++)
+                    {
+                        fmCh3SlotVol[slot] = Math.Max(fmCh3SlotVol[slot], ym2612_.CHANNEL[2].fmSlotVol[slot]);
+                    }
+
+                    for (int ch = 0; ch < 4; ch++)
+                    {
+                        psgVol[ch][0] = Math.Max(psgVol[ch][0], sn76489_context.volume[ch][0]);
+                        psgVol[ch][1] = Math.Max(psgVol[ch][1], sn76489_context.volume[ch][0]);
+                    }
+
+                    for (int ch = 0; ch < 8; ch++)
+                    {
+                        rf5c164Vol[ch][0] = Math.Max(rf5c164Vol[ch][0], (int)(rf5c164.PCM_Chip[0].Channel[ch].Data * rf5c164.PCM_Chip[0].Channel[ch].MUL_L));
+                        rf5c164Vol[ch][1] = Math.Max(rf5c164Vol[ch][1], (int)(rf5c164.PCM_Chip[0].Channel[ch].Data * rf5c164.PCM_Chip[0].Channel[ch].MUL_R));
+                    }
+
                 }
 
-                for (int slot = 0; slot < 4; slot++)
-                {
-                    fmCh3SlotVol[slot] = Math.Max(fmCh3SlotVol[slot], ym2612_.CHANNEL[2].fmSlotVol[slot]);
-                }
-
-                for (int ch = 0; ch < 4; ch++)
-                {
-                    psgVol[ch][0] = Math.Max(psgVol[ch][0], sn76489_context.volume[ch][0]);
-                    psgVol[ch][1] = Math.Max(psgVol[ch][1], sn76489_context.volume[ch][0]);
-                }
-
-                for (int ch = 0; ch < 8; ch++)
-                {
-                    rf5c164Vol[ch][0] = Math.Max(rf5c164Vol[ch][0], (int)(rf5c164.PCM_Chip[0].Channel[ch].Data * rf5c164.PCM_Chip[0].Channel[ch].MUL_L));
-                    rf5c164Vol[ch][1] = Math.Max(rf5c164Vol[ch][1], (int)(rf5c164.PCM_Chip[0].Channel[ch].Data * rf5c164.PCM_Chip[0].Channel[ch].MUL_R));
-                }
+                return sampleCount;
 
             }
-
-            return sampleCount;
-
         }
 
         public void WriteSN76489(byte data)
         {
-            if (sn76489 == null) return;
+            lock (lockobj)
+            {
+                if (sn76489 == null) return;
 
-            sn76489.SN76489_Write(sn76489_context, data);
+                sn76489.SN76489_Write(sn76489_context, data);
+            }
         }
 
         public void WriteYM2612(byte port, byte adr, byte data)
         {
-            if (ym2612 == null) return;
+            lock (lockobj)
+            {
+                if (ym2612 == null) return;
 
-            ym2612.YM2612_Write(ym2612_, (byte)(0 + (port & 1) * 2), adr);
-            ym2612.YM2612_Write(ym2612_, (byte)(1 + (port & 1) * 2), data);
+                ym2612.YM2612_Write(ym2612_, (byte)(0 + (port & 1) * 2), adr);
+                ym2612.YM2612_Write(ym2612_, (byte)(1 + (port & 1) * 2), data);
+            }
         }
 
         public void WritePWM(byte chipid, byte adr, uint data)
         {
-            if (pwm == null) return;
+            lock (lockobj)
+            {
+                if (pwm == null) return;
 
-            pwm.pwm_chn_w(chipid, adr, data);// (byte)((adr & 0xf0)>>4),(uint)((adr & 0xf)*0x100+data));
+                pwm.pwm_chn_w(chipid, adr, data);// (byte)((adr & 0xf0)>>4),(uint)((adr & 0xf)*0x100+data));
+            }
         }
 
         public void WriteRF5C164(byte chipid, byte adr, byte data)
         {
-            if (rf5c164 == null) return;
+            lock (lockobj)
+            {
+                if (rf5c164 == null) return;
 
-            rf5c164.PCM_Write_Reg(chipid, adr, data);
+                rf5c164.PCM_Write_Reg(chipid, adr, data);
+            }
         }
 
         public void WriteRF5C164PCMData(byte chipid, uint RAMStartAdr, uint RAMDataLength, byte[] SrcData, uint SrcStartAdr)
         {
-            if (rf5c164 == null) return;
+            lock (lockobj)
+            {
+                if (rf5c164 == null) return;
 
-            rf5c164.rf5c164_write_ram2(chipid, RAMStartAdr, RAMDataLength, SrcData, SrcStartAdr);
+                rf5c164.rf5c164_write_ram2(chipid, RAMStartAdr, RAMDataLength, SrcData, SrcStartAdr);
+            }
         }
 
         public void WriteRF5C164MemW(byte chipid, uint offset, byte data)
         {
-            if (rf5c164 == null) return;
+            lock (lockobj)
+            {
+                if (rf5c164 == null) return;
 
-            rf5c164.rf5c164_mem_w(chipid, offset, data);
+                rf5c164.rf5c164_mem_w(chipid, offset, data);
+            }
         }
 
         public int[] ReadPSGRegister()
         {
-            return sn76489_context.Registers;
+            lock (lockobj)
+            {
+                return sn76489_context.Registers;
+            }
         }
 
         public int[][] ReadFMRegister()
         {
-            return ym2612_.REG;
+            lock (lockobj)
+            {
+                return ym2612_.REG;
+            }
         }
 
         public scd_pcm.pcm_chip_ ReadRf5c164Register()
         {
-            return rf5c164.PCM_Chip[0];
+            lock (lockobj)
+            {
+                if (rf5c164 == null || rf5c164.PCM_Chip == null || rf5c164.PCM_Chip.Length < 1) return null;
+                return rf5c164.PCM_Chip[0];
+            }
         }
 
         public int[][] ReadRf5c164Volume()
         {
-            return rf5c164Vol;
+            lock (lockobj)
+            {
+                return rf5c164Vol;
+            }
         }
-
 
         public int[][] ReadFMVolume()
         {
-            return fmVol;
+            lock (lockobj)
+            {
+                return fmVol;
+            }
         }
 
         public int[] ReadFMCh3SlotVolume()
         {
-            return fmCh3SlotVol;
+            lock (lockobj)
+            {
+                return fmCh3SlotVol;
+            }
         }
 
         public int[][] ReadPSGVolume()
         {
-            return psgVol;
+            lock (lockobj)
+            {
+                return psgVol;
+            }
         }
 
         public int[] ReadFMKeyOn()
         {
-            for (int i = 0; i < 6; i++)
+            lock (lockobj)
             {
-                fmKey[i] = ym2612_.CHANNEL[i].KeyOn;
+                for (int i = 0; i < 6; i++)
+                {
+                    fmKey[i] = ym2612_.CHANNEL[i].KeyOn;
+                }
+                return fmKey;
             }
-            return fmKey;
         }
 
         public void setPSGMask(int ch)
         {
-            psgMask &= ~ch;
-            if (sn76489 != null) sn76489.SN76489_SetMute(sn76489_context, psgMask);
+            lock (lockobj)
+            {
+                psgMask &= ~ch;
+                if (sn76489 != null) sn76489.SN76489_SetMute(sn76489_context, psgMask);
+            }
         }
 
         public void setFMMask(int ch)
         {
-            fmMask |= ch;
-            if (ym2612 != null) ym2612.YM2612_SetMute(ym2612_, fmMask);
+            lock (lockobj)
+            {
+                fmMask |= ch;
+                if (ym2612 != null) ym2612.YM2612_SetMute(ym2612_, fmMask);
+            }
         }
 
         public void resetPSGMask(int ch)
         {
-            psgMask |= ch;
-            if (sn76489 != null) sn76489.SN76489_SetMute(sn76489_context, psgMask);
+            lock (lockobj)
+            {
+                psgMask |= ch;
+                if (sn76489 != null) sn76489.SN76489_SetMute(sn76489_context, psgMask);
+            }
         }
 
         public void resetFMMask(int ch)
         {
-            fmMask &= ~ch;
-            if (ym2612 != null) ym2612.YM2612_SetMute(ym2612_, fmMask);
+            lock (lockobj)
+            {
+                fmMask &= ~ch;
+                if (ym2612 != null) ym2612.YM2612_SetMute(ym2612_, fmMask);
+            }
         }
 
         public int getTotalVolumeL()
         {
-            int v = 0;
-            for (int i = 0; i < buffer[0].Length; i++)
+            lock (lockobj)
             {
-                v = Math.Max(v, abs(buffer[0][i]));
+                int v = 0;
+                for (int i = 0; i < buffer[0].Length; i++)
+                {
+                    v = Math.Max(v, abs(buffer[0][i]));
+                }
+                return v;
             }
-            return v;
-
         }
 
         public int getTotalVolumeR()
         {
-            int v = 0;
-            for (int i = 0; i < buffer[1].Length; i++)
+            lock (lockobj)
             {
-                v = Math.Max(v, abs(buffer[1][i]));
+                int v = 0;
+                for (int i = 0; i < buffer[1].Length; i++)
+                {
+                    v = Math.Max(v, abs(buffer[1][i]));
+                }
+                return v;
             }
-            return v;
-
         }
 
         public void setIncFlag()
         {
-            incFlag = true;
+            lock (lockobj)
+            {
+                incFlag = true;
+            }
         }
 
         public void resetIncFlag()
         {
-            incFlag = false;
+            lock (lockobj)
+            {
+                incFlag = false;
+            }
         }
 
         private int abs(int n)
