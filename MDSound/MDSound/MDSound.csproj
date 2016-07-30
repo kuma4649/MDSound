@@ -41,6 +41,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="c140.cs" />
+    <Compile Include="Instrument.cs" />
     <Compile Include="MDSound.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="pwm.cs" />

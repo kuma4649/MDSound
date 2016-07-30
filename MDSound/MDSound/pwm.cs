@@ -27,7 +27,7 @@ using System.Text;
 
 namespace MDSound
 {
-    public class pwm
+    public class pwm : Instrument
     {
         private const int PWM_BUF_SIZE = 4;
 
@@ -54,6 +54,7 @@ namespace MDSound
         //    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x40,
         //};
         //#elif PWM_BUF_SIZE == 4
+
         private byte[] PWM_FULL_TAB = new byte[PWM_BUF_SIZE * PWM_BUF_SIZE]
         {
             0x40, 0x00, 0x00, 0x80,
@@ -61,11 +62,12 @@ namespace MDSound
             0x00, 0x80, 0x40, 0x00,
             0x00, 0x00, 0x80, 0x40,
         };
+
         //#else
         //#error PWM_BUF_SIZE must equal 4 or 8.
         //#endif /* PWM_BUF_SIZE */
 
-        public class pwm_chip
+        private class pwm_chip
         {
             public ushort[] PWM_FIFO_R = new ushort[8];
             public ushort[] PWM_FIFO_L = new ushort[8];
@@ -73,7 +75,7 @@ namespace MDSound
             public uint PWM_WP_R;
             public uint PWM_RP_L;
             public uint PWM_WP_L;
-            public uint PWM_Cycles;
+            public uint PWM_Cycles = 0;
             public uint PWM_Cycle;
             public uint PWM_Cycle_Cnt;
             public uint PWM_Int;
@@ -84,7 +86,7 @@ namespace MDSound
             public uint PWM_Out_L;
 
             public uint PWM_Cycle_Tmp;
-            public uint PWM_Cycles_Tmp;
+            public uint PWM_Cycles_Tmp = 0;
             public uint PWM_Int_Tmp;
             public uint PWM_FIFO_L_Tmp;
             public uint PWM_FIFO_R_Tmp;
@@ -98,7 +100,8 @@ namespace MDSound
             //#endif
 
             public int clock;
-        };
+        }
+
         //#if CHILLY_WILLY_SCALE
         // TODO: Fix Chilly Willy's new scaling algorithm.
         private const int PWM_Loudness = 0;
@@ -112,16 +115,13 @@ namespace MDSound
 
         //void PWM_Update(pwm_chip* chip, int** buf, int length);
 
-
-        private const byte CHIP_SAMPLING_MODE = 0;
-        private const int CHIP_SAMPLE_RATE = 0;
         private const int MAX_CHIPS = 0x02;
         private pwm_chip[] PWM_Chip = new pwm_chip[MAX_CHIPS] { new pwm_chip(), new pwm_chip() };
 
         /**
          * PWM_Init(): Initialize the PWM audio emulator.
          */
-        public void PWM_Init(pwm_chip chip)
+        private void PWM_Init(pwm_chip chip)
         {
             chip.PWM_Mode = 0;
             chip.PWM_Out_R = 0;
@@ -146,18 +146,16 @@ namespace MDSound
             PWM_Set_Int(chip, 0);
         }
 
-
         //#if CHILLY_WILLY_SCALE
         // TODO: Fix Chilly Willy's new scaling algorithm.
-        public void PWM_Recalc_Scale(pwm_chip chip)
+        private void PWM_Recalc_Scale(pwm_chip chip)
         {
             chip.PWM_Offset = ((int)chip.PWM_Cycle / 2) + 1;
             chip.PWM_Scale = (0x7FFF00 / chip.PWM_Offset);
         }
         //#endif
 
-
-        public void PWM_Set_Cycle(pwm_chip chip, uint cycle)
+        private void PWM_Set_Cycle(pwm_chip chip, uint cycle)
         {
             cycle--;
             chip.PWM_Cycle = (cycle & 0xFFF);
@@ -169,8 +167,7 @@ namespace MDSound
             //#endif
         }
 
-
-        public void PWM_Set_Int(pwm_chip chip, uint int_time)
+        private void PWM_Set_Int(pwm_chip chip, uint int_time)
         {
             int_time &= 0x0F;
             if (int_time != 0)
@@ -179,8 +176,7 @@ namespace MDSound
                 chip.PWM_Int = chip.PWM_Int_Cnt = 16;
         }
 
-
-        public void PWM_Clear_Timer(pwm_chip chip)
+        private void PWM_Clear_Timer(pwm_chip chip)
         {
             chip.PWM_Cycle_Cnt = 0;
         }
@@ -293,7 +289,7 @@ namespace MDSound
         }*/
 
 
-        public int PWM_Update_Scale(pwm_chip chip, int PWM_In)
+        private int PWM_Update_Scale(pwm_chip chip, int PWM_In)
         {
             if (PWM_In == 0)
                 return 0;
@@ -324,8 +320,7 @@ namespace MDSound
             //#endif
         }
 
-
-        public void PWM_Update(pwm_chip chip, int[][] buf, int length)
+        private void PWM_Update(pwm_chip chip, int[][] buf, int length)
         {
             int tmpOutL;
             int tmpOutR;
@@ -356,14 +351,17 @@ namespace MDSound
         }
 
 
-        public void pwm_update(byte ChipID, int[][] outputs, int samples)
+
+        public new const string Name = "PWM";
+
+        public override void Update(byte ChipID, int[][] outputs, int samples)
         {
             pwm_chip chip = PWM_Chip[ChipID];
 
             PWM_Update(chip, outputs, samples);
         }
 
-        public int device_start_pwm(byte ChipID, uint clock)
+        public override uint Start(byte ChipID, uint clock)
         {
             /* allocate memory for the chip */
             //pwm_state *chip = get_safe_token(device);
@@ -384,10 +382,10 @@ namespace MDSound
             /* allocate the stream */
             //chip->stream = stream_create(device, 0, 2, device->clock / 384, chip, rf5c68_update);
 
-            return rate;
+            return (uint)rate;
         }
 
-        public void device_stop_pwm(byte ChipID)
+        public override void Stop(byte ChipID)
         {
             //pwm_chip *chip = &PWM_Chip[ChipID];
             //free(chip->ram);
@@ -395,7 +393,7 @@ namespace MDSound
             return;
         }
 
-        public void device_reset_pwm(byte ChipID)
+        public override void Reset(byte ChipID)
         {
             pwm_chip chip = PWM_Chip[ChipID];
             PWM_Init(chip);
@@ -464,5 +462,6 @@ namespace MDSound
 
             return;
         }
+
     }
 }

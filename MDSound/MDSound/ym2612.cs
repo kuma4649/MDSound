@@ -2,7 +2,7 @@
 
 namespace MDSound
 {
-    public class ym2612
+    public class ym2612 : Instrument
     {
 
         // Change it if you need to do long update
@@ -1460,7 +1460,7 @@ namespace MDSound
             return 0;
         }
 
-        public int CHANNEL_SET(ym2612_ YM2612, int Adr, byte data)
+        private int CHANNEL_SET(ym2612_ YM2612, int Adr, byte data)
         {
             channel_ CH;
             int num;
@@ -1599,7 +1599,7 @@ namespace MDSound
             return 0;
         }
 
-        public int YM_SET(ym2612_ YM2612, int Adr, byte data)
+        private int YM_SET(ym2612_ YM2612, int Adr, byte data)
         {
             channel_ CH;
             int nch;
@@ -1740,7 +1740,7 @@ namespace MDSound
         }
 
         // Initialisation de l'駑ulateur YM2612
-        public ym2612_ YM2612_Init(uint Clock, uint Rate, int Interpolation)
+        private ym2612_ YM2612_Init(uint Clock, uint Rate, int Interpolation)
         {
             ym2612_ YM2612;
             int i, j;
@@ -1993,110 +1993,12 @@ namespace MDSound
             LFO_INC_TAB[6] = (int)(48.1 * (double)(1 << (LFO_HBITS + LFO_LBITS)) / j);
             LFO_INC_TAB[7] = (int)(72.2 * (double)(1 << (LFO_HBITS + LFO_LBITS)) / j);
 
-            YM2612_Reset(YM2612);
+            //YM2612_Reset(YM2612);
 
             return YM2612;
         }
 
-        public int YM2612_End(ym2612_ YM2612)
-        {
-            //free(YM2612);
-
-            //#if YM_DEBUG_LEVEL > 0
-            //  if(debug_file) fclose(debug_file);
-            //  debug_file = NULL;
-            //#endif
-
-            return 0;
-        }
-
-        public int YM2612_Reset(ym2612_ YM2612)
-        {
-            int i, j;
-
-#if DEBUG
-            //fprintf(debug_file, "\n\nStarting reseting YM2612 ...\n\n");
-#endif
-
-            YM2612.LFOcnt = 0;
-            YM2612.TimerA = 0;
-            YM2612.TimerAL = 0;
-            YM2612.TimerAcnt = 0;
-            YM2612.TimerB = 0;
-            YM2612.TimerBL = 0;
-            YM2612.TimerBcnt = 0;
-            YM2612.DAC = 0;
-            YM2612.DACdata = 0;
-            YM2612.dac_highpass = 0;
-
-            YM2612.Status = 0;
-
-            YM2612.OPNAadr = 0;
-            YM2612.OPNBadr = 0;
-            YM2612.Inter_Cnt = 0;
-
-            for (i = 0; i < 6; i++)
-            {
-                YM2612.CHANNEL[i].Old_OUTd = 0;
-                YM2612.CHANNEL[i].OUTd = 0;
-                YM2612.CHANNEL[i].LEFT = -1;// 0xFFFFFFFF;
-                YM2612.CHANNEL[i].RIGHT = -1;// 0xFFFFFFFF;
-                YM2612.CHANNEL[i].ALGO = 0; ;
-                YM2612.CHANNEL[i].FB = 31;
-                YM2612.CHANNEL[i].FMS = 0;
-                YM2612.CHANNEL[i].AMS = 0;
-
-                for (j = 0; j < 4; j++)
-                {
-                    YM2612.CHANNEL[i].S0_OUT[j] = 0;
-                    YM2612.CHANNEL[i].FNUM[j] = 0;
-                    YM2612.CHANNEL[i].FOCT[j] = 0;
-                    YM2612.CHANNEL[i].KC[j] = 0;
-
-                    YM2612.CHANNEL[i].SLOT[j].Fcnt = 0;
-                    YM2612.CHANNEL[i].SLOT[j].Finc = 0;
-                    YM2612.CHANNEL[i].SLOT[j].Ecnt = ENV_END;    // Put it at the end of Decay phase...
-                    YM2612.CHANNEL[i].SLOT[j].Einc = 0;
-                    YM2612.CHANNEL[i].SLOT[j].Ecmp = 0;
-                    YM2612.CHANNEL[i].SLOT[j].Ecurp = RELEASE;
-
-                    YM2612.CHANNEL[i].SLOT[j].ChgEnM = 0;
-                }
-            }
-
-            for (i = 0; i < 0x100; i++)
-            {
-                YM2612.REG[0][i] = -1;
-                YM2612.REG[1][i] = -1;
-            }
-
-            for (i = 0xB6; i >= 0xB4; i--)
-            {
-                YM2612_Write(YM2612, 0, (byte)i);
-                YM2612_Write(YM2612, 2, (byte)i);
-                YM2612_Write(YM2612, 1, 0xC0);
-                YM2612_Write(YM2612, 3, 0xC0);
-            }
-
-            for (i = 0xB2; i >= 0x22; i--)
-            {
-                YM2612_Write(YM2612, 0, (byte)i);
-                YM2612_Write(YM2612, 2, (byte)i);
-                YM2612_Write(YM2612, 1, 0);
-                YM2612_Write(YM2612, 3, 0);
-            }
-
-            YM2612_Write(YM2612, 0, 0x2A);
-            YM2612_Write(YM2612, 1, 0x80);
-
-#if DEBUG
-            //fprintf(debug_file, "\n\nFinishing reseting YM2612 ...\n\n");
-#endif
-
-            return 0;
-        }
-
-        public int YM2612_Read(ym2612_ YM2612)
+        private int YM2612_Read(ym2612_ YM2612)
         {
             /*  static int cnt = 0;
 
@@ -2110,86 +2012,7 @@ namespace MDSound
             return YM2612.Status;
         }
 
-        public int YM2612_Write(ym2612_ YM2612, byte adr, byte data)
-        {
-            int d;
-
-            data &= 0xFF;
-            adr &= 0x03;
-
-            switch (adr)
-            {
-                case 0:
-                    YM2612.OPNAadr = data;
-                    break;
-
-                case 1:
-                    // Trivial optimisation
-                    if (YM2612.OPNAadr == 0x2A)
-                    {
-                        YM2612.DACdata = data << DAC_SHIFT; //((int)data - 0x80) << DAC_SHIFT;
-                        return 0;
-                    }
-
-                    d = YM2612.OPNAadr & 0xF0;
-
-                    if (d >= 0x30)
-                    {
-                        if (YM2612.REG[0][YM2612.OPNAadr] == data) return 2;
-                        YM2612.REG[0][YM2612.OPNAadr] = data;
-
-                        //				if (GYM_Dumping) Update_GYM_Dump(1, YM2612.OPNAadr, data);
-
-                        if (d < 0xA0)    // SLOT
-                        {
-                            SLOT_SET(YM2612, YM2612.OPNAadr, data);
-                        }
-                        else        // CHANNEL
-                        {
-                            CHANNEL_SET(YM2612, YM2612.OPNAadr, data);
-                        }
-                    }
-                    else          // YM2612
-                    {
-                        YM2612.REG[0][YM2612.OPNAadr] = data;
-
-                        //				if ((GYM_Dumping) && ((YM2612.OPNAadr == 0x22) || (YM2612.OPNAadr == 0x27) || (YM2612.OPNAadr == 0x28))) Update_GYM_Dump(1, YM2612.OPNAadr, data);
-
-                        YM_SET(YM2612, YM2612.OPNAadr, data);
-                    }
-                    break;
-
-                case 2:
-                    YM2612.OPNBadr = data;
-                    break;
-
-                case 3:
-                    d = YM2612.OPNBadr & 0xF0;
-
-                    if (d >= 0x30)
-                    {
-                        if (YM2612.REG[1][YM2612.OPNBadr] == data) return 2;
-                        YM2612.REG[1][YM2612.OPNBadr] = data;
-
-                        //				if (GYM_Dumping) Update_GYM_Dump(2, YM2612.OPNBadr, data);
-
-                        if (d < 0xA0)    // SLOT
-                        {
-                            SLOT_SET(YM2612, YM2612.OPNBadr + 0x100, data);
-                        }
-                        else        // CHANNEL
-                        {
-                            CHANNEL_SET(YM2612, YM2612.OPNBadr + 0x100, data);
-                        }
-                    }
-                    else return 1;
-                    break;
-            }
-
-            return 0;
-        }
-
-        public void YM2612_Update(ym2612_ YM2612, int[][] buf, int length)
+        private void YM2612_Update(ym2612_ YM2612, int[][] buf, int length)
         {
             int i, j, algo_type;
 
@@ -2285,10 +2108,10 @@ namespace MDSound
                 YM2612.CHANNEL[2].fmVol[0] = vol[0];
                 YM2612.CHANNEL[2].fmVol[1] = vol[1];
             }
-                YM2612.CHANNEL[2].fmSlotVol[0] = (TL_TAB[SIN_TAB[(YM2612.in0 >> SIN_LBITS) & SIN_MASK] + YM2612.en0]) >> OUT_SHIFT;
-                YM2612.CHANNEL[2].fmSlotVol[1] = (TL_TAB[SIN_TAB[(YM2612.in1 >> SIN_LBITS) & SIN_MASK] + YM2612.en1]) >> OUT_SHIFT;
-                YM2612.CHANNEL[2].fmSlotVol[2] = (TL_TAB[SIN_TAB[(YM2612.in2 >> SIN_LBITS) & SIN_MASK] + YM2612.en2]) >> OUT_SHIFT;
-                YM2612.CHANNEL[2].fmSlotVol[3] = (TL_TAB[SIN_TAB[(YM2612.in3 >> SIN_LBITS) & SIN_MASK] + YM2612.en3]) >> OUT_SHIFT;
+            YM2612.CHANNEL[2].fmSlotVol[0] = (TL_TAB[SIN_TAB[(YM2612.in0 >> SIN_LBITS) & SIN_MASK] + YM2612.en0]) >> OUT_SHIFT;
+            YM2612.CHANNEL[2].fmSlotVol[1] = (TL_TAB[SIN_TAB[(YM2612.in1 >> SIN_LBITS) & SIN_MASK] + YM2612.en1]) >> OUT_SHIFT;
+            YM2612.CHANNEL[2].fmSlotVol[2] = (TL_TAB[SIN_TAB[(YM2612.in2 >> SIN_LBITS) & SIN_MASK] + YM2612.en2]) >> OUT_SHIFT;
+            YM2612.CHANNEL[2].fmSlotVol[3] = (TL_TAB[SIN_TAB[(YM2612.in3 >> SIN_LBITS) & SIN_MASK] + YM2612.en3]) >> OUT_SHIFT;
 
             if (YM2612.CHANNEL[3].Mute == 0)
             {
@@ -2330,7 +2153,7 @@ namespace MDSound
         //, highpass_shift = 9
         //}; // higher values reduce highpass on DAC
 
-        public void YM2612_DacAndTimers_Update(ym2612_ YM2612, int[][] buffer, int length)
+        private void YM2612_DacAndTimers_Update(ym2612_ YM2612, int[][] buffer, int length)
         {
             int[] bufL, bufR;
             int i;
@@ -2393,7 +2216,7 @@ namespace MDSound
 
         /* Gens */
 
-        public void YM2612_Special_Update(ym2612_ YM2612)
+        private void YM2612_Special_Update(ym2612_ YM2612)
         {
             /*
             if (YM_Len && YM2612_Enable)
@@ -2407,8 +2230,224 @@ namespace MDSound
             */
         }
 
-        public void YM2612_SetMute(ym2612_ YM2612, int val)
+
+
+
+        private const int MAX_CHIPS = 2;
+        private const uint DefaultFMClockValue = 7670454;
+
+        public ym2612_[] YM2612_Chip = new ym2612_[MAX_CHIPS] { null, null };
+        public new const string Name = "YM2612";
+
+        public override uint Start(byte ChipID, uint clock)
         {
+            ym2612_ ym2612 = YM2612_Init(DefaultFMClockValue, clock, 0);
+            YM2612_Chip[ChipID] = ym2612;
+            Reset(ChipID);
+
+            return clock;
+        }
+
+        public uint Start(byte ChipID, uint clock,uint FMClockValue)
+        {
+            ym2612_ ym2612 = YM2612_Init(FMClockValue, clock, 0);
+            YM2612_Chip[ChipID] = ym2612;
+            Reset(ChipID);
+
+            return clock;
+        }
+
+        public override void Stop(byte ChipID)
+        {
+            YM2612_Chip[ChipID] = null;
+
+            //free(YM2612);
+
+            //#if YM_DEBUG_LEVEL > 0
+            //  if(debug_file) fclose(debug_file);
+            //  debug_file = NULL;
+            //#endif
+
+        }
+
+        public override void Reset(byte ChipID)
+        {
+            ym2612_ YM2612 = YM2612_Chip[ChipID];
+            int i, j;
+
+#if DEBUG
+            //fprintf(debug_file, "\n\nStarting reseting YM2612 ...\n\n");
+#endif
+
+            YM2612.LFOcnt = 0;
+            YM2612.TimerA = 0;
+            YM2612.TimerAL = 0;
+            YM2612.TimerAcnt = 0;
+            YM2612.TimerB = 0;
+            YM2612.TimerBL = 0;
+            YM2612.TimerBcnt = 0;
+            YM2612.DAC = 0;
+            YM2612.DACdata = 0;
+            YM2612.dac_highpass = 0;
+
+            YM2612.Status = 0;
+
+            YM2612.OPNAadr = 0;
+            YM2612.OPNBadr = 0;
+            YM2612.Inter_Cnt = 0;
+
+            for (i = 0; i < 6; i++)
+            {
+                YM2612.CHANNEL[i].Old_OUTd = 0;
+                YM2612.CHANNEL[i].OUTd = 0;
+                YM2612.CHANNEL[i].LEFT = -1;// 0xFFFFFFFF;
+                YM2612.CHANNEL[i].RIGHT = -1;// 0xFFFFFFFF;
+                YM2612.CHANNEL[i].ALGO = 0; ;
+                YM2612.CHANNEL[i].FB = 31;
+                YM2612.CHANNEL[i].FMS = 0;
+                YM2612.CHANNEL[i].AMS = 0;
+
+                for (j = 0; j < 4; j++)
+                {
+                    YM2612.CHANNEL[i].S0_OUT[j] = 0;
+                    YM2612.CHANNEL[i].FNUM[j] = 0;
+                    YM2612.CHANNEL[i].FOCT[j] = 0;
+                    YM2612.CHANNEL[i].KC[j] = 0;
+
+                    YM2612.CHANNEL[i].SLOT[j].Fcnt = 0;
+                    YM2612.CHANNEL[i].SLOT[j].Finc = 0;
+                    YM2612.CHANNEL[i].SLOT[j].Ecnt = ENV_END;    // Put it at the end of Decay phase...
+                    YM2612.CHANNEL[i].SLOT[j].Einc = 0;
+                    YM2612.CHANNEL[i].SLOT[j].Ecmp = 0;
+                    YM2612.CHANNEL[i].SLOT[j].Ecurp = RELEASE;
+
+                    YM2612.CHANNEL[i].SLOT[j].ChgEnM = 0;
+                }
+            }
+
+            for (i = 0; i < 0x100; i++)
+            {
+                YM2612.REG[0][i] = -1;
+                YM2612.REG[1][i] = -1;
+            }
+
+            for (i = 0xB6; i >= 0xB4; i--)
+            {
+                YM2612_Write(ChipID, 0, (byte)i);
+                YM2612_Write(ChipID, 2, (byte)i);
+                YM2612_Write(ChipID, 1, 0xC0);
+                YM2612_Write(ChipID, 3, 0xC0);
+            }
+
+            for (i = 0xB2; i >= 0x22; i--)
+            {
+                YM2612_Write(ChipID, 0, (byte)i);
+                YM2612_Write(ChipID, 2, (byte)i);
+                YM2612_Write(ChipID, 1, 0);
+                YM2612_Write(ChipID, 3, 0);
+            }
+
+            YM2612_Write(ChipID, 0, 0x2A);
+            YM2612_Write(ChipID, 1, 0x80);
+
+#if DEBUG
+            //fprintf(debug_file, "\n\nFinishing reseting YM2612 ...\n\n");
+#endif
+
+        }
+
+        public override void Update(byte ChipID, int[][] outputs, int samples)
+        {
+            ym2612_ YM2612 = YM2612_Chip[ChipID];
+            YM2612_Update(YM2612, outputs, samples);
+            YM2612_DacAndTimers_Update(YM2612, outputs, samples);
+        }
+
+        public int YM2612_Write(byte ChipID, byte adr, byte data)
+        {
+            ym2612_ YM2612 = YM2612_Chip[ChipID];
+
+            int d;
+
+            data &= 0xFF;
+            adr &= 0x03;
+
+            switch (adr)
+            {
+                case 0:
+                    YM2612.OPNAadr = data;
+                    break;
+
+                case 1:
+                    // Trivial optimisation
+                    if (YM2612.OPNAadr == 0x2A)
+                    {
+                        YM2612.DACdata = data << DAC_SHIFT; //((int)data - 0x80) << DAC_SHIFT;
+                        return 0;
+                    }
+
+                    d = YM2612.OPNAadr & 0xF0;
+
+                    if (d >= 0x30)
+                    {
+                        if (YM2612.REG[0][YM2612.OPNAadr] == data) return 2;
+                        YM2612.REG[0][YM2612.OPNAadr] = data;
+
+                        //				if (GYM_Dumping) Update_GYM_Dump(1, YM2612.OPNAadr, data);
+
+                        if (d < 0xA0)    // SLOT
+                        {
+                            SLOT_SET(YM2612, YM2612.OPNAadr, data);
+                        }
+                        else        // CHANNEL
+                        {
+                            CHANNEL_SET(YM2612, YM2612.OPNAadr, data);
+                        }
+                    }
+                    else          // YM2612
+                    {
+                        YM2612.REG[0][YM2612.OPNAadr] = data;
+
+                        //				if ((GYM_Dumping) && ((YM2612.OPNAadr == 0x22) || (YM2612.OPNAadr == 0x27) || (YM2612.OPNAadr == 0x28))) Update_GYM_Dump(1, YM2612.OPNAadr, data);
+
+                        YM_SET(YM2612, YM2612.OPNAadr, data);
+                    }
+                    break;
+
+                case 2:
+                    YM2612.OPNBadr = data;
+                    break;
+
+                case 3:
+                    d = YM2612.OPNBadr & 0xF0;
+
+                    if (d >= 0x30)
+                    {
+                        if (YM2612.REG[1][YM2612.OPNBadr] == data) return 2;
+                        YM2612.REG[1][YM2612.OPNBadr] = data;
+
+                        //				if (GYM_Dumping) Update_GYM_Dump(2, YM2612.OPNBadr, data);
+
+                        if (d < 0xA0)    // SLOT
+                        {
+                            SLOT_SET(YM2612, YM2612.OPNBadr + 0x100, data);
+                        }
+                        else        // CHANNEL
+                        {
+                            CHANNEL_SET(YM2612, YM2612.OPNBadr + 0x100, data);
+                        }
+                    }
+                    else return 1;
+                    break;
+            }
+
+            return 0;
+        }
+
+        public void YM2612_SetMute(byte ChipID, int val)
+        {
+            ym2612_ YM2612 = YM2612_Chip[ChipID];
+
             YM2612.CHANNEL[0].Mute = val & 1;
             YM2612.CHANNEL[1].Mute = val & 2;
             YM2612.CHANNEL[2].Mute = val & 4;

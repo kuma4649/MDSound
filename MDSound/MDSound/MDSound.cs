@@ -8,26 +8,42 @@ namespace MDSound
 {
     public class MDSound
     {
+
         private const uint DefaultSamplingRate = 44100;
         private const uint DefaultSamplingBuffer = 512;
+
         private const uint DefaultPSGClockValue = 3579545;
         private const uint DefaultFMClockValue = 7670454;
         private const uint DefaultRf5c164ClockValue = 12500000;
         private const uint DefaultPwmClockValue = 23011361;
+        private const uint DefaultC140ClockValue = 21390;
+        private const c140.C140_TYPE DefaultC140Type = c140.C140_TYPE.ASIC219;
 
         private uint SamplingRate = 44100;
         private uint SamplingBuffer = 512;
-        private uint PSGClockValue = 3579545;
-        private uint FMClockValue = 7670454;
-        private uint rf5c164ClockValue = 12500000;
-        private uint pwmClockValue = 23011361;
+
+        private uint[] PSGClockValue = new uint[2] { 3579545, 3579545 };
+        private uint[] FMClockValue = new uint[2] { 7670454, 7670454 };
+        private uint[] rf5c164ClockValue = new uint[2] { 12500000, 12500000 };
+        private uint[] pwmClockValue = new uint[2] { 23011361, 23011361 };
+        private uint[] c140ClockValue = new uint[2] { 21390, 21390 };
+        private c140.C140_TYPE[] c140Type = new c140.C140_TYPE[2] { c140.C140_TYPE.ASIC219, c140.C140_TYPE.ASIC219 };
+
+        private int[] YM2612Volume = new int[2] { 170, 170 };
+        private int[] SN76489Volume = new int[2] { 100, 100 };
+        private int[] RF5C164Volume = new int[2] { 90, 90 };
+        private int[] PWMVolume =new int[2] { 100, 100 };
+        private int[] C140Volume = new int[2] { 100, 100 };
+
+
+        private Chip[] insts = null;
 
         private sn76489 sn76489 = null;
-        private SN76489_Context sn76489_context = null;
         private ym2612 ym2612 = null;
-        private ym2612_ ym2612_ = null;
         private scd_pcm rf5c164 = null;
         private pwm pwm = null;
+        private c140 c140 = null;
+
         private int[][] buffer = null;
         private int[][] buffer2 = null;
         private int psgMask = 15;// psgはmuteを基準にしているのでビットが逆です
@@ -41,71 +57,41 @@ namespace MDSound
         private bool incFlag = false;
         private object lockobj = new object();
 
-        private int YM2612Volume = 170;
-        private int SN76489Volume = 100;
-        private int RF5C164Volume =90;
-        private int PWMVolume = 100;
+        public enum enmInstrumentType : int
+        {
+            None=0,
+            YM2612,
+            SN76489,
+            RF5C164,
+            PWM,
+            C140
+        }
 
-
+        public class Chip
+        {
+            public enmInstrumentType type = enmInstrumentType.None;
+            public byte ID = 0;
+            public uint ClockValue = 0;
+            public object[] OptionValues = null;
+        }
 
         public MDSound()
         {
-            Init(DefaultSamplingRate, DefaultSamplingBuffer, DefaultFMClockValue, DefaultPSGClockValue, DefaultRf5c164ClockValue, DefaultPwmClockValue);
+            Init(DefaultSamplingRate, DefaultSamplingBuffer, null);
         }
 
-        public MDSound(uint SamplingRate, uint SamplingBuffer, uint FMClockValue, uint PSGClockValue, uint rf5c164ClockValue, uint pwmClockValue)
+        public MDSound(uint SamplingRate, uint SamplingBuffer, Chip[] insts)
         {
-            Init(SamplingRate, SamplingBuffer, FMClockValue, PSGClockValue, rf5c164ClockValue, pwmClockValue);
+            Init(SamplingRate, SamplingBuffer, insts);
         }
 
-        public void setVolume(int ym2612Vol , int sn76489Vol , int rf5c164Vol , int pwmVol)
-        {
-            YM2612Volume = ym2612Vol;
-            SN76489Volume = sn76489Vol;
-            RF5C164Volume = rf5c164Vol;
-            PWMVolume = pwmVol;
-        }
-
-    public void Init(uint SamplingRate, uint SamplingBuffer, uint FMClockValue, uint PSGClockValue, uint rf5c164ClockValue, uint pwmClockValue)
+        public void Init(uint SamplingRate,uint SamplingBuffer, Chip[] insts)
         {
             lock (lockobj)
             {
                 this.SamplingRate = SamplingRate;
                 this.SamplingBuffer = SamplingBuffer;
-                this.PSGClockValue = PSGClockValue;
-                this.FMClockValue = FMClockValue;
-                this.rf5c164ClockValue = rf5c164ClockValue;
-                this.pwmClockValue = pwmClockValue;
-
-                sn76489 = null;
-                if (PSGClockValue != uint.MaxValue && PSGClockValue != 0)
-                {
-                    sn76489 = new sn76489();
-                    sn76489_context = sn76489.SN76489_Init(PSGClockValue, SamplingRate);
-                    sn76489.SN76489_Reset(sn76489_context);
-                }
-
-                ym2612 = null;
-                if (FMClockValue != uint.MaxValue && FMClockValue!=0)
-                {
-                    ym2612 = new ym2612();
-                    ym2612_ = ym2612.YM2612_Init(FMClockValue, SamplingRate, 0);
-                    ym2612.YM2612_Reset(ym2612_);
-                }
-
-                rf5c164 = null;
-                if (rf5c164ClockValue != uint.MaxValue && rf5c164ClockValue!=0)
-                {
-                    rf5c164 = new scd_pcm();
-                    rf5c164.device_start_rf5c164(0, rf5c164ClockValue);
-                }
-
-                pwm = null;
-                if (pwmClockValue != uint.MaxValue && pwmClockValue != 0)
-                {
-                    pwm = new pwm();
-                    pwm.device_start_pwm(0, pwmClockValue);
-                }
+                this.insts = insts;
 
                 buffer = new int[2][] { new int[SamplingBuffer], new int[SamplingBuffer] };
                 buffer2 = new int[2][] { new int[1], new int[1] };
@@ -114,23 +100,81 @@ namespace MDSound
                 fmMask = 0;
 
                 incFlag = false;
+
+
+                ym2612 = null;
+                sn76489 = null;
+                rf5c164 = null;
+                pwm = null;
+                c140 = null;
+
+                if (insts == null) return;
+
+                foreach (Chip inst in insts)
+                {
+                    switch (inst.type) {
+                        case enmInstrumentType.YM2612:
+                            if (inst.ClockValue != uint.MaxValue && inst.ClockValue != 0)
+                            {
+                                FMClockValue[inst.ID] = inst.ClockValue;
+                                if (ym2612 == null) ym2612 = new ym2612();
+                                ym2612.Start(inst.ID, SamplingRate, FMClockValue[inst.ID]);
+                                ym2612.Reset(inst.ID);
+                            }
+                            break;
+                        case enmInstrumentType.SN76489:
+                            if (inst.ClockValue != uint.MaxValue && inst.ClockValue != 0)
+                            {
+                                PSGClockValue[inst.ID] = inst.ClockValue;
+                                if (sn76489 == null) sn76489 = new sn76489();
+                                sn76489.Start(inst.ID, SamplingRate, PSGClockValue[inst.ID]);
+                                sn76489.Reset(inst.ID);
+                            }
+                            break;
+                        case enmInstrumentType.RF5C164:
+                            if (inst.ClockValue != uint.MaxValue && inst.ClockValue != 0)
+                            {
+                                rf5c164ClockValue[inst.ID] = inst.ClockValue;
+                                if (rf5c164 == null) rf5c164 = new scd_pcm();
+                                rf5c164.Start(inst.ID, rf5c164ClockValue[inst.ID]);
+                            }
+                            break;
+                        case enmInstrumentType.PWM:
+                            if (inst.ClockValue != uint.MaxValue && inst.ClockValue != 0)
+                            {
+                                pwmClockValue [inst.ID]= inst.ClockValue;
+                                if (pwm == null) pwm = new pwm();
+                                pwm.Start(inst.ID, pwmClockValue[inst.ID]);
+                            }
+                            break;
+                        case enmInstrumentType.C140:
+                            if (inst.ClockValue != uint.MaxValue && inst.ClockValue != 0)
+                            {
+                                c140ClockValue[inst.ID] = inst.ClockValue;
+                                c140Type[inst.ID] = (c140.C140_TYPE)inst.OptionValues[0];
+                                if (c140 == null) c140 = new c140();
+                                c140.Start(inst.ID, c140ClockValue[inst.ID], c140Type[inst.ID]);
+                            }
+                            break;
+                    }
+                }
+
             }
         }
 
         public int[][] Update()
         {
 
-            lock(lockobj)
+            lock (lockobj)
             {
-                if (sn76489 != null) sn76489.SN76489_Update(sn76489_context, buffer, (int)SamplingBuffer);
-                if (ym2612 != null) ym2612.YM2612_Update(ym2612_, buffer, (int)SamplingBuffer);
-                if (ym2612 != null) ym2612.YM2612_DacAndTimers_Update(ym2612_, buffer, (int)SamplingBuffer);
+                if (sn76489 != null) sn76489.Update(0, buffer, (int)SamplingBuffer);
+                if (ym2612 != null) ym2612.Update(0, buffer, (int)SamplingBuffer);
 
                 int[][] pcmBuffer = new int[2][] { new int[SamplingBuffer], new int[SamplingBuffer] };
 
                 if (rf5c164 != null)
                 {
-                    rf5c164.rf5c164_update(0, pcmBuffer, (int)SamplingBuffer);
+                    rf5c164.Update(0, pcmBuffer, (int)SamplingBuffer);
                     for (int i = 0; i < SamplingBuffer; i++)
                     {
                         buffer[0][i] += pcmBuffer[0][i];
@@ -140,7 +184,17 @@ namespace MDSound
 
                 if (pwm != null)
                 {
-                    pwm.pwm_update(0, pcmBuffer, (int)SamplingBuffer);
+                    pwm.Update(0, pcmBuffer, (int)SamplingBuffer);
+                    for (int i = 0; i < SamplingBuffer; i++)
+                    {
+                        buffer[0][i] += pcmBuffer[0][i];
+                        buffer[1][i] += pcmBuffer[1][i];
+                    }
+                }
+
+                if (c140 != null)
+                {
+                    c140.Update(0, pcmBuffer, (int)SamplingBuffer);
                     for (int i = 0; i < SamplingBuffer; i++)
                     {
                         buffer[0][i] += pcmBuffer[0][i];
@@ -154,7 +208,7 @@ namespace MDSound
 
         public int Update2(short[] buf, int offset, int sampleCount, Action frame)
         {
-            lock(lockobj)
+            lock (lockobj)
             {
                 int a, b;
 
@@ -186,46 +240,45 @@ namespace MDSound
                     a = 0;
                     b = 0;
 
-                    if (sn76489 != null)
+                    foreach (Chip inst in insts)
                     {
-                        buffer2[0][0] = 0;
-                        buffer2[1][0] = 0;
-                        sn76489.SN76489_Update(sn76489_context, buffer2, 1);
-                        a += (int)(buffer2[0][0] * SN76489Volume / 100.0);
-                        b += (int)(buffer2[1][0] * SN76489Volume / 100.0);
-                    }
-
-                    if (ym2612 != null)
-                    {
-                        buffer2[0][0] = 0;
-                        buffer2[1][0] = 0;
-                        ym2612.YM2612_Update(ym2612_, buffer2, 1);
-                        a += (int)(buffer2[0][0] * YM2612Volume / 100.0);
-                        b += (int)(buffer2[1][0] * YM2612Volume / 100.0);
-
-                        buffer2[0][0] = 0;
-                        buffer2[1][0] = 0;
-                        ym2612.YM2612_DacAndTimers_Update(ym2612_, buffer2, 1);
-                        a += (int)(buffer2[0][0] * YM2612Volume / 100.0);
-                        b += (int)(buffer2[1][0] * YM2612Volume / 100.0);
-                    }
-
-                    if (rf5c164 != null)
-                    {
-                        buffer2[0][0] = 0;
-                        buffer2[1][0] = 0;
-                        rf5c164.rf5c164_update(0, buffer2, 1);
-                        a += (int)(buffer2[0][0] * RF5C164Volume / 100.0);
-                        b += (int)(buffer2[1][0] * RF5C164Volume / 100.0);
-                    }
-
-                    if (pwm != null)
-                    {
-                        buffer2[0][0] = 0;
-                        buffer2[1][0] = 0;
-                        pwm.pwm_update(0, buffer2, 1);
-                        a += (int)(buffer2[0][0] * PWMVolume / 100.0);
-                        b += (int)(buffer2[1][0] * PWMVolume / 100.0);
+                        switch (inst.type) {
+                            case enmInstrumentType.SN76489:
+                                buffer2[0][0] = 0;
+                                buffer2[1][0] = 0;
+                                sn76489.Update(inst.ID, buffer2, 1);
+                                a += (int)(buffer2[0][0] * SN76489Volume[inst.ID] / 100.0);
+                                b += (int)(buffer2[1][0] * SN76489Volume[inst.ID] / 100.0);
+                                break;
+                            case enmInstrumentType.YM2612:
+                                buffer2[0][0] = 0;
+                                buffer2[1][0] = 0;
+                                ym2612.Update(0, buffer2, 1);
+                                a += (int)(buffer2[0][0] * YM2612Volume[inst.ID] / 100.0);
+                                b += (int)(buffer2[1][0] * YM2612Volume[inst.ID] / 100.0);
+                                break;
+                            case enmInstrumentType.RF5C164:
+                                buffer2[0][0] = 0;
+                                buffer2[1][0] = 0;
+                                rf5c164.Update(0, buffer2, 1);
+                                a += (int)(buffer2[0][0] * RF5C164Volume[inst.ID] / 100.0);
+                                b += (int)(buffer2[1][0] * RF5C164Volume[inst.ID] / 100.0);
+                                break;
+                            case enmInstrumentType.PWM:
+                                buffer2[0][0] = 0;
+                                buffer2[1][0] = 0;
+                                pwm.Update(0, buffer2, 1);
+                                a += (int)(buffer2[0][0] * PWMVolume[inst.ID] / 100.0);
+                                b += (int)(buffer2[1][0] * PWMVolume[inst.ID] / 100.0);
+                                break;
+                            case enmInstrumentType.C140:
+                                buffer2[0][0] = 0;
+                                buffer2[1][0] = 0;
+                                c140.Update(0, buffer2, 1);
+                                a += (int)(buffer2[0][0] * C140Volume[inst.ID] / 100.0);
+                                b += (int)(buffer2[1][0] * C140Volume[inst.ID] / 100.0);
+                                break;
+                        }
                     }
 
                     if (incFlag)
@@ -241,19 +294,19 @@ namespace MDSound
 
                     for (int ch = 0; ch < 6; ch++)
                     {
-                        fmVol[ch][0] = Math.Max(fmVol[ch][0], ym2612_.CHANNEL[ch].fmVol[0]);
-                        fmVol[ch][1] = Math.Max(fmVol[ch][1], ym2612_.CHANNEL[ch].fmVol[1]);
+                        fmVol[ch][0] = Math.Max(fmVol[ch][0], ym2612.YM2612_Chip[0].CHANNEL[ch].fmVol[0]);
+                        fmVol[ch][1] = Math.Max(fmVol[ch][1], ym2612.YM2612_Chip[0].CHANNEL[ch].fmVol[1]);
                     }
 
                     for (int slot = 0; slot < 4; slot++)
                     {
-                        fmCh3SlotVol[slot] = Math.Max(fmCh3SlotVol[slot], ym2612_.CHANNEL[2].fmSlotVol[slot]);
+                        fmCh3SlotVol[slot] = Math.Max(fmCh3SlotVol[slot], ym2612.YM2612_Chip[0].CHANNEL[2].fmSlotVol[slot]);
                     }
 
                     for (int ch = 0; ch < 4; ch++)
                     {
-                        psgVol[ch][0] = Math.Max(psgVol[ch][0], sn76489_context.volume[ch][0]);
-                        psgVol[ch][1] = Math.Max(psgVol[ch][1], sn76489_context.volume[ch][0]);
+                        psgVol[ch][0] = Math.Max(psgVol[ch][0], sn76489.SN76489_Chip[0].volume[ch][0]);
+                        psgVol[ch][1] = Math.Max(psgVol[ch][1], sn76489.SN76489_Chip[0].volume[ch][0]);
                     }
 
                     for (int ch = 0; ch < 8; ch++)
@@ -269,13 +322,37 @@ namespace MDSound
             }
         }
 
+
+        public void setVolume(enmInstrumentType type, byte ChipID, int vol)
+        {
+            switch (type)
+            {
+                case enmInstrumentType.SN76489:
+                    SN76489Volume[ChipID] = vol;
+                    break;
+                case enmInstrumentType.YM2612:
+                    YM2612Volume[ChipID] = vol;
+                    break;
+                case enmInstrumentType.RF5C164:
+                    RF5C164Volume[ChipID] = vol;
+                    break;
+                case enmInstrumentType.PWM:
+                    PWMVolume[ChipID] = vol;
+                    break;
+                case enmInstrumentType.C140:
+                    C140Volume[ChipID] = vol;
+                    break;
+            }
+        }
+        
+
         public void WriteSN76489(byte data)
         {
             lock (lockobj)
             {
                 if (sn76489 == null) return;
 
-                sn76489.SN76489_Write(sn76489_context, data);
+                sn76489.SN76489_Write(0, data);
             }
         }
 
@@ -285,8 +362,8 @@ namespace MDSound
             {
                 if (ym2612 == null) return;
 
-                ym2612.YM2612_Write(ym2612_, (byte)(0 + (port & 1) * 2), adr);
-                ym2612.YM2612_Write(ym2612_, (byte)(1 + (port & 1) * 2), data);
+                ym2612.YM2612_Write(0, (byte)(0 + (port & 1) * 2), adr);
+                ym2612.YM2612_Write(0, (byte)(1 + (port & 1) * 2), data);
             }
         }
 
@@ -306,7 +383,7 @@ namespace MDSound
             {
                 if (rf5c164 == null) return;
 
-                rf5c164.PCM_Write_Reg(chipid, adr, data);
+                rf5c164.rf5c164_w(chipid, adr, data);
             }
         }
 
@@ -330,11 +407,32 @@ namespace MDSound
             }
         }
 
+        public void WriteC140(byte chipid, uint offset, byte data)
+        {
+            lock (lockobj)
+            {
+                if (c140 == null) return;
+
+                c140.c140_w(chipid, offset, data);
+            }
+        }
+
+        public void WriteC140PCMData(byte chipid, uint ROMSize, uint DataStart, uint DataLength, byte[] ROMData, uint SrcStartAdr)
+        {
+            lock (lockobj)
+            {
+                if (c140 == null) return;
+
+                c140.c140_write_rom2(chipid, ROMSize, DataStart, DataLength, ROMData, SrcStartAdr);
+            }
+        }
+        
+
         public int[] ReadPSGRegister()
         {
             lock (lockobj)
             {
-                return sn76489_context.Registers;
+                return sn76489.SN76489_Chip[0].Registers;
             }
         }
 
@@ -342,7 +440,7 @@ namespace MDSound
         {
             lock (lockobj)
             {
-                return ym2612_.REG;
+                return ym2612.YM2612_Chip[0].REG;
             }
         }
 
@@ -393,18 +491,19 @@ namespace MDSound
             {
                 for (int i = 0; i < 6; i++)
                 {
-                    fmKey[i] = ym2612_.CHANNEL[i].KeyOn;
+                    fmKey[i] = ym2612.YM2612_Chip[0].CHANNEL[i].KeyOn;
                 }
                 return fmKey;
             }
         }
+
 
         public void setPSGMask(int ch)
         {
             lock (lockobj)
             {
                 psgMask &= ~ch;
-                if (sn76489 != null) sn76489.SN76489_SetMute(sn76489_context, psgMask);
+                if (sn76489 != null) sn76489.SN76489_SetMute(0,psgMask);
             }
         }
 
@@ -413,7 +512,7 @@ namespace MDSound
             lock (lockobj)
             {
                 fmMask |= ch;
-                if (ym2612 != null) ym2612.YM2612_SetMute(ym2612_, fmMask);
+                if (ym2612 != null) ym2612.YM2612_SetMute(0, fmMask);
             }
         }
 
@@ -422,7 +521,7 @@ namespace MDSound
             lock (lockobj)
             {
                 psgMask |= ch;
-                if (sn76489 != null) sn76489.SN76489_SetMute(sn76489_context, psgMask);
+                if (sn76489 != null) sn76489.SN76489_SetMute(0, psgMask);
             }
         }
 
@@ -431,9 +530,10 @@ namespace MDSound
             lock (lockobj)
             {
                 fmMask &= ~ch;
-                if (ym2612 != null) ym2612.YM2612_SetMute(ym2612_, fmMask);
+                if (ym2612 != null) ym2612.YM2612_SetMute(0, fmMask);
             }
         }
+
 
         public int getTotalVolumeL()
         {

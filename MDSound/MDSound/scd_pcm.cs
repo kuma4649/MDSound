@@ -5,7 +5,7 @@ using System.Text;
 
 namespace MDSound
 {
-    public class scd_pcm
+    public class scd_pcm : Instrument
     {
         public class pcm_chip_
         {
@@ -39,9 +39,6 @@ namespace MDSound
 
         private const int PCM_STEP_SHIFT = 11;
 
-        public byte CHIP_SAMPLING_MODE=0;
-        public uint CHIP_SAMPLE_RATE= 0;
-
         //private const int MAX_CHIPS = 0x02;
 
         public pcm_chip_[] PCM_Chip = new pcm_chip_[0x02] { new pcm_chip_(), new pcm_chip_() };//MAX_CHIPS
@@ -51,7 +48,7 @@ namespace MDSound
          * @param Rate Sample rate.
          * @return 0 if successful.
          */
-        public int PCM_Init(byte ChipID, uint Rate)
+        private int PCM_Init(byte ChipID, uint Rate)
         {
             pcm_chip_ chip = PCM_Chip[ChipID];
             int i;
@@ -68,11 +65,10 @@ namespace MDSound
             return 0;
         }
 
-
         /**
          * PCM_Reset(): Reset the PCM chip.
          */
-        public void PCM_Reset(byte ChipID)
+        private void PCM_Reset(byte ChipID)
         {
             pcm_chip_ chip = PCM_Chip[ChipID];
             int i;
@@ -101,12 +97,11 @@ namespace MDSound
             }
         }
 
-
         /**
          * PCM_Set_Rate(): Change the PCM sample rate.
          * @param Rate New sample rate.
          */
-        public void PCM_Set_Rate(byte ChipID, uint Rate)
+        private void PCM_Set_Rate(byte ChipID, uint Rate)
         {
             pcm_chip_ chip = PCM_Chip[ChipID];
             int i;
@@ -124,13 +119,12 @@ namespace MDSound
             }
         }
 
-
         /**
          * PCM_Write_Reg(): Write to a PCM register.
          * @param Reg Register ID.
          * @param Data Data to write.
          */
-        public void PCM_Write_Reg(byte ChipID, uint Reg, uint Data)
+        private void PCM_Write_Reg(byte ChipID, uint Reg, uint Data)
         {
             pcm_chip_ chip = PCM_Chip[ChipID];
             int i;
@@ -252,13 +246,12 @@ namespace MDSound
             }
         }
 
-
         /**
          * PCM_Update(): Update the PCM buffer.
          * @param buf PCM buffer.
          * @param Length Buffer length.
          */
-        public int PCM_Update(byte ChipID, int[][] buf, int Length)
+        private int PCM_Update(byte ChipID, int[][] buf, int Length)
         {
             pcm_chip_ chip = PCM_Chip[ChipID];
             int i, j;
@@ -348,14 +341,17 @@ namespace MDSound
         }
 
 
-        public void rf5c164_update(byte ChipID, int[][] outputs, int samples)
+
+        public new const string Name = "RF5C164";
+
+        public override void Update(byte ChipID, int[][] outputs, int samples)
         {
             pcm_chip_ chip = PCM_Chip[ChipID];
 
             PCM_Update(ChipID, outputs, samples);
         }
 
-        public uint device_start_rf5c164(byte ChipID, uint clock)
+        public override uint Start(byte ChipID, uint clock)
         {
             /* allocate memory for the chip */
             //rf5c164_state *chip = get_safe_token(device);
@@ -380,7 +376,7 @@ namespace MDSound
             return rate;
         }
 
-        public void device_stop_rf5c164(byte ChipID)
+        public override void Stop(byte ChipID)
         {
             pcm_chip_ chip = PCM_Chip[ChipID];
             //free(chip->RAM);
@@ -389,11 +385,12 @@ namespace MDSound
             return;
         }
 
-        public void device_reset_rf5c164(byte ChipID)
+        public override void Reset(byte ChipID)
         {
             //struct pcm_chip_ *chip = &PCM_Chip[ChipID];
             PCM_Reset(ChipID);
         }
+
 
         public void rf5c164_w(byte ChipID, uint offset, byte data)
         {
@@ -442,7 +439,6 @@ namespace MDSound
 
             return;
         }
-
 
         public void rf5c164_set_mute_mask(byte ChipID, uint MuteMask)
         {

@@ -4,8 +4,41 @@ using System.Collections.ObjectModel;
 namespace MDSound
 {
 
-    public class sn76489
+    public class sn76489 :Instrument
     {
+
+        public class SN76489_Context
+        {
+            public int Mute; // per-channel muting
+            public int BoostNoise; // double noise volume when non-zero
+
+            /* Variables */
+            public float Clock;
+            public float dClock;
+            public int PSGStereo;
+            public int NumClocksForSample;
+            public sn76489.feedback_patterns WhiteNoiseFeedback;
+            public sn76489.sr_widths SRWidth;
+
+            /* PSG registers: */
+            public int[] Registers = new int[8];        /* Tone, vol x4 */
+            public int LatchedRegister;
+            public int NoiseShiftRegister;
+            public int NoiseFreq;            /* Noise channel signal generator frequency */
+
+            /* Output calculation variables */
+            public int[] ToneFreqVals = new int[4];      /* Frequency register values (counters) */
+            public int[] ToneFreqPos = new int[4];        /* Frequency channel flip-flops */
+            public int[] Channels = new int[4];          /* Value of each channel, before stereo is applied */
+            public float[] IntermediatePos = new float[4];   /* intermediate values used at boundaries between + and - (does not need double accuracy)*/
+
+            public float[][] panning = new float[4][] { new float[2], new float[2], new float[2], new float[2] };            /* fake stereo */
+            public int[][] volume = new int[4][] { new int[2], new int[2], new int[2], new int[2] };
+
+            public int NgpFlags;       /* bit 7 - NGP Mode on/off, bit 0 - is 2nd NGP chip */
+
+            public SN76489_Context NgpChip2;
+        }
 
         public enum feedback_patterns
         {
@@ -40,34 +73,107 @@ namespace MDSound
         private const double PI = 3.14159265359;
         private const double SQRT2 = 1.414213562;
         private const double RANGE = 512;
-
+        private const uint DefaultPSGClockValue = 3579545;
 
         private const int NoiseInitialState = 0x8000;  /* Initial state of shift register */
         private const int PSG_CUTOFF = 0x6;     /* Value below which PSG does not output */
 
         private readonly ReadOnlyCollection<int> PSGVolumeValues = Array.AsReadOnly(new int[]{
-        	/* These values are taken from a real SMS2's output */
+            /* These values are taken from a real SMS2's output */
             /*	{892,892,892,760,623,497,404,323,257,198,159,123,96,75,60,0}, /* I can't remember why 892... :P some scaling I did at some point */
-	        /* these values are true volumes for 2dB drops at each step (multiply previous by 10^-0.1) */
-	        /*1516,1205,957,760,603,479,381,303,240,191,152,120,96,76,60,0*/
+            /* these values are true volumes for 2dB drops at each step (multiply previous by 10^-0.1) */
+            /*1516,1205,957,760,603,479,381,303,240,191,152,120,96,76,60,0*/
             // The MAME core uses 0x2000 as maximum volume (0x1000 for bipolar output)
-	        4096, 3254, 2584, 2053, 1631, 1295, 1029, 817, 649, 516, 410, 325, 258, 205, 163, 0
+            4096, 3254, 2584, 2053, 1631, 1295, 1029, 817, 649, 516, 410, 325, 258, 205, 163, 0
         });
 
         /*static SN76489_Context SN76489[MAX_SN76489];*/
-        private static SN76489_Context LastChipInit = null;
+        private const int MAX_CHIPS = 2;
+
+        private SN76489_Context[] LastChipInit = new SN76489_Context[MAX_CHIPS] { null, null };
+        public SN76489_Context[] SN76489_Chip = new SN76489_Context[MAX_CHIPS] { null, null };
+
         //static unsigned short int FNumLimit;
 
+        private void SN76489_Config(SN76489_Context chip, /*int mute,*/ feedback_patterns feedback, sr_widths sr_width, int boost_noise)
+        {
+            //chip->Mute = mute;
+            chip.WhiteNoiseFeedback = feedback;
+            chip.SRWidth = sr_width;
+        }
 
-        public SN76489_Context SN76489_Init(uint PSGClockValue, uint SamplingRate)
+        private void SN76489_GGStereoWrite(SN76489_Context chip, int data)
+        {
+            chip.PSGStereo = data;
+        }
+
+        /*void SN76489_UpdateOne(SN76489_Context* chip, int *l, int *r)
+        {
+          INT16 tl,tr;
+          INT16 *buff[2] = { &tl, &tr };
+          SN76489_Update( chip, buff, 1 );
+          *l = tl;
+          *r = tr;
+        }*/
+
+        /*int  SN76489_GetMute(SN76489_Context* chip)
+        {
+          return chip->Mute;
+        }*/
+
+        private void SN76489_SetPanning(SN76489_Context chip, int ch0, int ch1, int ch2, int ch3)
+        {
+            calc_panning(chip.panning[0], ch0);
+            calc_panning(chip.panning[1], ch1);
+            calc_panning(chip.panning[2], ch2);
+            calc_panning(chip.panning[3], ch3);
+        }
+
+        private void calc_panning(float[] channels, int position)
+        {
+            if (position > RANGE / 2)
+                position = (int)(RANGE / 2);
+            else if (position < -RANGE / 2)
+                position = -(int)(RANGE / 2);
+            position += (int)(RANGE / 2);  // make -256..0..256 -> 0..256..512
+
+            // Equal power law: equation is
+            // right = sin( position / range * pi / 2) * sqrt( 2 )
+            // left is equivalent to right with position = range - position
+            // position is in the range 0 .. RANGE
+            // RANGE / 2 = centre, result = 1.0f
+            channels[1] = (float)(Math.Sin((double)position / RANGE * Math.PI / 2) * SQRT2);
+            position = (int)RANGE - position;
+            channels[0] = (float)(Math.Sin((double)position / RANGE * Math.PI / 2) * SQRT2);
+        }
+
+        //-----------------------------------------------------------------
+        // Reset the panning values to the centre position
+        //-----------------------------------------------------------------
+        private void centre_panning(float[] channels)
+        {
+            channels[0] = channels[1] = 1.0f;
+        }
+
+
+        public new const string Name = "SN76489";
+
+        public override uint Start(byte ChipID, uint clock)
+        {
+            return Start(ChipID, DefaultPSGClockValue, clock);
+        }
+
+        public uint Start(byte ChipID, uint SamplingRate, uint PSGClockValue)
         {
             int i;
-            SN76489_Context chip = new SN76489_Context();
+            SN76489_Chip[ChipID] = new SN76489_Context();
+            SN76489_Context chip = SN76489_Chip[ChipID];
+
             if (chip != null)
             {
                 chip.dClock = (float)(PSGClockValue & 0x7FFFFFF) / 16 / SamplingRate;
 
-                SN76489_SetMute(chip, 15);
+                SN76489_SetMute(ChipID, 15);
                 SN76489_Config(chip, /*MUTE_ALLON,*/ feedback_patterns.FB_SEGAVDP, sr_widths.SRW_SEGAVDP, 1);
 
                 for (i = 0; i <= 3; i++)
@@ -77,25 +183,27 @@ namespace MDSound
                 if ((PSGClockValue & 0x80000000) > 0 && LastChipInit != null)
                 {
                     // Activate special NeoGeoPocket Mode
-                    LastChipInit.NgpFlags = 0x80 | 0x00;
+                    LastChipInit[ChipID].NgpFlags = 0x80 | 0x00;
                     chip.NgpFlags = 0x80 | 0x01;
-                    chip.NgpChip2 = LastChipInit;
-                    LastChipInit.NgpChip2 = chip;
-                    LastChipInit = null;
+                    chip.NgpChip2 = LastChipInit[ChipID];
+                    LastChipInit[ChipID].NgpChip2 = chip;
+                    LastChipInit[ChipID] = null;
                 }
                 else
                 {
                     chip.NgpFlags = 0x00;
                     chip.NgpChip2 = null;
-                    LastChipInit = chip;
+                    LastChipInit[ChipID] = chip;
                 }
             }
-            return chip;
+
+            return SamplingRate;
         }
 
-        public void SN76489_Reset(SN76489_Context chip)
+        public override void Reset(byte ChipID)
         {
             int i;
+            SN76489_Context chip = SN76489_Chip[ChipID];
 
             chip.PSGStereo = 0xFF;
 
@@ -128,62 +236,15 @@ namespace MDSound
             chip.Clock = 0;
         }
 
-        public void SN76489_Shutdown(SN76489_Context chip)
+        public override void Stop(byte ChipID)
         {
-            //chip = null;
+            SN76489_Chip[ChipID] = null;
         }
 
-        public void SN76489_Config(SN76489_Context chip, /*int mute,*/ feedback_patterns feedback, sr_widths sr_width, int boost_noise)
+        public override void Update(byte ChipID, int[][] buffer, int length)
         {
-            //chip->Mute = mute;
-            chip.WhiteNoiseFeedback = feedback;
-            chip.SRWidth = sr_width;
-        }
+            SN76489_Context chip = SN76489_Chip[ChipID];
 
-        public void SN76489_Write(SN76489_Context chip, int data)
-        {
-            if ((data & 0x80) > 0)
-            {
-                /* Latch/data byte  %1 cc t dddd */
-                chip.LatchedRegister = (data >> 4) & 0x07;
-                chip.Registers[chip.LatchedRegister] =
-                    (chip.Registers[chip.LatchedRegister] & 0x3f0) /* zero low 4 bits */
-                    | (data & 0xf);                            /* and replace with data */
-            }
-            else
-            {
-                /* Data byte        %0 - dddddd */
-                if ((chip.LatchedRegister % 2) == 0 && (chip.LatchedRegister < 5))
-                    /* Tone register */
-                    chip.Registers[chip.LatchedRegister] =
-                        (chip.Registers[chip.LatchedRegister] & 0x00f) /* zero high 6 bits */
-                        | ((data & 0x3f) << 4);                 /* and replace with data */
-                else
-                    /* Other register */
-                    chip.Registers[chip.LatchedRegister] = data & 0x0f; /* Replace with data */
-            }
-            switch (chip.LatchedRegister)
-            {
-                case 0:
-                case 2:
-                case 4: /* Tone channels */
-                    if (chip.Registers[chip.LatchedRegister] == 0)
-                        chip.Registers[chip.LatchedRegister] = 1; /* Zero frequency changed to 1 to avoid div/0 */
-                    break;
-                case 6: /* Noise */
-                    chip.NoiseShiftRegister = NoiseInitialState;        /* reset shift register */
-                    chip.NoiseFreq = 0x10 << (chip.Registers[6] & 0x3); /* set noise signal generator frequency */
-                    break;
-            }
-        }
-
-        public void SN76489_GGStereoWrite(SN76489_Context chip, int data)
-        {
-            chip.PSGStereo = data;
-        }
-
-        public void SN76489_Update(SN76489_Context chip, int[][] buffer, int length)
-        {
             int i, j;
             int NGPMode;
             SN76489_Context chip2 = null;
@@ -307,7 +368,7 @@ namespace MDSound
                     }
                 }
 
-                
+
                 /* Increment clock by 1 sample length */
                 chip.Clock += chip.dClock;
                 chip.NumClocksForSample = (int)chip.Clock;  /* truncate */
@@ -371,8 +432,8 @@ namespace MDSound
                                 /* Do some optimised calculations for common (known) feedback values */
                                 //case 0x0003: /* SC-3000, BBC %00000011 */
                                 case feedback_patterns.FB_SEGAVDP: /* SMS, GG, MD  %00001001 */
-                                             /* If two bits fed back, I can do Feedback=(nsr & fb) && (nsr & fb ^ fb) */
-                                             /* since that's (one or more bits set) && (not all bits set) */
+                                                                   /* If two bits fed back, I can do Feedback=(nsr & fb) && (nsr & fb ^ fb) */
+                                                                   /* since that's (one or more bits set) && (not all bits set) */
                                     Feedback = chip.NoiseShiftRegister & (int)chip.WhiteNoiseFeedback;
                                     Feedback = (Feedback > 0) && (((chip.NoiseShiftRegister & (int)chip.WhiteNoiseFeedback) ^ (int)chip.WhiteNoiseFeedback) > 0) ? 1 : 0;
                                     break;
@@ -397,92 +458,52 @@ namespace MDSound
             }
         }
 
-        /*void SN76489_UpdateOne(SN76489_Context* chip, int *l, int *r)
+        public void SN76489_Write(byte ChipID, int data)
         {
-          INT16 tl,tr;
-          INT16 *buff[2] = { &tl, &tr };
-          SN76489_Update( chip, buff, 1 );
-          *l = tl;
-          *r = tr;
-        }*/
+            SN76489_Context chip = SN76489_Chip[ChipID];
 
+            if ((data & 0x80) > 0)
+            {
+                /* Latch/data byte  %1 cc t dddd */
+                chip.LatchedRegister = (data >> 4) & 0x07;
+                chip.Registers[chip.LatchedRegister] =
+                    (chip.Registers[chip.LatchedRegister] & 0x3f0) /* zero low 4 bits */
+                    | (data & 0xf);                            /* and replace with data */
+            }
+            else
+            {
+                /* Data byte        %0 - dddddd */
+                if ((chip.LatchedRegister % 2) == 0 && (chip.LatchedRegister < 5))
+                    /* Tone register */
+                    chip.Registers[chip.LatchedRegister] =
+                        (chip.Registers[chip.LatchedRegister] & 0x00f) /* zero high 6 bits */
+                        | ((data & 0x3f) << 4);                 /* and replace with data */
+                else
+                    /* Other register */
+                    chip.Registers[chip.LatchedRegister] = data & 0x0f; /* Replace with data */
+            }
+            switch (chip.LatchedRegister)
+            {
+                case 0:
+                case 2:
+                case 4: /* Tone channels */
+                    if (chip.Registers[chip.LatchedRegister] == 0)
+                        chip.Registers[chip.LatchedRegister] = 1; /* Zero frequency changed to 1 to avoid div/0 */
+                    break;
+                case 6: /* Noise */
+                    chip.NoiseShiftRegister = NoiseInitialState;        /* reset shift register */
+                    chip.NoiseFreq = 0x10 << (chip.Registers[6] & 0x3); /* set noise signal generator frequency */
+                    break;
+            }
+        }
 
-        /*int  SN76489_GetMute(SN76489_Context* chip)
+        public void SN76489_SetMute(byte ChipID, int val)
         {
-          return chip->Mute;
-        }*/
+            SN76489_Context chip = SN76489_Chip[ChipID];
 
-        public void SN76489_SetMute(SN76489_Context chip, int val)
-        {
             chip.Mute = val;
         }
 
-        public void SN76489_SetPanning(SN76489_Context chip, int ch0, int ch1, int ch2, int ch3)
-        {
-            calc_panning(chip.panning[0], ch0);
-            calc_panning(chip.panning[1], ch1);
-            calc_panning(chip.panning[2], ch2);
-            calc_panning(chip.panning[3], ch3);
-        }
-
-        private void calc_panning(float[] channels, int position)
-        {
-            if (position > RANGE / 2)
-                position = (int)(RANGE / 2);
-            else if (position < -RANGE / 2)
-                position = -(int)(RANGE / 2);
-            position += (int)(RANGE / 2);  // make -256..0..256 -> 0..256..512
-
-            // Equal power law: equation is
-            // right = sin( position / range * pi / 2) * sqrt( 2 )
-            // left is equivalent to right with position = range - position
-            // position is in the range 0 .. RANGE
-            // RANGE / 2 = centre, result = 1.0f
-            channels[1] = (float)(Math.Sin((double)position / RANGE * Math.PI / 2) * SQRT2);
-            position = (int)RANGE - position;
-            channels[0] = (float)(Math.Sin((double)position / RANGE * Math.PI / 2) * SQRT2);
-        }
-
-        //-----------------------------------------------------------------
-        // Reset the panning values to the centre position
-        //-----------------------------------------------------------------
-        private void centre_panning(float[] channels)
-        {
-            channels[0] = channels[1] = 1.0f;
-        }
-    }
-
-    public class SN76489_Context
-    {
-        public int Mute; // per-channel muting
-        public int BoostNoise; // double noise volume when non-zero
-
-        /* Variables */
-        public float Clock;
-        public float dClock;
-        public int PSGStereo;
-        public int NumClocksForSample;
-        public sn76489.feedback_patterns WhiteNoiseFeedback;
-        public sn76489.sr_widths SRWidth;
-
-        /* PSG registers: */
-        public int[] Registers = new int[8];        /* Tone, vol x4 */
-        public int LatchedRegister;
-        public int NoiseShiftRegister;
-        public int NoiseFreq;            /* Noise channel signal generator frequency */
-
-        /* Output calculation variables */
-        public int[] ToneFreqVals = new int[4];      /* Frequency register values (counters) */
-        public int[] ToneFreqPos = new int[4];        /* Frequency channel flip-flops */
-        public int[] Channels = new int[4];          /* Value of each channel, before stereo is applied */
-        public float[] IntermediatePos = new float[4];   /* intermediate values used at boundaries between + and - (does not need double accuracy)*/
-
-        public float[][] panning = new float[4][] { new float[2], new float[2], new float[2], new float[2] };            /* fake stereo */
-        public int[][] volume = new int[4][] { new int[2], new int[2], new int[2], new int[2] };
-        
-        public int NgpFlags;       /* bit 7 - NGP Mode on/off, bit 0 - is 2nd NGP chip */
-
-        public SN76489_Context NgpChip2;
     }
 
 }

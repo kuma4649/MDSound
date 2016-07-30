@@ -14,10 +14,12 @@ namespace test
         private static uint FMClockValue = 7670454;
         private static uint rf5c164ClockValue = 12500000;
         private static uint pwmClockValue = 23011361;
+        private static uint c140ClockValue = 21390;
+        private static MDSound.c140.C140_TYPE c140Type = MDSound.c140.C140_TYPE.ASIC219;
 
         private static uint samplingBuffer = 1024;
         private static short[] frames = new short[samplingBuffer * 2];
-        private static MDSound.MDSound mds = new MDSound.MDSound(SamplingRate, samplingBuffer, FMClockValue, PSGClockValue, rf5c164ClockValue, pwmClockValue);
+        private static MDSound.MDSound mds = null;//new MDSound.MDSound(SamplingRate, samplingBuffer, FMClockValue, PSGClockValue, rf5c164ClockValue, pwmClockValue, c140ClockValue, c140Type);
 
         private static AudioStream sdl;
         private static AudioCallback sdlCb = new AudioCallback(callback);
@@ -138,7 +140,39 @@ namespace test
             vgmWait = 0;
             vgmAnalyze = true;
 
-            mds.Init(SamplingRate, samplingBuffer, FMClockValue, PSGClockValue, rf5c164ClockValue, pwmClockValue);
+            MDSound.MDSound.Chip[] chips = new MDSound.MDSound.Chip[5];
+
+            chips[0] = new MDSound.MDSound.Chip();
+            chips[0].type = MDSound.MDSound.enmInstrumentType.SN76489;
+            chips[0].ID = 0;
+            chips[0].ClockValue = PSGClockValue;
+            chips[0].OptionValues = null;
+
+            chips[1] = new MDSound.MDSound.Chip();
+            chips[1].type = MDSound.MDSound.enmInstrumentType.YM2612;
+            chips[1].ID = 0;
+            chips[1].ClockValue = FMClockValue;
+            chips[1].OptionValues = null;
+
+            chips[2] = new MDSound.MDSound.Chip();
+            chips[2].type = MDSound.MDSound.enmInstrumentType.RF5C164;
+            chips[2].ID = 0;
+            chips[2].ClockValue = rf5c164ClockValue;
+            chips[2].OptionValues = null;
+
+            chips[3] = new MDSound.MDSound.Chip();
+            chips[3].type = MDSound.MDSound.enmInstrumentType.PWM;
+            chips[3].ID = 0;
+            chips[3].ClockValue = pwmClockValue;
+            chips[3].OptionValues = null;
+
+            chips[4] = new MDSound.MDSound.Chip();
+            chips[4].type = MDSound.MDSound.enmInstrumentType.C140;
+            chips[4].ID = 0;
+            chips[4].ClockValue = c140ClockValue;
+            chips[4].OptionValues = new object[1] { c140Type };
+
+            mds = new MDSound.MDSound(SamplingRate, samplingBuffer, chips);
 
             sdlCbHandle = GCHandle.Alloc(sdlCb);
             sdlCbPtr = Marshal.GetFunctionPointerForDelegate(sdlCb);
@@ -415,6 +449,8 @@ namespace test
 
         private void timer1_Tick(object sender, EventArgs e)
         {
+            if (mds == null) return;
+
             label2.Location = new System.Drawing.Point(Math.Min((mds.getTotalVolumeL() / 600) * 3 - 174, 0), label2.Location.Y);
             label3.Location = new System.Drawing.Point(Math.Min((mds.getTotalVolumeR() / 600) * 3 - 174, 0), label3.Location.Y);
         }
