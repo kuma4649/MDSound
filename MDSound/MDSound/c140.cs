@@ -25,7 +25,7 @@ namespace MDSound
         //    public byte[] reserved;//=new byte[4];
         //}
 
-        private class VOICE
+        public class VOICE
         {
             public long ptoffset;
             public long pos;
@@ -47,7 +47,7 @@ namespace MDSound
             public byte Muted;
         }
 
-        private class c140_state
+        public class c140_state
         {
             public int sample_rate;
             //sound_stream *stream;
@@ -68,7 +68,7 @@ namespace MDSound
 
         private const int MAX_CHIPS = 0x02;
 
-        private c140_state[] C140Data = new c140_state[MAX_CHIPS] { new c140_state(), new c140_state() };
+        public c140_state[] C140Data = new c140_state[MAX_CHIPS] { new c140_state(), new c140_state() };
 
         private static void init_voice(VOICE v)
         {
@@ -680,7 +680,8 @@ namespace MDSound
                                 }
 
                                 /* Read the chosen sample byte */
-                                dt = info.pRom[pSampleData + pos];
+                                //dt = info.pRom[pSampleData + pos];
+                                dt = ((info.pRom[pSampleData + pos] & 0x80) != 0) ? (info.pRom[pSampleData + pos] - 256) : info.pRom[pSampleData + pos];
                                 //System.Console.Write("dt={0} ", dt);
 
                                 /* decompress to 13bit range */        //2000.06.26 CAB
@@ -798,10 +799,10 @@ namespace MDSound
 
         public override uint Start(byte ChipID, uint clock)
         {
-            return Start(ChipID, clock, C140_TYPE.SYSTEM2);
+            return Start(ChipID, 44100, clock, C140_TYPE.SYSTEM2);
         }
 
-        public uint Start(byte ChipID, uint clock, C140_TYPE banking_type)
+        public uint Start(byte ChipID,uint Samplingrate, uint clock,params object[] option)
         {
             //const c140_interface *intf = (const c140_interface *)device->static_config();
             //c140_state *info = get_safe_token(device);
@@ -820,7 +821,7 @@ namespace MDSound
                 info.sample_rate = CHIP_SAMPLE_RATE;
 
             //info->banking_type = intf->banking_type;
-            info.banking_type = banking_type;
+            info.banking_type = (C140_TYPE)option[0];
 
             //info->stream = device->machine().sound().stream_alloc(*device,0,2,info->sample_rate,info,update_stereo);
 
@@ -873,13 +874,13 @@ namespace MDSound
 
         public override void Reset(byte ChipID)
         {
-            c140_state info = C140Data[ChipID];
+            //c140_state info = C140Data[ChipID];
 
             //free(info->pRom);
-            info.pRom = null;
+            //info.pRom = null;
             //free(info->mixer_buffer_left);
-            info.mixer_buffer_left = null;
-            info.mixer_buffer_right = null;
+            //info.mixer_buffer_left = null;
+            //info.mixer_buffer_right = null;
 
             //return;
         }

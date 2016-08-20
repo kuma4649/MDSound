@@ -351,6 +351,12 @@ namespace MDSound
             PCM_Update(ChipID, outputs, samples);
         }
 
+        public uint Start(byte ChipID,uint Samplingrate, uint clock,params object[] option)
+        {
+            //Samplingrate 未使用
+            return Start(ChipID, clock);
+        }
+
         public override uint Start(byte ChipID, uint clock)
         {
             /* allocate memory for the chip */
@@ -364,7 +370,7 @@ namespace MDSound
             rate = (clock & 0x7FFFFFFF) / 384;
             if (((CHIP_SAMPLING_MODE & 0x01) != 0 && rate < CHIP_SAMPLE_RATE) ||
                 CHIP_SAMPLING_MODE == 0x02)
-                rate = CHIP_SAMPLE_RATE;
+                rate = (uint)CHIP_SAMPLE_RATE;
 
             PCM_Init(ChipID, rate);
             chip = PCM_Chip[ChipID];

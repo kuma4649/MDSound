@@ -140,37 +140,77 @@ namespace test
             vgmWait = 0;
             vgmAnalyze = true;
 
-            MDSound.MDSound.Chip[] chips = new MDSound.MDSound.Chip[5];
+            MDSound.MDSound.Chip[] chips = new MDSound.MDSound.Chip[2];
 
             chips[0] = new MDSound.MDSound.Chip();
             chips[0].type = MDSound.MDSound.enmInstrumentType.SN76489;
             chips[0].ID = 0;
-            chips[0].ClockValue = PSGClockValue;
-            chips[0].OptionValues = null;
+            MDSound.sn76489 sn76489 = new MDSound.sn76489();
+            chips[0].Instrument = sn76489;
+            chips[0].Update = sn76489.Update;
+            chips[0].Start = sn76489.Start;
+            chips[0].Stop = sn76489.Stop;
+            chips[0].Reset = sn76489.Reset;
+            chips[0].SamplingRate = SamplingRate;
+            chips[0].Clock = PSGClockValue;
+            chips[0].Volume =50;
+            chips[0].Option = null;
 
             chips[1] = new MDSound.MDSound.Chip();
             chips[1].type = MDSound.MDSound.enmInstrumentType.YM2612;
             chips[1].ID = 0;
-            chips[1].ClockValue = FMClockValue;
-            chips[1].OptionValues = null;
+            MDSound.ym2612 ym2612 = new MDSound.ym2612();
+            chips[1].Instrument = ym2612;
+            chips[1].Update = ym2612.Update;
+            chips[1].Start = ym2612.Start;
+            chips[1].Stop = ym2612.Stop;
+            chips[1].Reset = ym2612.Reset;
+            chips[1].SamplingRate = SamplingRate;
+            chips[1].Clock = FMClockValue;
+            chips[1].Volume = 100;
+            chips[1].Option = null;
 
-            chips[2] = new MDSound.MDSound.Chip();
-            chips[2].type = MDSound.MDSound.enmInstrumentType.RF5C164;
-            chips[2].ID = 0;
-            chips[2].ClockValue = rf5c164ClockValue;
-            chips[2].OptionValues = null;
+            //chips[2] = new MDSound.MDSound.Chip();
+            //chips[2].type = MDSound.MDSound.enmInstrumentType.RF5C164;
+            //chips[2].ID = 0;
+            //MDSound.scd_pcm rf5c164 = new MDSound.scd_pcm();
+            //chips[2].Instrument = rf5c164;
+            //chips[2].Update = rf5c164.Update;
+            //chips[2].Start = rf5c164.Start;
+            //chips[2].Stop = rf5c164.Stop;
+            //chips[2].Reset = rf5c164.Reset;
+            //chips[2].SamplingRate = SamplingRate;
+            //chips[2].Clock = rf5c164ClockValue;
+            //chips[2].Volume = 50;
+            //chips[2].Option = null;
 
-            chips[3] = new MDSound.MDSound.Chip();
-            chips[3].type = MDSound.MDSound.enmInstrumentType.PWM;
-            chips[3].ID = 0;
-            chips[3].ClockValue = pwmClockValue;
-            chips[3].OptionValues = null;
+            //chips[3] = new MDSound.MDSound.Chip();
+            //chips[3].type = MDSound.MDSound.enmInstrumentType.PWM;
+            //chips[3].ID = 0;
+            //MDSound.pwm pwm = new MDSound.pwm();
+            //chips[3].Instrument = pwm;
+            //chips[3].Update = pwm.Update;
+            //chips[3].Start = pwm.Start;
+            //chips[3].Stop = pwm.Stop;
+            //chips[3].Reset = pwm.Reset;
+            //chips[3].SamplingRate = SamplingRate;
+            //chips[3].Clock = pwmClockValue;
+            //chips[3].Volume = 100;
+            //chips[3].Option = null;
 
-            chips[4] = new MDSound.MDSound.Chip();
-            chips[4].type = MDSound.MDSound.enmInstrumentType.C140;
-            chips[4].ID = 0;
-            chips[4].ClockValue = c140ClockValue;
-            chips[4].OptionValues = new object[1] { c140Type };
+            //chips[4] = new MDSound.MDSound.Chip();
+            //chips[4].type = MDSound.MDSound.enmInstrumentType.C140;
+            //chips[4].ID = 0;
+            //MDSound.c140 c140 = new MDSound.c140();
+            //chips[4].Instrument = c140;
+            //chips[4].Update = c140.Update;
+            //chips[4].Start = c140.Start;
+            //chips[4].Stop = c140.Stop;
+            //chips[4].Reset = c140.Reset;
+            //chips[4].SamplingRate = SamplingRate;
+            //chips[4].Clock = c140ClockValue;
+            //chips[4].Volume = 100;
+            //chips[4].Option = new object[1] { c140Type };
 
             mds = new MDSound.MDSound(SamplingRate, samplingBuffer, chips);
 
@@ -183,7 +223,7 @@ namespace test
 
         private static void callback(IntPtr userData, IntPtr stream, int len)
         {
-            mds.Update2(frames, 0, frames.Length, oneFrameVGM);
+            mds.Update(frames, 0, frames.Length, oneFrameVGM);
 
             Marshal.Copy(frames, 0, stream, len / 2);
 

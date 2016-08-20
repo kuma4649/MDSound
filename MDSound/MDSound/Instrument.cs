@@ -8,10 +8,10 @@ namespace MDSound
     abstract public class Instrument
     {
 
-        public const byte CHIP_SAMPLING_MODE = 2;
-        public const int CHIP_SAMPLE_RATE = 44100;
+        public byte CHIP_SAMPLING_MODE = 2;
+        public int CHIP_SAMPLE_RATE = 44100;
 
-        public const string Name = "Instrument";
+        public string Name = "Instrument";
 
         abstract public uint Start(byte ChipID, uint clock);
 

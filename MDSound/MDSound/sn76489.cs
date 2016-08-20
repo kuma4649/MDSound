@@ -163,7 +163,7 @@ namespace MDSound
             return Start(ChipID, DefaultPSGClockValue, clock);
         }
 
-        public uint Start(byte ChipID, uint SamplingRate, uint PSGClockValue)
+        public uint Start(byte ChipID, uint SamplingRate, uint PSGClockValue,params object[] option)
         {
             int i;
             SN76489_Chip[ChipID] = new SN76489_Context();

@@ -2248,7 +2248,7 @@ namespace MDSound
             return clock;
         }
 
-        public uint Start(byte ChipID, uint clock,uint FMClockValue)
+        public uint Start(byte ChipID, uint clock,uint FMClockValue,params object[] option)
         {
             ym2612_ ym2612 = YM2612_Init(FMClockValue, clock, 0);
             YM2612_Chip[ChipID] = ym2612;
