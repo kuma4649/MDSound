@@ -40,6 +40,7 @@ namespace MDSound
         private int[] C140Volume = new int[2] { 100, 100 };
         private int[] OKIM6258Volume = new int[2] { 100, 100 };
         private int[] OKIM6295Volume = new int[2] { 100, 100 };
+        private int[] SEGAPCMVolume = new int[2] { 100, 100 };
         private int[][] StreamBufs = null;
 
         private Chip[] insts = null;
@@ -50,6 +51,7 @@ namespace MDSound
         private Instrument iC140 = null;
         private Instrument iOKIM6258 = null;
         private Instrument iOKIM6295 = null;
+        private Instrument iSEGAPCM = null;
 
         private int[][] buffer = null;
         private int[][] buffer2 = null;
@@ -87,7 +89,8 @@ namespace MDSound
             PWM,
             C140,
             OKIM6258,
-            OKIM6295
+            OKIM6295,
+            SEGAPCM
         }
 
         public class Chip
@@ -183,6 +186,9 @@ namespace MDSound
                                 break;
                             case enmInstrumentType.OKIM6295:
                                 iOKIM6295 = inst.Instrument;
+                                break;
+                            case enmInstrumentType.SEGAPCM:
+                                iSEGAPCM = inst.Instrument;
                                 break;
                         }
 
@@ -641,6 +647,9 @@ namespace MDSound
                 case enmInstrumentType.OKIM6295:
                     OKIM6295Volume[ChipID] = vol;
                     break;
+                case enmInstrumentType.SEGAPCM:
+                    SEGAPCMVolume[ChipID] = vol;
+                    break;
             }
         }
         
@@ -753,6 +762,26 @@ namespace MDSound
                 ((okim6295)(iOKIM6295)).okim6295_write_rom2(chipid, (int)ROMSize, (int)DataStart, (int)DataLength, ROMData, SrcStartAdr);
             }
         }
+
+        public void WriteSEGAPCM(byte ChipID, int Offset, byte Data)
+        {
+            lock (lockobj)
+            {
+                if (iSEGAPCM == null) return;
+                ((segapcm)(iSEGAPCM)).sega_pcm_w(ChipID, Offset, Data);
+            }
+        }
+
+        public void WriteSEGAPCMPCMData(byte chipid, uint ROMSize, uint DataStart, uint DataLength, byte[] ROMData, uint SrcStartAdr)
+        {
+            lock (lockobj)
+            {
+                if (iSEGAPCM == null) return;
+
+                ((segapcm)(iSEGAPCM)).sega_pcm_write_rom2(chipid, (int)ROMSize, (int)DataStart, (int)DataLength, ROMData, SrcStartAdr);
+            }
+        }
+
 
 
         public int[] ReadPSGRegister()
