@@ -12,13 +12,14 @@ namespace test
         private static uint SamplingRate = 44100;
         private static uint PSGClockValue = 3579545;
         private static uint FMClockValue = 7670454;
-        private static uint rf5c164ClockValue = 12500000;
-        private static uint pwmClockValue = 23011361;
-        private static uint c140ClockValue = 21390;
-        private static MDSound.c140.C140_TYPE c140Type = MDSound.c140.C140_TYPE.ASIC219;
+        private static uint YM2151ClockValue = 3579545;
+        //private static uint rf5c164ClockValue = 12500000;
+        //private static uint pwmClockValue = 23011361;
+        //private static uint c140ClockValue = 21390;
+        //private static MDSound.c140.C140_TYPE c140Type = MDSound.c140.C140_TYPE.ASIC219;
 
         private static uint samplingBuffer = 1024;
-        private static short[] frames = new short[samplingBuffer * 2];
+        private static short[] frames = new short[samplingBuffer * 4];
         private static MDSound.MDSound mds = null;//new MDSound.MDSound(SamplingRate, samplingBuffer, FMClockValue, PSGClockValue, rf5c164ClockValue, pwmClockValue, c140ClockValue, c140Type);
 
         private static AudioStream sdl;
@@ -140,7 +141,7 @@ namespace test
             vgmWait = 0;
             vgmAnalyze = true;
 
-            MDSound.MDSound.Chip[] chips = new MDSound.MDSound.Chip[2];
+            MDSound.MDSound.Chip[] chips = new MDSound.MDSound.Chip[3];
 
             chips[0] = new MDSound.MDSound.Chip();
             chips[0].type = MDSound.MDSound.enmInstrumentType.SN76489;
@@ -169,6 +170,20 @@ namespace test
             chips[1].Clock = FMClockValue;
             chips[1].Volume = 100;
             chips[1].Option = null;
+
+            chips[2] = new MDSound.MDSound.Chip();
+            chips[2].type = MDSound.MDSound.enmInstrumentType.YM2151;
+            chips[2].ID = 0;
+            MDSound.ym2151 ym2151 = new MDSound.ym2151();
+            chips[2].Instrument = ym2151;
+            chips[2].Update = ym2151.Update;
+            chips[2].Start = ym2151.Start;
+            chips[2].Stop = ym2151.Stop;
+            chips[2].Reset = ym2151.Reset;
+            chips[2].SamplingRate = SamplingRate;
+            chips[2].Clock = YM2151ClockValue;
+            chips[2].Volume = 100;
+            chips[2].Option = null;
 
             //chips[2] = new MDSound.MDSound.Chip();
             //chips[2].type = MDSound.MDSound.enmInstrumentType.RF5C164;
@@ -223,7 +238,17 @@ namespace test
 
         private static void callback(IntPtr userData, IntPtr stream, int len)
         {
-            mds.Update(frames, 0, frames.Length, oneFrameVGM);
+
+            for (int i = 0; i < len/4; i++)
+            {
+                short[] buf = new short[2];
+                mds.Update(buf, 0, 2, oneFrameVGM);
+                frames[i * 2 + 0] = buf[0];
+                frames[i * 2 + 1] = buf[1];
+                //Console.Write("Adr[{0:x8}] : Wait[{1:d8}] : [{2:d8}]/[{3:d8}]\r\n", vgmAdr, vgmWait, buf[0], buf[1]);
+                //frames[i * 2 + 0] += (short)Math.Max(Math.Min(buffer[0], short.MaxValue), short.MinValue);
+                //frames[i * 2 + 1] += (short)Math.Max(Math.Min(buffer[1], short.MaxValue), short.MinValue);
+            }
 
             Marshal.Copy(frames, 0, stream, len / 2);
 
@@ -259,6 +284,7 @@ namespace test
                 }
 
                 byte cmd = vgmBuf[vgmAdr];
+                //Console.Write(" Adr[{0:x}]:cmd[{1:x}]\r\n", vgmAdr, cmd);
                 switch (cmd)
                 {
                     case 0x4f: //GG PSG
@@ -274,6 +300,13 @@ namespace test
                         vgmAdr += 3;
                         mds.WriteYM2612(p, rAdr, rDat);
 
+                        break;
+                    case 0x54: //YM2151
+                        rAdr = vgmBuf[vgmAdr + 1];
+                        rDat = vgmBuf[vgmAdr + 2];
+                        vgmAdr += 3;
+                        //Console.Write(" Adr[{0:x}]:cmd[{1:x}]:Adr[{2:x}]:Dar[{3:x}]\r\n", vgmAdr, cmd,rAdr,rDat);
+                        mds.WriteYM2151(0, rAdr, rDat);
                         break;
                     case 0x55: //YM2203
                         vgmAdr += 3;
@@ -403,6 +436,9 @@ namespace test
                         vgmStreams[si].wkDataStep = 1.0;
 
                         break;
+                    case 0xb7:
+                        vgmAdr += 3;
+                        break;
                     case 0xe0: //seek to offset in PCM data bank
                         vgmPcmPtr = getLE32(vgmAdr + 1) + vgmPcmBaseAdr;
                         vgmAdr += 5;
@@ -494,5 +530,6 @@ namespace test
             label2.Location = new System.Drawing.Point(Math.Min((mds.getTotalVolumeL() / 600) * 3 - 174, 0), label2.Location.Y);
             label3.Location = new System.Drawing.Point(Math.Min((mds.getTotalVolumeR() / 600) * 3 - 174, 0), label3.Location.Y);
         }
+
     }
 }

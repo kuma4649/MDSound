@@ -89,7 +89,7 @@ namespace MDSound
         private segapcm_state[] SPCMData = new segapcm_state[2] { new segapcm_state(), new segapcm_state() };// [MAX_CHIPS];
 
         //# ifndef _DEBUG
-        byte SegaPCM_NewCore = 0x00;
+        //byte SegaPCM_NewCore = 0x00;
         //#else
         ////UINT8 SegaPCM_NewCore = 0x01;
         //static void sega_pcm_fwrite_romusage(UINT8 ChipID);

@@ -20,6 +20,7 @@ namespace MDSound
         private const c140.C140_TYPE DefaultC140Type = c140.C140_TYPE.ASIC219;
         private const uint DefaultOKIM6258ClockValue = 4000000;
         private const uint DefaultOKIM6295ClockValue = 4000000;
+        private const uint DefaultYM2151ClockValue = 3579545;
 
         private uint SamplingRate = 44100;
         private uint SamplingBuffer = 512;
@@ -32,6 +33,7 @@ namespace MDSound
         private c140.C140_TYPE[] c140Type = new c140.C140_TYPE[2] { c140.C140_TYPE.ASIC219, c140.C140_TYPE.ASIC219 };
         private uint[] OKIM6258ClockValue = new uint[2] { 4000000, 4000000 };
         private uint[] OKIM6295ClockValue = new uint[2] { 4000000, 4000000 };
+        private uint[] YM2151ClockValue = new uint[2] { 3579545, 3579545 };
 
         private int[] YM2612Volume = new int[2] { 170, 170 };
         private int[] SN76489Volume = new int[2] { 100, 100 };
@@ -41,6 +43,8 @@ namespace MDSound
         private int[] OKIM6258Volume = new int[2] { 100, 100 };
         private int[] OKIM6295Volume = new int[2] { 100, 100 };
         private int[] SEGAPCMVolume = new int[2] { 100, 100 };
+        private int[] YM2151Volume = new int[2] { 100, 100 };
+
         private int[][] StreamBufs = null;
 
         private Chip[] insts = null;
@@ -52,16 +56,19 @@ namespace MDSound
         private Instrument iOKIM6258 = null;
         private Instrument iOKIM6295 = null;
         private Instrument iSEGAPCM = null;
+        private Instrument iYM2151 = null;
 
         private int[][] buffer = null;
         private int[][] buffer2 = null;
         private int[][] buff = new int[2][] { new int[1], new int[1] };
         private int psgMask = 15;// psgはmuteを基準にしているのでビットが逆です
         private int fmMask = 0;
+        private uint segapcmMask = 0;
         private int[][] fmVol = new int[6][] { new int[2], new int[2], new int[2], new int[2], new int[2], new int[2] };
         private int[] fmCh3SlotVol = new int[4];
         private int[][] psgVol = new int[4][] { new int[2], new int[2], new int[2], new int[2] };
         private int[] fmKey = new int[6];
+        private int[] ym2151Key = new int[8];
         private int[][] rf5c164Vol = new int[8][] { new int[2], new int[2], new int[2], new int[2], new int[2], new int[2], new int[2], new int[2] };
 
         private bool incFlag = false;
@@ -90,7 +97,8 @@ namespace MDSound
             C140,
             OKIM6258,
             OKIM6295,
-            SEGAPCM
+            SEGAPCM,
+            YM2151
         }
 
         public class Chip
@@ -149,6 +157,7 @@ namespace MDSound
 
                 psgMask = 15;
                 fmMask = 0;
+                segapcmMask = 0;
 
                 incFlag = false;
 
@@ -189,6 +198,9 @@ namespace MDSound
                                 break;
                             case enmInstrumentType.SEGAPCM:
                                 iSEGAPCM = inst.Instrument;
+                                break;
+                            case enmInstrumentType.YM2151:
+                                iYM2151 = inst.Instrument;
                                 break;
                         }
 
@@ -295,6 +307,7 @@ namespace MDSound
                     ResampleChipStream(insts, buffer2, 1);
                     a += buffer2[0][0];
                     b += buffer2[1][0];
+
 
                     if (incFlag)
                     {
@@ -650,6 +663,9 @@ namespace MDSound
                 case enmInstrumentType.SEGAPCM:
                     SEGAPCMVolume[ChipID] = vol;
                     break;
+                case enmInstrumentType.YM2151:
+                    YM2151Volume[ChipID] = vol;
+                    break;
             }
         }
         
@@ -782,6 +798,16 @@ namespace MDSound
             }
         }
 
+        public void WriteYM2151(byte chipid , byte adr, byte data)
+        {
+            lock (lockobj)
+            {
+                if (iYM2151 == null) return;
+
+                ((ym2151)(iYM2151)).YM2151_Write(chipid, adr , data);
+            }
+        }
+
 
 
         public int[] ReadPSGRegister()
@@ -861,6 +887,19 @@ namespace MDSound
             }
         }
 
+        public int[] ReadYM2151KeyOn()
+        {
+            lock (lockobj)
+            {
+                if (iYM2151 == null) return null;
+                for (int i = 0; i < 8; i++)
+                {
+                    //ym2151Key[i] = ((ym2151)(iYM2151)).YM2151_Chip[0].CHANNEL[i].KeyOn;
+                }
+                return ym2151Key;
+            }
+        }
+
 
         public void setPSGMask(int ch)
         {
@@ -880,6 +919,23 @@ namespace MDSound
             }
         }
 
+        public void setRf5c164Mask(int ch)
+        {
+            lock (lockobj)
+            {
+                if (iRF5C164 != null) ((scd_pcm)(iRF5C164)).PCM_Chip[0].Channel[ch].Muted = 1;
+            }
+        }
+
+        public void setSegaPcmMask(int ch)
+        {
+            lock (lockobj)
+            {
+                segapcmMask |= (uint)ch;
+                if (iSEGAPCM != null) ((segapcm)(iSEGAPCM)).segapcm_set_mute_mask(0, segapcmMask);
+            }
+        }
+
         public void resetPSGMask(int ch)
         {
             lock (lockobj)
@@ -895,6 +951,23 @@ namespace MDSound
             {
                 fmMask &= ~ch;
                 if (iYM2612 != null) ((ym2612)(iYM2612)).YM2612_SetMute(0, fmMask);
+            }
+        }
+
+        public void resetRf5c164Mask(int ch)
+        {
+            lock (lockobj)
+            {
+                if (iRF5C164 != null) ((scd_pcm)(iRF5C164)).PCM_Chip[0].Channel[ch].Muted = 0;
+            }
+        }
+
+        public void resetSegaPcmMask(int ch)
+        {
+            lock (lockobj)
+            {
+                segapcmMask &= ~(uint)ch;
+                if (iSEGAPCM != null) ((segapcm)(iSEGAPCM)).segapcm_set_mute_mask(0, segapcmMask);
             }
         }
 
