@@ -21,6 +21,7 @@ namespace MDSound
         private const uint DefaultOKIM6258ClockValue = 4000000;
         private const uint DefaultOKIM6295ClockValue = 4000000;
         private const uint DefaultYM2151ClockValue = 3579545;
+        private const uint DefaultYM2203ClockValue = 3000000;
 
         private uint SamplingRate = 44100;
         private uint SamplingBuffer = 512;
@@ -34,6 +35,7 @@ namespace MDSound
         private uint[] OKIM6258ClockValue = new uint[2] { 4000000, 4000000 };
         private uint[] OKIM6295ClockValue = new uint[2] { 4000000, 4000000 };
         private uint[] YM2151ClockValue = new uint[2] { 3579545, 3579545 };
+        private uint[] YM2203ClockValue = new uint[2] { 3000000, 3000000 };
 
         private int[] YM2612Volume = new int[2] { 170, 170 };
         private int[] SN76489Volume = new int[2] { 100, 100 };
@@ -44,6 +46,7 @@ namespace MDSound
         private int[] OKIM6295Volume = new int[2] { 100, 100 };
         private int[] SEGAPCMVolume = new int[2] { 100, 100 };
         private int[] YM2151Volume = new int[2] { 100, 100 };
+        private int[] YM2203Volume = new int[2] { 100, 100 };
 
         private int[][] StreamBufs = null;
 
@@ -57,6 +60,7 @@ namespace MDSound
         private Instrument iOKIM6295 = null;
         private Instrument iSEGAPCM = null;
         private Instrument iYM2151 = null;
+        private Instrument iYM2203 = null;
 
         private int[][] buffer = null;
         private int[][] buffer2 = null;
@@ -69,6 +73,7 @@ namespace MDSound
         private int[][] psgVol = new int[4][] { new int[2], new int[2], new int[2], new int[2] };
         private int[] fmKey = new int[6];
         private int[] ym2151Key = new int[8];
+        private int[] ym2203Key = new int[6];
         private int[][] rf5c164Vol = new int[8][] { new int[2], new int[2], new int[2], new int[2], new int[2], new int[2], new int[2], new int[2] };
 
         private bool incFlag = false;
@@ -98,7 +103,8 @@ namespace MDSound
             OKIM6258,
             OKIM6295,
             SEGAPCM,
-            YM2151
+            YM2151,
+            YM2203
         }
 
         public class Chip
@@ -168,8 +174,8 @@ namespace MDSound
                     //inst.Instrument.CHIP_SAMPLE_RATE = 0;
                     //inst.Instrument.CHIP_SAMPLING_MODE = 0;
 
-                    if (inst.Clock != uint.MaxValue && inst.Clock != 0)
-                    {
+                    //if (inst.Clock != uint.MaxValue && inst.Clock != 0)
+                    //{
                         inst.SamplingRate = inst.Start(inst.ID, inst.SamplingRate, inst.Clock, inst.Option);
                         inst.Reset(inst.ID);
 
@@ -202,10 +208,13 @@ namespace MDSound
                             case enmInstrumentType.YM2151:
                                 iYM2151 = inst.Instrument;
                                 break;
+                            case enmInstrumentType.YM2203:
+                                iYM2203 = inst.Instrument;
+                                break;
                         }
 
                         SetupResampler(inst);
-                    }
+                    //}
                 }
 
             }
@@ -666,6 +675,9 @@ namespace MDSound
                 case enmInstrumentType.YM2151:
                     YM2151Volume[ChipID] = vol;
                     break;
+                case enmInstrumentType.YM2203:
+                    YM2203Volume[ChipID] = vol;
+                    break;
             }
         }
         
@@ -798,13 +810,23 @@ namespace MDSound
             }
         }
 
-        public void WriteYM2151(byte chipid , byte adr, byte data)
+        public void WriteYM2151(byte chipid, byte adr, byte data)
         {
             lock (lockobj)
             {
                 if (iYM2151 == null) return;
 
-                ((ym2151)(iYM2151)).YM2151_Write(chipid, adr , data);
+                ((ym2151)(iYM2151)).YM2151_Write(chipid, adr, data);
+            }
+        }
+
+        public void WriteYM2203(byte chipid, byte adr, byte data)
+        {
+            lock (lockobj)
+            {
+                if (iYM2203 == null) return;
+
+                ((ym2203)(iYM2203)).YM2203_Write(chipid, adr, data);
             }
         }
 
@@ -895,6 +917,19 @@ namespace MDSound
                 for (int i = 0; i < 8; i++)
                 {
                     //ym2151Key[i] = ((ym2151)(iYM2151)).YM2151_Chip[0].CHANNEL[i].KeyOn;
+                }
+                return ym2151Key;
+            }
+        }
+
+        public int[] ReadYM2203KeyOn()
+        {
+            lock (lockobj)
+            {
+                if (iYM2203 == null) return null;
+                for (int i = 0; i < 6; i++)
+                {
+                    //ym2203Key[i] = ((ym2203)(iYM2203)).YM2203_Chip[0].CHANNEL[i].KeyOn;
                 }
                 return ym2151Key;
             }

@@ -43,6 +43,7 @@
     <Compile Include="fmgen\file.cs" />
     <Compile Include="fmgen\fmgen.cs" />
     <Compile Include="fmgen\opm.cs" />
+    <Compile Include="fmgen\opna.cs" />
     <Compile Include="fmgen\psg.cs" />
     <Compile Include="fmgen\Timer.cs" />
     <Compile Include="Instrument.cs" />
@@ -55,6 +56,7 @@
     <Compile Include="segapcm.cs" />
     <Compile Include="sn76489.cs" />
     <Compile Include="ym2151.cs" />
+    <Compile Include="ym2203.cs" />
     <Compile Include="ym2612.cs" />
   </ItemGroup>
   <ItemGroup>

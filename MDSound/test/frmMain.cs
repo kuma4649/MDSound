@@ -13,6 +13,7 @@ namespace test
         private static uint PSGClockValue = 3579545;
         private static uint FMClockValue = 7670454;
         private static uint YM2151ClockValue = 3579545;
+        private static uint YM2203ClockValue = 3000000;
         //private static uint rf5c164ClockValue = 12500000;
         //private static uint pwmClockValue = 23011361;
         //private static uint c140ClockValue = 21390;
@@ -141,7 +142,7 @@ namespace test
             vgmWait = 0;
             vgmAnalyze = true;
 
-            MDSound.MDSound.Chip[] chips = new MDSound.MDSound.Chip[3];
+            MDSound.MDSound.Chip[] chips = new MDSound.MDSound.Chip[4];
 
             chips[0] = new MDSound.MDSound.Chip();
             chips[0].type = MDSound.MDSound.enmInstrumentType.SN76489;
@@ -167,7 +168,7 @@ namespace test
             chips[1].Stop = ym2612.Stop;
             chips[1].Reset = ym2612.Reset;
             chips[1].SamplingRate = SamplingRate;
-            chips[1].Clock = FMClockValue;
+            chips[1].Clock = getLE32(0x2c); //FMClockValue;
             chips[1].Volume = 100;
             chips[1].Option = null;
 
@@ -181,9 +182,23 @@ namespace test
             chips[2].Stop = ym2151.Stop;
             chips[2].Reset = ym2151.Reset;
             chips[2].SamplingRate = SamplingRate;
-            chips[2].Clock = YM2151ClockValue;
+            chips[2].Clock = getLE32(0x30); //YM2151ClockValue;
             chips[2].Volume = 100;
             chips[2].Option = null;
+
+            chips[3] = new MDSound.MDSound.Chip();
+            chips[3].type = MDSound.MDSound.enmInstrumentType.YM2203;
+            chips[3].ID = 0;
+            MDSound.ym2203 ym2203 = new MDSound.ym2203();
+            chips[3].Instrument = ym2203;
+            chips[3].Update = ym2203.Update;
+            chips[3].Start = ym2203.Start;
+            chips[3].Stop = ym2203.Stop;
+            chips[3].Reset = ym2203.Reset;
+            chips[3].SamplingRate = SamplingRate;
+            chips[3].Clock = getLE32(0x44); //YM2203ClockValue;
+            chips[3].Volume = 100;
+            chips[3].Option = null;
 
             //chips[2] = new MDSound.MDSound.Chip();
             //chips[2].type = MDSound.MDSound.enmInstrumentType.RF5C164;
@@ -309,7 +324,10 @@ namespace test
                         mds.WriteYM2151(0, rAdr, rDat);
                         break;
                     case 0x55: //YM2203
+                        rAdr = vgmBuf[vgmAdr + 1];
+                        rDat = vgmBuf[vgmAdr + 2];
                         vgmAdr += 3;
+                        mds.WriteYM2203(0, rAdr, rDat);
 
                         break;
                     case 0x61: //Wait n samples

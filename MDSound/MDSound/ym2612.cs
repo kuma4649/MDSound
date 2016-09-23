@@ -1746,7 +1746,11 @@ namespace MDSound
             int i, j;
             double x;
 
-            if ((Rate == 0) || (Clock == 0)) return null;
+            if ((Rate == 0)) return null;
+            if (Clock == 0)
+            {
+                Clock = DefaultFMClockValue;
+            }
 
             YM2612 = new ym2612_();
 
@@ -2250,7 +2254,7 @@ namespace MDSound
 
         public uint Start(byte ChipID, uint clock,uint FMClockValue,params object[] option)
         {
-            ym2612_ ym2612 = YM2612_Init(FMClockValue, clock, 0);
+            ym2612_ ym2612 = YM2612_Init(FMClockValue, clock, (int)FMClockValue);
             YM2612_Chip[ChipID] = ym2612;
             Reset(ChipID);
 

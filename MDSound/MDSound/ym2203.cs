@@ -1,9 +1,9 @@
 ﻿namespace MDSound
 {
-    public class ym2151 : Instrument
+    public class ym2203 : Instrument
     {
-        private fmgen.OPM[] chip = new fmgen.OPM[2];
-        private const uint DefaultYM2151ClockValue = 3579545;
+        private fmgen.OPN[] chip = new fmgen.OPN[2];
+        private const uint DefaultYM2203ClockValue = 3000000;
 
         public override void Reset(byte ChipID)
         {
@@ -12,16 +12,16 @@
 
         public override uint Start(byte ChipID, uint clock)
         {
-            chip[ChipID] = new fmgen.OPM();
-            chip[ChipID].Init(DefaultYM2151ClockValue,clock);
+            chip[ChipID] = new fmgen.OPN();
+            chip[ChipID].Init(DefaultYM2203ClockValue, clock);
 
             return clock;
         }
 
         public uint Start(byte ChipID, uint clock, uint FMClockValue, params object[] option)
         {
-            chip[ChipID] = new fmgen.OPM();
-            chip[ChipID].Init(FMClockValue,clock);
+            chip[ChipID] = new fmgen.OPN();
+            chip[ChipID].Init(FMClockValue, clock);
 
             return clock;
         }
@@ -45,7 +45,7 @@
             }
         }
 
-        public int YM2151_Write(byte ChipID, byte adr, byte data)
+        public int YM2203_Write(byte ChipID, byte adr, byte data)
         {
             chip[ChipID].SetReg(adr, data);
             return 0;
