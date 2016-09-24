@@ -57,6 +57,7 @@
     <Compile Include="sn76489.cs" />
     <Compile Include="ym2151.cs" />
     <Compile Include="ym2203.cs" />
+    <Compile Include="ym2608.cs" />
     <Compile Include="ym2612.cs" />
   </ItemGroup>
   <ItemGroup>
