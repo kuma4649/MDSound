@@ -237,6 +237,24 @@ namespace test
                 lstChip.Add(chip);
             }
 
+            if (getLE32(0x4c) != 0)
+            {
+                chip = new MDSound.MDSound.Chip();
+                chip.type = MDSound.MDSound.enmInstrumentType.YM2610;
+                chip.ID = 0;
+                MDSound.ym2610 ym2610 = new MDSound.ym2610();
+                chip.Instrument = ym2610;
+                chip.Update = ym2610.Update;
+                chip.Start = ym2610.Start;
+                chip.Stop = ym2610.Stop;
+                chip.Reset = ym2610.Reset;
+                chip.SamplingRate = SamplingRate;
+                chip.Clock = getLE32(0x4c) & 0x7fffffff;
+                chip.Volume = 100;
+                chip.Option = null;
+                lstChip.Add(chip);
+            }
+
             //chips[2] = new MDSound.MDSound.Chip();
             //chips[2].type = MDSound.MDSound.enmInstrumentType.RF5C164;
             //chips[2].ID = 0;
@@ -380,6 +398,20 @@ namespace test
                         mds.WriteYM2608(0, 1, rAdr, rDat);
 
                         break;
+                    case 0x58: //YM2610 Port0
+                        rAdr = vgmBuf[vgmAdr + 1];
+                        rDat = vgmBuf[vgmAdr + 2];
+                        vgmAdr += 3;
+                        mds.WriteYM2610(0, 0, rAdr, rDat);
+
+                        break;
+                    case 0x59: //YM2610 Port1
+                        rAdr = vgmBuf[vgmAdr + 1];
+                        rDat = vgmBuf[vgmAdr + 2];
+                        vgmAdr += 3;
+                        mds.WriteYM2610(0, 1, rAdr, rDat);
+
+                        break;
                     case 0x61: //Wait n samples
                         vgmAdr++;
                         vgmWait += (int)getLE16(vgmAdr);
@@ -454,6 +486,23 @@ namespace test
                                         mds.WriteYM2608(0, 0x1, 0x00, 0x00);
                                         mds.WriteYM2608(0, 0x1, 0x10, 0x80);
 
+                                        break;
+
+                                    case 0x82:
+                                        if (bufYM2610AdpcmA == null || bufYM2610AdpcmA.Length!=romSize) bufYM2610AdpcmA = new byte[romSize];
+                                        for (int cnt = 0; cnt < bLen - 8; cnt++)
+                                        {
+                                            bufYM2610AdpcmA[startAddress+ cnt] = vgmBuf[vgmAdr + 15 + cnt];
+                                        }
+                                        mds.WriteYM2610_SetAdpcmA(0, bufYM2610AdpcmA);
+                                        break;
+                                    case 0x83:
+                                        if (bufYM2610AdpcmB == null || bufYM2610AdpcmB.Length != romSize) bufYM2610AdpcmB = new byte[romSize];
+                                        for (int cnt = 0; cnt < bLen - 8; cnt++)
+                                        {
+                                            bufYM2610AdpcmB[startAddress + cnt] = vgmBuf[vgmAdr + 15 + cnt];
+                                        }
+                                        mds.WriteYM2610_SetAdpcmB(0, bufYM2610AdpcmB);
                                         break;
 
                                     case 0x8b:
@@ -587,6 +636,9 @@ namespace test
             vgmWait--;
 
         }
+
+        static byte[] bufYM2610AdpcmA = null;
+        static byte[] bufYM2610AdpcmB = null;
 
         private static void oneFrameVGMStream()
         {

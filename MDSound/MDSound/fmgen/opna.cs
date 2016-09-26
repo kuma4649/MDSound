@@ -1798,75 +1798,348 @@ namespace MDSound.fmgen
     //	YM2610/B(OPNB) ---------------------------------------------------
     public class OPNB : OPNABase
     {
+        // ---------------------------------------------------------------------------
+        //	構築
+        //
         public OPNB()
         {
+            adpcmabuf = null;
+            adpcmasize = 0;
+            for (int i = 0; i < 6; i++)
+            {
+                adpcma[i].pan = 0;
+                adpcma[i].level = 0;
+                adpcma[i].volume = 0;
+                adpcma[i].pos = 0;
+                adpcma[i].step = 0;
+                adpcma[i].volume = 0;
+                adpcma[i].start = 0;
+                adpcma[i].stop = 0;
+                adpcma[i].adpcmx = 0;
+                adpcma[i].adpcmd = 0;
+            }
+            adpcmatl = 0;
+            adpcmakey = 0;
+            adpcmatvol = 0;
+            adpcmmask = 0;
+            adpcmnotice = 0x8000;
+            granuality = -1;
+            csmch = ch[2];
+
+            InitADPCMATable();
         }
 
         ~OPNB()
         {
         }
 
-        public bool Init(uint c, uint r, bool f = false,
+        // ---------------------------------------------------------------------------
+        //	初期化
+        //
+        public bool Init(uint c, uint r, bool ipflag = false,
                      byte[] _adpcma = null, int _adpcma_size = 0,
                      byte[] _adpcmb = null, int _adpcmb_size = 0)
         {
-            return false;
+            int i;
+            if (!SetRate(c, r, ipflag))
+                return false;
+            if (!base.Init(c, r, ipflag))
+                return false;
+
+            setAdpcmA(_adpcma, _adpcma_size);
+            setAdpcmB(_adpcmb, _adpcmb_size);
+
+            Reset();
+
+            SetVolumeFM(0);
+            SetVolumePSG(0);
+            SetVolumeADPCMB(0);
+            SetVolumeADPCMATotal(0);
+            for (i = 0; i < 6; i++)
+                SetVolumeADPCMA(0, 0);
+            SetChannelMask(0);
+            return true;
         }
 
-        public new bool SetRate(uint c, uint r, bool f = false)
+        public void setAdpcmA(byte[] _adpcma, int _adpcma_size)
         {
-            return false;
+            adpcmabuf = _adpcma;
+            adpcmasize = _adpcma_size;
         }
 
+        public void setAdpcmB(byte[] _adpcmb, int _adpcmb_size)
+        {
+            adpcmbuf = _adpcmb;
+
+            for (int i = 0; i <= 24; i++)       // max 16M bytes
+            {
+                if (_adpcmb_size <= (1 << i))
+                {
+                    adpcmmask = (uint)((1 << i) - 1);
+                    break;
+                }
+            }
+
+            //	adpcmmask = _adpcmb_size - 1;
+            limitaddr = adpcmmask;
+
+        }
+
+        // ---------------------------------------------------------------------------
+        //	サンプリングレート変更
+        //
+        public new bool SetRate(uint c, uint r, bool ipflag = false)
+        {
+            if (!base.SetRate(c, r, ipflag))
+                return false;
+
+            adpcmastep = (int)((double)(c) / 54 * 8192 / r);
+            return true;
+        }
+
+        // ---------------------------------------------------------------------------
+        //	合成
+        //	in:		buffer		合成先
+        //			nsamples	合成サンプル数
+        //
         public void Mix(int[] buffer, int nsamples)
         {
+            FMMix(buffer, nsamples);
+            psg.Mix(buffer, nsamples);
+            ADPCMBMix(buffer, (uint)nsamples);
+            ADPCMAMix(buffer, (uint)nsamples);
         }
 
+        // ---------------------------------------------------------------------------
+        //	リセット
+        //
         public new void Reset()
         {
+            base.Reset();
+
+            stmask = ~(uint)0;
+            adpcmakey = 0;
+            reg29 = ~(uint)0;
+
+            for (int i = 0; i < 6; i++)
+            {
+                adpcma[i].pan = 0;
+                adpcma[i].level = 0;
+                adpcma[i].volume = 0;
+                adpcma[i].pos = 0;
+                adpcma[i].step = 0;
+                adpcma[i].volume = 0;
+                adpcma[i].start = 0;
+                adpcma[i].stop = 0;
+                adpcma[i].adpcmx = 0;
+                adpcma[i].adpcmd = 0;
+            }
         }
 
+        // ---------------------------------------------------------------------------
+        //	レジスタアレイにデータを設定
+        //
         public new void SetReg(uint addr, uint data)
         {
+            addr &= 0x1ff;
+
+            switch (addr)
+            {
+                // omitted registers
+                case 0x29:
+                case 0x2d:
+                case 0x2e:
+                case 0x2f:
+                    break;
+
+                // ADPCM A ---------------------------------------------------------------
+                case 0x100:         // DM/KEYON
+                    if ((data & 0x80)==0)  // KEY ON
+                    {
+                        adpcmakey |= (byte)(data & 0x3f);
+                        for (int c = 0; c < 6; c++)
+                        {
+                            if ((data & (1 << c))!=0)
+                            {
+                                ResetStatus((uint)(0x100 << c));
+                                adpcma[c].pos = adpcma[c].start;
+                                //					adpcma[c].step = 0x10000 - adpcma[c].step;
+                                adpcma[c].step = 0;
+                                adpcma[c].adpcmx = 0;
+                                adpcma[c].adpcmd = 0;
+                                adpcma[c].nibble = 0;
+                            }
+                        }
+                    }
+                    else
+                    {                   // DUMP
+                        adpcmakey &= (byte)~data;
+                    }
+                    break;
+
+                case 0x101:
+                    adpcmatl = (sbyte)(~data & 63);
+                    break;
+
+                case 0x108:
+                case 0x109:
+                case 0x10a:
+                case 0x10b:
+                case 0x10c:
+                case 0x10d:
+                    adpcma[addr & 7].pan = (byte)((data >> 6) & 3);
+                    adpcma[addr & 7].level = (sbyte)(~data & 31);
+                    break;
+
+                case 0x110:
+                case 0x111:
+                case 0x112: // START ADDRESS (L)
+                case 0x113:
+                case 0x114:
+                case 0x115:
+                case 0x118:
+                case 0x119:
+                case 0x11a: // START ADDRESS (H)
+                case 0x11b:
+                case 0x11c:
+                case 0x11d:
+                    adpcmareg[addr - 0x110] =(byte) data;
+                    adpcma[addr & 7].pos = adpcma[addr & 7].start =
+                        (uint)((adpcmareg[(addr & 7) + 8] * 256 + adpcmareg[addr & 7]) << 9);
+                    break;
+
+                case 0x120:
+                case 0x121:
+                case 0x122: // END ADDRESS (L)
+                case 0x123:
+                case 0x124:
+                case 0x125:
+                case 0x128:
+                case 0x129:
+                case 0x12a: // END ADDRESS (H)
+                case 0x12b:
+                case 0x12c:
+                case 0x12d:
+                    adpcmareg[addr - 0x110] = (byte)data;
+                    adpcma[addr & 7].stop =
+                        (uint)((adpcmareg[(addr & 7) + 24] * 256 + adpcmareg[(addr & 7) + 16] + 1) << 9);
+                    break;
+
+                // ADPCMB -----------------------------------------------------------------
+                case 0x10:
+                    if ((data & 0x80)!=0 && !adpcmplay)
+                    {
+                        adpcmplay = true;
+                        memaddr = startaddr;
+                        adpcmx = 0;
+                        adpcmd = 127;
+                        adplc = 0;
+                    }
+                    if ((data & 1)!=0)
+                        adpcmplay = false;
+                    control1 = (byte)(data & 0x91);
+                    break;
+
+
+                case 0x11:      // Control Register 2
+                    control2 = (byte)(data & 0xc0);
+                    break;
+
+                case 0x12:      // Start Address L
+                case 0x13:      // Start Address H
+                    adpcmreg[addr - 0x12 + 0] = (byte)data;
+                    startaddr = (uint)((adpcmreg[1] * 256 + adpcmreg[0]) << 9);
+                    memaddr = startaddr;
+                    break;
+
+                case 0x14:      // Stop Address L
+                case 0x15:      // Stop Address H
+                    adpcmreg[addr - 0x14 + 2] = (byte)data;
+                    stopaddr = (uint)((adpcmreg[3] * 256 + adpcmreg[2] + 1) << 9);
+                    //		LOG1("  stopaddr %.6x", stopaddr);
+                    break;
+
+                case 0x19:      // delta-N L
+                case 0x1a:      // delta-N H
+                    adpcmreg[addr - 0x19 + 4] = (byte)data;
+                    deltan = (uint)(adpcmreg[5] * 256 + adpcmreg[4]);
+                    deltan = Math.Max(256, deltan);
+                    adpld = (int)(deltan * adplbase >> 16);
+                    break;
+
+                case 0x1b:      // Level Control
+                    adpcmlevel = (byte)data;
+                    adpcmvolume = (adpcmvol * adpcmlevel) >> 12;
+                    break;
+
+                case 0x1c:      // Flag Control
+                    stmask = ~((data & 0xbf) << 8);
+                    status &= stmask;
+                    UpdateStatus();
+                    break;
+
+                default:
+                    base.SetReg(addr, data);
+                    break;
+            }
+            //	LOG0("\n");
         }
 
+        // ---------------------------------------------------------------------------
+        //	レジスタ取得
+        //
         public new uint GetReg(uint addr)
         {
+            if (addr < 0x10)
+                return psg.GetReg(addr);
+
             return 0;
         }
 
+        // ---------------------------------------------------------------------------
+        //	拡張ステータスを読みこむ
+        //
         public new uint ReadStatusEx()
         {
-            return 0;
+            return (status & stmask) >> 8;
         }
 
         public void SetVolumeADPCMATotal(int db)
         {
+            db = Math.Min(db, 20);
+            adpcmatvol = -(db * 2 / 3);
         }
 
         public void SetVolumeADPCMA(int index, int db)
         {
+            db = Math.Min(db, 20);
+            adpcma[index].volume = -(db * 2 / 3);
         }
 
         public void SetVolumeADPCMB(int db)
         {
+            db = Math.Min(db, 20);
+            if (db > -192)
+                adpcmvol = (int)(65536.0 * Math.Pow(10, db / 40.0));
+            else
+                adpcmvol = 0;
         }
 
         //		void	SetChannelMask(uint mask);
 
         public class ADPCMA
         {
-            byte pan;      // ぱん
-            sbyte level;     // おんりょう
-            int volume;     // おんりょうせってい
-            uint pos;       // いち
-            uint step;      // すてっぷち
+            public byte pan;      // ぱん
+            public sbyte level;     // おんりょう
+            public int volume;     // おんりょうせってい
+            public uint pos;       // いち
+            public uint step;      // すてっぷち
 
-            uint start;     // 開始
-            uint stop;      // 終了
-            uint nibble;        // 次の 4 bit
-            int adpcmx;     // 変換用
-            int adpcmd;     // 変換用
+            public uint start;     // 開始
+            public uint stop;      // 終了
+            public uint nibble;        // 次の 4 bit
+            public short adpcmx;     // 変換用
+            public short adpcmd;     // 変換用
         };
 
         private int DecodeADPCMASample(uint a)
@@ -1874,27 +2147,107 @@ namespace MDSound.fmgen
             return -1;
         }
 
+        // ---------------------------------------------------------------------------
+        //	ADPCMA 合成
+        //
         public void ADPCMAMix(int[] buffer, uint count)
         {
+            int[] decode_tableA1 = new int[16]
+            {
+        -1*16, -1*16, -1*16, -1*16, 2*16, 5*16, 7*16, 9*16,
+        -1*16, -1*16, -1*16, -1*16, 2*16, 5*16, 7*16, 9*16
+            };
+
+            if (adpcmatvol < 128 && (adpcmakey & 0x3f)!=0)
+            {
+                //Sample* limit = buffer + count * 2;
+                uint limit = count * 2;
+                for (int i = 0; i < 6; i++)
+                {
+                    ADPCMA r = adpcma[i];
+                    if ((adpcmakey & (1 << i))!=0 && (byte)r.level < 128)
+                    {
+                        uint maskl = (uint)((r.pan & 2)!=0 ? -1 : 0);
+                        uint maskr = (uint)((r.pan & 1)!=0 ? -1 : 0);
+                        if ((rhythmmask_ & (1 << i))!=0)
+                        {
+                            maskl = maskr = 0;
+                        }
+
+                        int db = fmgen.Limit(adpcmatl + adpcmatvol + r.level + r.volume, 127, -31);
+                        int vol = tltable[fmgen.FM_TLPOS + (db << (fmgen.FM_TLBITS - 7))] >> 4;
+
+                        //Sample* dest = buffer;
+                        uint dest = 0;
+                        for (; dest < limit; dest += 2)
+                        {
+                            r.step += (uint)adpcmastep;
+                            if (r.pos >= r.stop)
+                            {
+                                SetStatus((uint)(0x100 << i));
+                                adpcmakey &= (byte)~(1 << i);
+                                break;
+                            }
+
+                            for (; r.step > 0x10000; r.step -= 0x10000)
+                            {
+                                int data;
+                                if ((r.pos & 1)==0)
+                                {
+                                    r.nibble = adpcmabuf[r.pos >> 1];
+                                    data = (int)(r.nibble >> 4);
+                                }
+                                else
+                                {
+                                    data = (int)(r.nibble & 0x0f);
+                                }
+                                r.pos++;
+
+                                r.adpcmx += jedi_table[r.adpcmd + data];
+                                r.adpcmx = (short)fmgen.Limit(r.adpcmx, 2048 * 3 - 1, -2048 * 3);
+                                r.adpcmd += (short)decode_tableA1[data];
+                                r.adpcmd = (short)fmgen.Limit(r.adpcmd, 48 * 16, 0);
+                            }
+                            int sample = (r.adpcmx * vol) >> 10;
+                            fmgen.StoreSample(ref buffer[dest+0], (int)(sample & maskl));
+                            fmgen.StoreSample(ref buffer[dest+1], (int)(sample & maskr));
+                        }
+                    }
+                }
+            }
         }
 
         public static void InitADPCMATable()
         {
+            sbyte[] table2 = new sbyte[]
+            {
+         1,  3,  5,  7,  9, 11, 13, 15,
+        -1, -3, -5, -7, -9,-11,-13,-15,
+            };
+
+            for (int i = 0; i <= 48; i++)
+            {
+                int s = (int)(16.0 * Math.Pow(1.1, i) * 3);
+                for (int j = 0; j < 16; j++)
+                {
+                    jedi_table[i * 16 + j] = (short)(s * table2[j] / 8);
+                }
+            }
         }
 
         // ADPCMA 関係
         public byte[] adpcmabuf;       // ADPCMA ROM
         public int adpcmasize;
-        public ADPCMA[] adpcma = new ADPCMA[6];
+        public ADPCMA[] adpcma = new ADPCMA[6] { new ADPCMA(), new ADPCMA(), new ADPCMA(), new ADPCMA(), new ADPCMA(), new ADPCMA()};
         public sbyte adpcmatl;      // ADPCMA 全体の音量
         public int adpcmatvol;
         public byte adpcmakey;        // ADPCMA のキー
         public int adpcmastep;
         public byte[] adpcmareg = new byte[32];
 
-        public static int[] jedi_table = new int[(48 + 1) * 16];
+        public static short[] jedi_table = new short[(48 + 1) * 16];
 
-        public new fmgen.Channel4[] ch = new fmgen.Channel4[6];
+        //public new fmgen.Channel4[] ch = new fmgen.Channel4[6];
     };
 
     //	YM2612/3438(OPN2) ----------------------------------------------------

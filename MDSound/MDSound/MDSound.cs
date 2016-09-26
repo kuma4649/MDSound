@@ -50,6 +50,7 @@ namespace MDSound
         private int[] YM2151Volume = new int[2] { 100, 100 };
         private int[] YM2203Volume = new int[2] { 100, 100 };
         private int[] YM2608Volume = new int[2] { 100, 100 };
+        private int[] YM2610Volume = new int[2] { 100, 100 };
 
         private int[][] StreamBufs = null;
 
@@ -65,6 +66,7 @@ namespace MDSound
         private Instrument iYM2151 = null;
         private Instrument iYM2203 = null;
         private Instrument iYM2608 = null;
+        private Instrument iYM2610 = null;
 
         private int[][] buffer = null;
         private int[][] buffer2 = null;
@@ -79,6 +81,7 @@ namespace MDSound
         private int[] ym2151Key = new int[8];
         private int[] ym2203Key = new int[6];
         private int[] ym2608Key = new int[11];
+        private int[] ym2610Key = new int[11];
         private int[][] rf5c164Vol = new int[8][] { new int[2], new int[2], new int[2], new int[2], new int[2], new int[2], new int[2], new int[2] };
 
         private bool incFlag = false;
@@ -110,7 +113,8 @@ namespace MDSound
             SEGAPCM,
             YM2151,
             YM2203,
-            YM2608
+            YM2608,
+            YM2610
         }
 
         public class Chip
@@ -219,6 +223,9 @@ namespace MDSound
                             break;
                         case enmInstrumentType.YM2608:
                             iYM2608 = inst.Instrument;
+                            break;
+                        case enmInstrumentType.YM2610:
+                            iYM2610 = inst.Instrument;
                             break;
                     }
 
@@ -690,6 +697,9 @@ namespace MDSound
                 case enmInstrumentType.YM2608:
                     YM2608Volume[ChipID] = vol;
                     break;
+                case enmInstrumentType.YM2610:
+                    YM2610Volume[ChipID] = vol;
+                    break;
             }
         }
         
@@ -852,6 +862,36 @@ namespace MDSound
             }
         }
 
+        public void WriteYM2610(byte chipid, byte port, byte adr, byte data)
+        {
+            lock (lockobj)
+            {
+                if (iYM2610 == null) return;
+
+                ((ym2610)(iYM2610)).YM2610_Write(chipid, (uint)(port * 0x100 + adr), data);
+            }
+        }
+
+        public void WriteYM2610_SetAdpcmA(byte chipid, byte[] buf)
+        {
+            lock (lockobj)
+            {
+                if (iYM2610 == null) return;
+
+                ((ym2610)(iYM2610)).YM2610_setAdpcmA(chipid, buf, buf.Length);
+            }
+        }
+
+        public void WriteYM2610_SetAdpcmB(byte chipid, byte[] buf)
+        {
+            lock (lockobj)
+            {
+                if (iYM2610 == null) return;
+
+                ((ym2610)(iYM2610)).YM2610_setAdpcmB(chipid, buf, buf.Length);
+            }
+        }
+
 
 
         public int[] ReadPSGRegister()
@@ -967,6 +1007,19 @@ namespace MDSound
                     //ym2608Key[i] = ((ym2608)(iYM2608)).YM2608_Chip[0].CHANNEL[i].KeyOn;
                 }
                 return ym2608Key;
+            }
+        }
+
+        public int[] ReadYM2610KeyOn()
+        {
+            lock (lockobj)
+            {
+                if (iYM2610 == null) return null;
+                for (int i = 0; i < 11; i++)
+                {
+                    //ym2610Key[i] = ((ym2610)(iYM2610)).YM2610_Chip[0].CHANNEL[i].KeyOn;
+                }
+                return ym2610Key;
             }
         }
 
