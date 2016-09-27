@@ -66,7 +66,7 @@ namespace test
 
         private void btnPlay_Click(object sender, EventArgs e)
         {
-
+            btnPlay.Enabled = false;
             stop();
             play(tbFile.Text);
 
@@ -75,6 +75,7 @@ namespace test
         private void btnStop_Click(object sender, EventArgs e)
         {
 
+            btnPlay.Enabled = true;
             stop();
 
         }
@@ -93,9 +94,11 @@ namespace test
             if (sdl == null) return;
 
             sdl.Paused = true;
+            sdl.Close();
             sdl.Dispose();
             sdl = null;
             if (sdlCbHandle.IsAllocated) sdlCbHandle.Free();
+
 
         }
 
@@ -115,6 +118,7 @@ namespace test
                 return;
 
             }
+            
 
             //ヘッダーを読み込めるサイズをもっているかチェック
             if (vgmBuf.Length < 0x40) return;
@@ -252,6 +256,8 @@ namespace test
                 chip.Clock = getLE32(0x4c) & 0x7fffffff;
                 chip.Volume = 100;
                 chip.Option = null;
+                bufYM2610AdpcmA = null;
+                bufYM2610AdpcmB = null;
                 lstChip.Add(chip);
             }
 
