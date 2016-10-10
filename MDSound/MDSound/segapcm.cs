@@ -66,7 +66,7 @@ namespace MDSound
         //# include "segapcm.h"
 
 
-        private class segapcm_state
+        public class segapcm_state
         {
             public byte[] ram;
             public int ptrRam=0;
@@ -86,7 +86,7 @@ namespace MDSound
         };
 
         //#define MAX_CHIPS	0x02
-        private segapcm_state[] SPCMData = new segapcm_state[2] { new segapcm_state(), new segapcm_state() };// [MAX_CHIPS];
+        public segapcm_state[] SPCMData = new segapcm_state[2] { new segapcm_state(), new segapcm_state() };// [MAX_CHIPS];
 
         //# ifndef _DEBUG
         //byte SegaPCM_NewCore = 0x00;

@@ -78,7 +78,7 @@ namespace MDSound
         private static int tables_computed = 0;
 
         private const int MAX_CHIPS = 0x02;
-        private static okim6258_state[] OKIM6258Data = new okim6258_state[MAX_CHIPS] { new okim6258_state(), new okim6258_state() };
+        public static okim6258_state[] OKIM6258Data = new okim6258_state[MAX_CHIPS] { new okim6258_state(), new okim6258_state() };
 
         /*INLINE okim6258_state *get_safe_token(running_device *device)
         {

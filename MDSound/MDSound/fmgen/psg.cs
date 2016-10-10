@@ -241,7 +241,7 @@ namespace MDSound.fmgen
             byte[] nenable=new byte[3];
             byte r7 = (byte)~reg[7];
 
-            if (((r7 & 0x3f) | ((reg[8] | reg[9] | reg[10]) & 0x1f))!=0)
+            if (((r7 & 0x3f) | ((reg[8] | reg[9] | reg[10]) & 0x1f)) != 0)
             {
                 chenable[0] = (byte)((((r7 & 0x01) != 0) && (speriod[0] <= (uint)(1 << toneshift))) ? 1 : 0);
                 chenable[1] = (byte)((((r7 & 0x02) != 0) && (speriod[1] <= (uint)(1 << toneshift))) ? 1 : 0);
@@ -255,17 +255,17 @@ namespace MDSound.fmgen
                 //uint* p1 = ((mask & 1) && (reg[8] & 0x10)) ? &env : &olevel[0];
                 //uint* p2 = ((mask & 2) && (reg[9] & 0x10)) ? &env : &olevel[1];
                 //uint* p3 = ((mask & 4) && (reg[10] & 0x10)) ? &env : &olevel[2];
-                uint? p1 = ((mask & 1)!=0 && (reg[8] & 0x10)!=0) ? (uint?)null : olevel[0];
-                uint? p2 = ((mask & 2)!=0 && (reg[9] & 0x10)!=0) ? (uint?)null : olevel[1];
-                uint? p3 = ((mask & 4)!=0 && (reg[10] & 0x10)!=0) ? (uint?)null : olevel[2];
+                uint? p1 = ((mask & 1) != 0 && (reg[8] & 0x10) != 0) ? (uint?)null : 0;
+                uint? p2 = ((mask & 2) != 0 && (reg[9] & 0x10) != 0) ? (uint?)null : 1;
+                uint? p3 = ((mask & 4) != 0 && (reg[10] & 0x10) != 0) ? (uint?)null : 2;
 
-//#define SCOUNT(ch)	(scount[ch] >> (toneshift+oversampling))
+                //#define SCOUNT(ch)	(scount[ch] >> (toneshift+oversampling))
 
                 //if (p1 != &env && p2 != &env && p3 != &env)
-                    if (p1 != null && p2 != null && p3 != null)
-                    {
-                        // エンベロープ無し
-                        if ((r7 & 0x38) == 0)
+                if (p1 != null && p2 != null && p3 != null)
+                {
+                    // エンベロープ無し
+                    if ((r7 & 0x38) == 0)
                     {
                         int ptrDest = 0;
                         // ノイズ無し
@@ -286,8 +286,8 @@ namespace MDSound.fmgen
                                 scount[2] += speriod[2];
                             }
                             sample /= (1 << oversampling);
-                            StoreSample(ref dest[ptrDest+0], sample);
-                            StoreSample(ref dest[ptrDest+1], sample);
+                            StoreSample(ref dest[ptrDest + 0], sample);
+                            StoreSample(ref dest[ptrDest + 1], sample);
                             ptrDest += 2;
                         }
                     }
@@ -303,10 +303,10 @@ namespace MDSound.fmgen
                                 //# ifdef _M_IX86
                                 noise = (int)(noisetable[(ncount >> (int)((noiseshift + oversampling + 6)) & (noisetablesize - 1))]
                                     >> (int)(ncount >> (noiseshift + oversampling + 1)));
-//#else
-//                                noise = noisetable[(ncount >> (noiseshift + oversampling + 6)) & (noisetablesize - 1)]
-//                                    >> (ncount >> (noiseshift + oversampling + 1) & 31);
-//#endif
+                                //#else
+                                //                                noise = noisetable[(ncount >> (noiseshift + oversampling + 6)) & (noisetablesize - 1)]
+                                //                                    >> (ncount >> (noiseshift + oversampling + 1) & 31);
+                                //#endif
                                 ncount += nperiod;
 
                                 int x, y, z;
@@ -321,8 +321,8 @@ namespace MDSound.fmgen
                                 scount[2] += speriod[2];
                             }
                             sample /= (1 << oversampling);
-                            StoreSample(ref dest[ptrDest+0], sample);
-                            StoreSample(ref dest[ptrDest+1], sample);
+                            StoreSample(ref dest[ptrDest + 0], sample);
+                            StoreSample(ref dest[ptrDest + 1], sample);
                             ptrDest += 2;
                         }
                     }
@@ -354,29 +354,30 @@ namespace MDSound.fmgen
                                     ecount |= (1 << (envshift + 5 + oversampling));
                                 ecount &= (1 << (envshift + 6 + oversampling)) - 1;
                             }
-//# ifdef _M_IX86
+                            //# ifdef _M_IX86
                             noise = (int)(noisetable[(ncount >> (int)((noiseshift + oversampling + 6)) & (noisetablesize - 1))]
                                 >> (int)(ncount >> (noiseshift + oversampling + 1)));
-//#else
-//                            noise = noisetable[(ncount >> (noiseshift + oversampling + 6)) & (noisetablesize - 1)]
-//                                >> (ncount >> (noiseshift + oversampling + 1) & 31);
-//#endif
+                            //#else
+                            //                            noise = noisetable[(ncount >> (noiseshift + oversampling + 6)) & (noisetablesize - 1)]
+                            //                                >> (ncount >> (noiseshift + oversampling + 1) & 31);
+                            //#endif
                             ncount += nperiod;
 
                             int x, y, z;
                             x = (((int)(scount[0] >> (toneshift + oversampling)) & chenable[0]) | (nenable[0] & noise)) - 1;     // 0 or -1
-                            sample += (int)((p1 + x) ^ x);
+                            //sample += (int)((p1 + x) ^ x);
+                            sample += (int)(((p1 == null ? env : olevel[0]) + x) ^ x);
                             scount[0] += speriod[0];
                             y = (((int)(scount[1] >> (toneshift + oversampling)) & chenable[1]) | (nenable[1] & noise)) - 1;
-                            sample += (int)((p2 + y) ^ y);
+                            sample += (int)(((p2 == null ? env : olevel[1]) + y) ^ y);
                             scount[1] += speriod[1];
                             z = (((int)(scount[2] >> (toneshift + oversampling)) & chenable[2]) | (nenable[2] & noise)) - 1;
-                            sample += (int)((p3 + z) ^ z);
+                            sample += (int)(((p3 == null ? env : olevel[2]) + z) ^ z);
                             scount[2] += speriod[2];
                         }
                         sample /= (1 << oversampling);
-                        StoreSample(ref dest[ptrDest+0], sample);
-                        StoreSample(ref dest[ptrDest+1], sample);
+                        StoreSample(ref dest[ptrDest + 0], sample);
+                        StoreSample(ref dest[ptrDest + 1], sample);
                         ptrDest += 2;
                     }
                 }

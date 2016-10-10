@@ -11,10 +11,10 @@ namespace test
     {
 
         private static uint SamplingRate = 44100;
-        private static uint PSGClockValue = 3579545;
-        private static uint FMClockValue = 7670454;
-        private static uint YM2151ClockValue = 3579545;
-        private static uint YM2203ClockValue = 3000000;
+        //private static uint PSGClockValue = 3579545;
+        //private static uint FMClockValue = 7670454;
+        //private static uint YM2151ClockValue = 3579545;
+        //private static uint YM2203ClockValue = 3000000;
         //private static uint rf5c164ClockValue = 12500000;
         //private static uint pwmClockValue = 23011361;
         //private static uint c140ClockValue = 21390;
@@ -373,7 +373,7 @@ namespace test
                         rAdr = vgmBuf[vgmAdr + 1];
                         rDat = vgmBuf[vgmAdr + 2];
                         vgmAdr += 3;
-                        mds.WriteYM2612(p, rAdr, rDat);
+                        mds.WriteYM2612(0,p, rAdr, rDat);
 
                         break;
                     case 0x54: //YM2151
@@ -559,7 +559,7 @@ namespace test
                     case 0x8d: //Write adr2A and Wait 13 sample
                     case 0x8e: //Write adr2A and Wait 14 sample
                     case 0x8f: //Write adr2A and Wait 15 sample
-                        mds.WriteYM2612(0, 0x2a, vgmBuf[vgmPcmPtr++]);
+                        mds.WriteYM2612(0,0, 0x2a, vgmBuf[vgmPcmPtr++]);
                         vgmWait += (int)(cmd - 0x80);
                         vgmAdr++;
                         break;
@@ -656,7 +656,7 @@ namespace test
 
                 while (vgmStreams[i].wkDataStep >= 1.0)
                 {
-                    mds.WriteYM2612(vgmStreams[i].port, vgmStreams[i].cmd, vgmBuf[vgmPcmBaseAdr + vgmStreams[i].wkDataAdr]);
+                    mds.WriteYM2612(0,vgmStreams[i].port, vgmStreams[i].cmd, vgmBuf[vgmPcmBaseAdr + vgmStreams[i].wkDataAdr]);
                     vgmStreams[i].wkDataAdr++;
                     vgmStreams[i].dataLength--;
                     vgmStreams[i].wkDataStep -= 1.0;

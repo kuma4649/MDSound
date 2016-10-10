@@ -73,8 +73,8 @@ namespace MDSound.fmgen
 
         private uint pmd;
         private uint amd;
-        private uint lfocount;
-        private uint lfodcount;
+        //private uint lfocount;
+        //private uint lfodcount;
 
         private uint lfo_count_;
         private uint lfo_count_diff_;
@@ -87,7 +87,7 @@ namespace MDSound.fmgen
         private int noisecount;
         private uint noisedelta;
 
-        private bool interpolation;
+        //private bool interpolation;
         private byte lfofreq;
         private new byte status;
         private byte reg01;

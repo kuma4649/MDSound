@@ -2318,8 +2318,8 @@ namespace MDSound.fmgen
         private uint[] fnum3 = new uint[3];
         private byte[] fnum2 = new byte[6];
 
-        // 線形補間用ワーク
-        private int mixc, mixc1;
+        //// 線形補間用ワーク
+        //private int mixc, mixc1;
 
         private fmgen.Channel4[] ch = new fmgen.Channel4[3];
     };

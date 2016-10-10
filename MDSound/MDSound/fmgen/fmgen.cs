@@ -1428,7 +1428,7 @@ namespace MDSound.fmgen
             private uint aml_;
             private uint pml_;
             private int pmv_;
-            private OpType optype_;
+            public OpType optype_;
             private uint[][] multable_ = new uint[4][] { new uint[16], new uint[16], new uint[16], new uint[16] };
 
             // ---------------------------------------------------------------------------
