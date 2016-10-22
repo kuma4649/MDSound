@@ -34,20 +34,31 @@ namespace MDSound
         private int[][] buffer2 = null;
         private int[][] buff = new int[2][] { new int[1], new int[1] };
 
-        private int sn76489Mask = 15;// psgはmuteを基準にしているのでビットが逆です
-        private int ym2612Mask = 0;
-        private uint segapcmMask = 0;
+        private int[] sn76489Mask =new int[] { 15, 15 };// psgはmuteを基準にしているのでビットが逆です
+        private int[] ym2612Mask = new int[] { 0, 0 };
+        private int[] ym2203Mask = new int[] { 0, 0 };
+        private uint[] segapcmMask = new uint[] { 0, 0 };
+        private uint[] c140Mask = new uint[] { 0, 0 };
 
-        private int[][] ym2612Vol = new int[6][] { new int[2], new int[2], new int[2], new int[2], new int[2], new int[2] };
-        private int[] ym2612Ch3SlotVol = new int[4];
-        private int[][] sn76489Vol = new int[4][] { new int[2], new int[2], new int[2], new int[2] };
-        private int[][] rf5c164Vol = new int[8][] { new int[2], new int[2], new int[2], new int[2], new int[2], new int[2], new int[2], new int[2] };
+        private int[][][] ym2612Vol = new int[][][] {
+            new int[6][] { new int[2], new int[2], new int[2], new int[2], new int[2], new int[2] }
+            ,new int[6][] { new int[2], new int[2], new int[2], new int[2], new int[2], new int[2] }
+        };
+        private int[][] ym2612Ch3SlotVol = new int[][] { new int[4], new int[4] };
+        private int[][][] sn76489Vol = new int[][][] {
+            new int[4][] { new int[2], new int[2], new int[2], new int[2] }
+            , new int[4][] { new int[2], new int[2], new int[2], new int[2] }
+        };
+        private int[][][] rf5c164Vol = new int[][][] {
+            new int[8][] { new int[2], new int[2], new int[2], new int[2], new int[2], new int[2], new int[2], new int[2] }
+            ,new int[8][] { new int[2], new int[2], new int[2], new int[2], new int[2], new int[2], new int[2], new int[2] }
+        };
 
-        private int[] ym2612Key = new int[6];
-        private int[] ym2151Key = new int[8];
-        private int[] ym2203Key = new int[6];
-        private int[] ym2608Key = new int[11];
-        private int[] ym2610Key = new int[11];
+        private int[][] ym2612Key =new int[][] { new int[6], new int[6] };
+        private int[][] ym2151Key = new int[][] { new int[8], new int[8] };
+        private int[][] ym2203Key = new int[][] { new int[6], new int[6] };
+        private int[][] ym2608Key = new int[][] { new int[11], new int[11] };
+        private int[][] ym2610Key = new int[][] { new int[11], new int[11] };
 
         private bool incFlag = false;
         private object lockobj = new object();
@@ -133,9 +144,16 @@ namespace MDSound
                 buffer2 = new int[2][] { new int[1], new int[1] };
                 StreamBufs = new int[2][] { new int[0x100], new int[0x100] };
 
-                sn76489Mask = 15;
-                ym2612Mask = 0;
-                segapcmMask = 0;
+                sn76489Mask[0] = 15;
+                ym2203Mask[0] = 0;
+                ym2612Mask[0] = 0;
+                segapcmMask[0] = 0;
+                c140Mask[0] = 0;
+                sn76489Mask[1] = 15;
+                ym2203Mask[1] = 0;
+                ym2612Mask[1] = 0;
+                segapcmMask[1] = 0;
+                c140Mask[1] = 0;
 
                 incFlag = false;
 
@@ -247,24 +265,27 @@ namespace MDSound
             {
                 int a, b;
 
-                for (int i = 0; i < 6; i++)
+                for (int chipID = 0; chipID < 2; chipID++)
                 {
-                    ym2612Vol[i][0] = 0;
-                    ym2612Vol[i][1] = 0;
-                }
-                for (int i = 0; i < 4; i++)
-                {
-                    ym2612Ch3SlotVol[i] = 0;
-                }
-                for (int i = 0; i < 4; i++)
-                {
-                    sn76489Vol[i][0] = 0;
-                    sn76489Vol[i][1] = 0;
-                }
-                for (int i = 0; i < 8; i++)
-                {
-                    rf5c164Vol[i][0] = 0;
-                    rf5c164Vol[i][1] = 0;
+                    for (int i = 0; i < 6; i++)
+                    {
+                        ym2612Vol[chipID][i][0] = 0;
+                        ym2612Vol[chipID][i][1] = 0;
+                    }
+                    for (int i = 0; i < 4; i++)
+                    {
+                        ym2612Ch3SlotVol[chipID][i] = 0;
+                    }
+                    for (int i = 0; i < 4; i++)
+                    {
+                        sn76489Vol[chipID][i][0] = 0;
+                        sn76489Vol[chipID][i][1] = 0;
+                    }
+                    for (int i = 0; i < 8; i++)
+                    {
+                        rf5c164Vol[chipID][i][0] = 0;
+                        rf5c164Vol[chipID][i][1] = 0;
+                    }
                 }
 
                 for (int i = 0; i < sampleCount / 2; i++)
@@ -295,33 +316,46 @@ namespace MDSound
 
                     if (iYM2612 != null)
                     {
-                        for (int ch = 0; ch < 6; ch++)
+                        for (int chipID = 0; chipID < 2; chipID++)
                         {
-                            ym2612Vol[ch][0] = Math.Max(ym2612Vol[ch][0], ((ym2612)(iYM2612)).YM2612_Chip[0].CHANNEL[ch].fmVol[0]);
-                            ym2612Vol[ch][1] = Math.Max(ym2612Vol[ch][1], ((ym2612)(iYM2612)).YM2612_Chip[0].CHANNEL[ch].fmVol[1]);
-                        }
+                            if (((ym2612)(iYM2612)).YM2612_Chip[chipID] == null) continue;
 
-                        for (int slot = 0; slot < 4; slot++)
-                        {
-                            ym2612Ch3SlotVol[slot] = Math.Max(ym2612Ch3SlotVol[slot], ((ym2612)(iYM2612)).YM2612_Chip[0].CHANNEL[2].fmSlotVol[slot]);
+                            for (int ch = 0; ch < 6; ch++)
+                            {
+                                ym2612Vol[chipID][ch][0] = Math.Max(ym2612Vol[chipID][ch][0], ((ym2612)(iYM2612)).YM2612_Chip[chipID].CHANNEL[ch].fmVol[0]);
+                                ym2612Vol[chipID][ch][1] = Math.Max(ym2612Vol[chipID][ch][1], ((ym2612)(iYM2612)).YM2612_Chip[chipID].CHANNEL[ch].fmVol[1]);
+                            }
+
+                            for (int slot = 0; slot < 4; slot++)
+                            {
+                                ym2612Ch3SlotVol[chipID][slot] = Math.Max(ym2612Ch3SlotVol[chipID][slot], ((ym2612)(iYM2612)).YM2612_Chip[chipID].CHANNEL[2].fmSlotVol[slot]);
+                            }
                         }
                     }
 
                     if (iSN76489 != null)
                     {
-                        for (int ch = 0; ch < 4; ch++)
+                        for (int chipID = 0; chipID < 2; chipID++)
                         {
-                            sn76489Vol[ch][0] = Math.Max(sn76489Vol[ch][0], ((sn76489)(iSN76489)).SN76489_Chip[0].volume[ch][0]);
-                            sn76489Vol[ch][1] = Math.Max(sn76489Vol[ch][1], ((sn76489)(iSN76489)).SN76489_Chip[0].volume[ch][0]);
+                            if (((sn76489)(iSN76489)).SN76489_Chip[chipID] == null) continue;
+                            for (int ch = 0; ch < 4; ch++)
+                            {
+                                sn76489Vol[chipID][ch][0] = Math.Max(sn76489Vol[chipID][ch][0], ((sn76489)(iSN76489)).SN76489_Chip[chipID].volume[ch][0]);
+                                sn76489Vol[chipID][ch][1] = Math.Max(sn76489Vol[chipID][ch][1], ((sn76489)(iSN76489)).SN76489_Chip[chipID].volume[ch][0]);
+                            }
                         }
                     }
 
                     if (iRF5C164 != null)
                     {
-                        for (int ch = 0; ch < 8; ch++)
+                        for (int chipID = 0; chipID < 2; chipID++)
                         {
-                            rf5c164Vol[ch][0] = Math.Max(rf5c164Vol[ch][0], (int)(((scd_pcm)(iRF5C164)).PCM_Chip[0].Channel[ch].Data * ((scd_pcm)(iRF5C164)).PCM_Chip[0].Channel[ch].MUL_L));
-                            rf5c164Vol[ch][1] = Math.Max(rf5c164Vol[ch][1], (int)(((scd_pcm)(iRF5C164)).PCM_Chip[0].Channel[ch].Data * ((scd_pcm)(iRF5C164)).PCM_Chip[0].Channel[ch].MUL_R));
+                            if (((scd_pcm)(iRF5C164)).PCM_Chip[chipID] == null) continue;
+                            for (int ch = 0; ch < 8; ch++)
+                            {
+                                rf5c164Vol[chipID][ch][0] = Math.Max(rf5c164Vol[chipID][ch][0], (int)(((scd_pcm)(iRF5C164)).PCM_Chip[chipID].Channel[ch].Data * ((scd_pcm)(iRF5C164)).PCM_Chip[chipID].Channel[ch].MUL_L));
+                                rf5c164Vol[chipID][ch][1] = Math.Max(rf5c164Vol[chipID][ch][1], (int)(((scd_pcm)(iRF5C164)).PCM_Chip[chipID].Channel[ch].Data * ((scd_pcm)(iRF5C164)).PCM_Chip[chipID].Channel[ch].MUL_R));
+                            }
                         }
                     }
                 }
@@ -816,12 +850,12 @@ namespace MDSound
             }
         }
 
-        public scd_pcm.pcm_chip_ ReadRf5c164Register()
+        public scd_pcm.pcm_chip_ ReadRf5c164Register(int chipID)
         {
             lock (lockobj)
             {
                 if (iRF5C164 == null || ((scd_pcm)(iRF5C164)).PCM_Chip == null || ((scd_pcm)(iRF5C164)).PCM_Chip.Length < 1) return null;
-                return ((scd_pcm)(iRF5C164)).PCM_Chip[0];
+                return ((scd_pcm)(iRF5C164)).PCM_Chip[chipID];
             }
         }
 
@@ -862,171 +896,207 @@ namespace MDSound
         }
 
 
-        public int[][] ReadRf5c164Volume()
+        public int[][] ReadRf5c164Volume(int chipID)
         {
             lock (lockobj)
             {
-                return rf5c164Vol;
+                return rf5c164Vol[chipID];
             }
         }
 
-        public int[][] ReadYM2612Volume()
+        public int[][] ReadYM2612Volume(int chipID)
         {
             lock (lockobj)
             {
-                return ym2612Vol;
+                return ym2612Vol[chipID];
             }
         }
 
-        public int[] ReadYM2612Ch3SlotVolume()
+        public int[] ReadYM2612Ch3SlotVolume(int chipID)
         {
             lock (lockobj)
             {
-                return ym2612Ch3SlotVol;
+                return ym2612Ch3SlotVol[chipID];
             }
         }
 
-        public int[][] ReadSN76489Volume()
+        public int[][] ReadSN76489Volume(int chipID)
         {
             lock (lockobj)
             {
-                return sn76489Vol;
+                return sn76489Vol[chipID];
             }
         }
 
-        public int[] ReadYM2612KeyOn()
+        public int[] ReadYM2612KeyOn(int chipID)
         {
             lock (lockobj)
             {
                 if (iYM2612 == null) return null;
                 for (int i = 0; i < 6; i++)
                 {
-                    ym2612Key[i] = ((ym2612)(iYM2612)).YM2612_Chip[0].CHANNEL[i].KeyOn;
+                    ym2612Key[chipID][i] = ((ym2612)(iYM2612)).YM2612_Chip[chipID].CHANNEL[i].KeyOn;
                 }
-                return ym2612Key;
+                return ym2612Key[chipID];
             }
         }
 
-        public int[] ReadYM2151KeyOn()
+        public int[] ReadYM2151KeyOn(int chipID)
         {
             lock (lockobj)
             {
                 if (iYM2151 == null) return null;
                 for (int i = 0; i < 8; i++)
                 {
-                    //ym2151Key[i] = ((ym2151)(iYM2151)).YM2151_Chip[0].CHANNEL[i].KeyOn;
+                    //ym2151Key[chipID][i] = ((ym2151)(iYM2151)).YM2151_Chip[chipID].CHANNEL[i].KeyOn;
                 }
-                return ym2151Key;
+                return ym2151Key[chipID];
             }
         }
 
-        public int[] ReadYM2203KeyOn()
+        public int[] ReadYM2203KeyOn(int chipID)
         {
             lock (lockobj)
             {
                 if (iYM2203 == null) return null;
                 for (int i = 0; i < 6; i++)
                 {
-                    //ym2203Key[i] = ((ym2203)(iYM2203)).YM2203_Chip[0].CHANNEL[i].KeyOn;
+                    //ym2203Key[chipID][i] = ((ym2203)(iYM2203)).YM2203_Chip[chipID].CHANNEL[i].KeyOn;
                 }
-                return ym2203Key;
+                return ym2203Key[chipID];
             }
         }
 
-        public int[] ReadYM2608KeyOn()
+        public int[] ReadYM2608KeyOn(int chipID)
         {
             lock (lockobj)
             {
                 if (iYM2608 == null) return null;
                 for (int i = 0; i < 11; i++)
                 {
-                    //ym2608Key[i] = ((ym2608)(iYM2608)).YM2608_Chip[0].CHANNEL[i].KeyOn;
+                    //ym2608Key[chipID][i] = ((ym2608)(iYM2608)).YM2608_Chip[chipID].CHANNEL[i].KeyOn;
                 }
-                return ym2608Key;
+                return ym2608Key[chipID];
             }
         }
 
-        public int[] ReadYM2610KeyOn()
+        public int[] ReadYM2610KeyOn(int chipID)
         {
             lock (lockobj)
             {
                 if (iYM2610 == null) return null;
                 for (int i = 0; i < 11; i++)
                 {
-                    //ym2610Key[i] = ((ym2610)(iYM2610)).YM2610_Chip[0].CHANNEL[i].KeyOn;
+                    //ym2610Key[chipID][i] = ((ym2610)(iYM2610)).YM2610_Chip[chipID].CHANNEL[i].KeyOn;
                 }
-                return ym2610Key;
+                return ym2610Key[chipID];
             }
         }
 
 
-        public void setSN76489Mask(int ch)
+        public void setSN76489Mask(int chipID,int ch)
         {
             lock (lockobj)
             {
-                sn76489Mask &= ~ch;
-                if (iSN76489 != null) ((sn76489)(iSN76489)).SN76489_SetMute(0,sn76489Mask);
+                sn76489Mask[chipID] &= ~ch;
+                if (iSN76489 != null) ((sn76489)(iSN76489)).SN76489_SetMute((byte)chipID, sn76489Mask[chipID]);
             }
         }
 
-        public void setYM2612Mask(int ch)
+        public void setYM2612Mask(int chipID,int ch)
         {
             lock (lockobj)
             {
-                ym2612Mask |= ch;
-                if (iYM2612 != null) ((ym2612)(iYM2612)).YM2612_SetMute(0, ym2612Mask);
+                ym2612Mask[chipID] |= ch;
+                if (iYM2612 != null) ((ym2612)(iYM2612)).YM2612_SetMute((byte)chipID, ym2612Mask[chipID]);
             }
         }
 
-        public void setRf5c164Mask(int ch)
+        public void setYM2203Mask(int chipID, int ch)
         {
             lock (lockobj)
             {
-                if (iRF5C164 != null) ((scd_pcm)(iRF5C164)).PCM_Chip[0].Channel[ch].Muted = 1;
+                ym2203Mask[chipID] |= ch;
+                if (iYM2203 != null) ((ym2203)(iYM2203)).YM2203_SetMute((byte)chipID, ym2203Mask[chipID]);
             }
         }
 
-        public void setSegaPcmMask(int ch)
+        public void setRf5c164Mask(int chipID,int ch)
         {
             lock (lockobj)
             {
-                segapcmMask |= (uint)ch;
-                if (iSEGAPCM != null) ((segapcm)(iSEGAPCM)).segapcm_set_mute_mask(0, segapcmMask);
+                if (iRF5C164 != null) ((scd_pcm)(iRF5C164)).PCM_Chip[chipID].Channel[ch].Muted = 1;
             }
         }
 
-        public void resetSN76489Mask(int ch)
+        public void setC140Mask(int chipID, int ch)
         {
             lock (lockobj)
             {
-                sn76489Mask |= ch;
-                if (iSN76489 != null) ((sn76489)(iSN76489)).SN76489_SetMute(0, sn76489Mask);
+                c140Mask[chipID] |= (uint)ch;
+                if (iC140 != null) ((c140)(iC140)).c140_set_mute_mask((byte)chipID, c140Mask[chipID]);
             }
         }
 
-        public void resetYM2612Mask(int ch)
+        public void setSegaPcmMask(int chipID, int ch)
         {
             lock (lockobj)
             {
-                ym2612Mask &= ~ch;
-                if (iYM2612 != null) ((ym2612)(iYM2612)).YM2612_SetMute(0, ym2612Mask);
+                segapcmMask[chipID] |= (uint)ch;
+                if (iSEGAPCM != null) ((segapcm)(iSEGAPCM)).segapcm_set_mute_mask((byte)chipID, segapcmMask[chipID]);
             }
         }
 
-        public void resetRf5c164Mask(int ch)
+        public void resetSN76489Mask(int chipID, int ch)
         {
             lock (lockobj)
             {
-                if (iRF5C164 != null) ((scd_pcm)(iRF5C164)).PCM_Chip[0].Channel[ch].Muted = 0;
+                sn76489Mask[chipID] |= ch;
+                if (iSN76489 != null) ((sn76489)(iSN76489)).SN76489_SetMute((byte)chipID, sn76489Mask[chipID]);
             }
         }
 
-        public void resetSegaPcmMask(int ch)
+        public void resetYM2612Mask(int chipID, int ch)
         {
             lock (lockobj)
             {
-                segapcmMask &= ~(uint)ch;
-                if (iSEGAPCM != null) ((segapcm)(iSEGAPCM)).segapcm_set_mute_mask(0, segapcmMask);
+                ym2612Mask[chipID] &= ~ch;
+                if (iYM2612 != null) ((ym2612)(iYM2612)).YM2612_SetMute((byte)chipID, ym2612Mask[chipID]);
+            }
+        }
+
+        public void resetYM2203Mask(int chipID, int ch)
+        {
+            lock (lockobj)
+            {
+                ym2203Mask[chipID] &= ~ch;
+                if (iYM2203 != null) ((ym2203)(iYM2203)).YM2203_SetMute((byte)chipID, ym2203Mask[chipID]);
+            }
+        }
+
+        public void resetRf5c164Mask(int chipID, int ch)
+        {
+            lock (lockobj)
+            {
+                if (iRF5C164 != null) ((scd_pcm)(iRF5C164)).PCM_Chip[chipID].Channel[ch].Muted = 0;
+            }
+        }
+
+        public void resetC140Mask(int chipID, int ch)
+        {
+            lock (lockobj)
+            {
+                c140Mask[chipID] &= ~(uint)ch;
+                if (iC140 != null) ((c140)(iC140)).c140_set_mute_mask((byte)chipID, c140Mask[chipID]);
+            }
+        }
+
+        public void resetSegaPcmMask(int chipID, int ch)
+        {
+            lock (lockobj)
+            {
+                segapcmMask[chipID] &= ~(uint)ch;
+                if (iSEGAPCM != null) ((segapcm)(iSEGAPCM)).segapcm_set_mute_mask((byte)chipID, segapcmMask[chipID]);
             }
         }
 

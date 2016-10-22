@@ -52,6 +52,8 @@ namespace MDSound
 
         public int YM2608_Write(byte ChipID, uint adr, byte data)
         {
+            if (chip[ChipID] == null) return 0;
+
             chip[ChipID].SetReg(adr, data);
             return 0;
         }

@@ -12,6 +12,7 @@ namespace MDSound
 
         public override void Reset(byte ChipID)
         {
+            if (chip[ChipID] == null) return;
             chip[ChipID].Reset();
         }
 
@@ -38,6 +39,7 @@ namespace MDSound
 
         public override void Update(byte ChipID, int[][] outputs, int samples)
         {
+            if (chip[ChipID] == null) return;
             int[] buffer = new int[2];
             buffer[0] = 0;
             buffer[1] = 0;
@@ -52,17 +54,20 @@ namespace MDSound
 
         public int YM2610_Write(byte ChipID, uint adr, byte data)
         {
+            if (chip[ChipID] == null) return 0;
             chip[ChipID].SetReg(adr, data);
             return 0;
         }
 
         public void YM2610_setAdpcmA(byte ChipID, byte[] _adpcma, int _adpcma_size)
         {
+            if (chip[ChipID] == null) return;
             chip[ChipID].setAdpcmA(_adpcma, _adpcma_size);
         }
 
         public void YM2610_setAdpcmB(byte ChipID, byte[] _adpcmb, int _adpcmb_size)
         {
+            if (chip[ChipID] == null) return;
             chip[ChipID].setAdpcmB(_adpcmb, _adpcmb_size);
         }
 

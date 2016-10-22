@@ -2370,6 +2370,7 @@ namespace MDSound
         public int YM2612_Write(byte ChipID, byte adr, byte data)
         {
             ym2612_ YM2612 = YM2612_Chip[ChipID];
+            if (YM2612 == null) return 0;
 
             int d;
 
@@ -2450,6 +2451,8 @@ namespace MDSound
 
         public void YM2612_SetMute(byte ChipID, int val)
         {
+            if (YM2612_Chip[ChipID] == null) return;
+
             ym2612_ YM2612 = YM2612_Chip[ChipID];
 
             YM2612.CHANNEL[0].Mute = val & 1;

@@ -7,6 +7,7 @@
 
         public override void Reset(byte ChipID)
         {
+            if (chip[ChipID] == null) return;
             chip[ChipID].Reset();
         }
 
@@ -33,6 +34,7 @@
 
         public override void Update(byte ChipID, int[][] outputs, int samples)
         {
+            if (chip[ChipID] == null) return;
             int[] buffer = new int[2];
             buffer[0] = 0;
             buffer[1] = 0;
@@ -47,6 +49,8 @@
 
         public int YM2151_Write(byte ChipID, byte adr, byte data)
         {
+            if (chip[ChipID] == null) return 0;
+
             chip[ChipID].SetReg(adr, data);
             return 0;
         }

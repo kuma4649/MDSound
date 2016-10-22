@@ -91,7 +91,7 @@ namespace MDSound
         private const int MAX_CHIPS = 2;
 
         private SN76489_Context[] LastChipInit = new SN76489_Context[MAX_CHIPS] { null, null };
-        public SN76489_Context[] SN76489_Chip = new SN76489_Context[MAX_CHIPS] { null, null };
+        public SN76489_Context[] SN76489_Chip = new SN76489_Context[MAX_CHIPS] { new SN76489_Context(), new SN76489_Context() };
 
         //static unsigned short int FNumLimit;
 
