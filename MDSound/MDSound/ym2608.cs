@@ -57,5 +57,34 @@ namespace MDSound
             chip[ChipID].SetReg(adr, data);
             return 0;
         }
+
+        public void SetFMVolume(byte ChipID, int db)
+        {
+            if (chip[ChipID] == null) return;
+
+            chip[ChipID].SetVolumeFM(db);
+        }
+
+        public void SetPSGVolume(byte ChipID, int db)
+        {
+            if (chip[ChipID] == null) return;
+
+            chip[ChipID].SetVolumePSG(db);
+        }
+
+        public void SetRhythmVolume(byte ChipID, int db)
+        {
+            if (chip[ChipID] == null) return;
+
+            chip[ChipID].SetVolumeRhythmTotal(db);
+        }
+
+        public void SetAdpcmVolume(byte ChipID, int db)
+        {
+            if (chip[ChipID] == null) return;
+
+            chip[ChipID].SetVolumeADPCM(db);
+        }
+
     }
 }

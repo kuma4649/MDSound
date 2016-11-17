@@ -37,6 +37,8 @@
             this.label2 = new System.Windows.Forms.Label();
             this.timer1 = new System.Windows.Forms.Timer(this.components);
             this.label3 = new System.Windows.Forms.Label();
+            this.trackBar1 = new System.Windows.Forms.TrackBar();
+            ((System.ComponentModel.ISupportInitialize)(this.trackBar1)).BeginInit();
             this.SuspendLayout();
             // 
             // label1
@@ -109,11 +111,24 @@
             this.label3.TabIndex = 5;
             this.label3.Text = "||||||||||||||||||||||||||||||||||||||||||||||||||||||||||";
             // 
+            // trackBar1
+            // 
+            this.trackBar1.Location = new System.Drawing.Point(335, 9);
+            this.trackBar1.Maximum = 20;
+            this.trackBar1.Minimum = -192;
+            this.trackBar1.Name = "trackBar1";
+            this.trackBar1.Orientation = System.Windows.Forms.Orientation.Vertical;
+            this.trackBar1.Size = new System.Drawing.Size(45, 66);
+            this.trackBar1.TabIndex = 6;
+            this.trackBar1.TickFrequency = 25;
+            this.trackBar1.ValueChanged += new System.EventHandler(this.trackBar1_ValueChanged);
+            // 
             // frmMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(341, 82);
+            this.ClientSize = new System.Drawing.Size(383, 82);
+            this.Controls.Add(this.trackBar1);
             this.Controls.Add(this.label3);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.btnStop);
@@ -125,6 +140,7 @@
             this.Name = "frmMain";
             this.Text = "TestPlayer";
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.frmMain_FormClosed);
+            ((System.ComponentModel.ISupportInitialize)(this.trackBar1)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -140,6 +156,7 @@
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Timer timer1;
         private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.TrackBar trackBar1;
     }
 }
 

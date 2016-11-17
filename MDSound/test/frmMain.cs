@@ -164,7 +164,7 @@ namespace test
                 chip.Reset = sn76489.Reset;
                 chip.SamplingRate = SamplingRate;
                 chip.Clock = getLE32(0x0c);// PSGClockValue;
-                chip.Volume = 50;
+                chip.Volume = -50;
                 chip.Option = null;
                 lstChip.Add(chip);
             }
@@ -182,7 +182,7 @@ namespace test
                 chip.Reset = ym2612.Reset;
                 chip.SamplingRate = SamplingRate;
                 chip.Clock = getLE32(0x2c); //FMClockValue;
-                chip.Volume = 100;
+                chip.Volume = 0;
                 chip.Option = null;
                 lstChip.Add(chip);
             }
@@ -200,7 +200,7 @@ namespace test
                 chip.Reset = ym2151.Reset;
                 chip.SamplingRate = SamplingRate;
                 chip.Clock = getLE32(0x30); //YM2151ClockValue;
-                chip.Volume = 100;
+                chip.Volume = 0;
                 chip.Option = null;
                 lstChip.Add(chip);
             }
@@ -218,7 +218,7 @@ namespace test
                 chip.Reset = ym2203.Reset;
                 chip.SamplingRate = SamplingRate;
                 chip.Clock = getLE32(0x44); //YM2203ClockValue;
-                chip.Volume = 100;
+                chip.Volume = 0;
                 chip.Option = null;
                 lstChip.Add(chip);
             }
@@ -236,7 +236,7 @@ namespace test
                 chip.Reset = ym2608.Reset;
                 chip.SamplingRate = SamplingRate;
                 chip.Clock = getLE32(0x48);
-                chip.Volume = 100;
+                chip.Volume = 0;
                 chip.Option = null;
                 lstChip.Add(chip);
             }
@@ -254,7 +254,7 @@ namespace test
                 chip.Reset = ym2610.Reset;
                 chip.SamplingRate = SamplingRate;
                 chip.Clock = getLE32(0x4c) & 0x7fffffff;
-                chip.Volume = 100;
+                chip.Volume = 0;
                 chip.Option = null;
                 bufYM2610AdpcmA = null;
                 bufYM2610AdpcmB = null;
@@ -722,5 +722,10 @@ namespace test
             label3.Location = new System.Drawing.Point(Math.Min((mds.getTotalVolumeR() / 600) * 3 - 174, 0), label3.Location.Y);
         }
 
+        private void trackBar1_ValueChanged(object sender, EventArgs e)
+        {
+            if (mds == null) return;
+            mds.SetVolumeYM2612( ((TrackBar)sender).Value);
+        }
     }
 }

@@ -110,7 +110,7 @@ namespace MDSound
             public byte ID = 0;
             public uint SamplingRate = 0;
             public uint Clock = 0;
-            public uint Volume = 0;
+            public int Volume = 0;
 
             public byte Resampler;
             public uint SmpP;
@@ -365,6 +365,11 @@ namespace MDSound
             }
         }
 
+        public int Limit(int v, int max, int min)
+        {
+            return v > max ? max : (v < min ? min : v);
+        }
+
         private void ResampleChipStream(Chip[] insts, int[][] RetSample, uint Length)
         {
             Chip inst;
@@ -400,7 +405,8 @@ namespace MDSound
             for (int i = 0; i < insts.Length; i++)
             {
                 inst = insts[i];
-                double volume = inst.Volume/100.0;
+                //double volume = inst.Volume/100.0;
+                int mul = (int)(16384.0 * Math.Pow(10.0, inst.Volume / 40.0));
 
                 switch (inst.Resampler)
                 {
@@ -410,8 +416,11 @@ namespace MDSound
                         inst.SmpNext = (uint)((ulong)inst.SmpP * inst.SamplingRate / SamplingRate);
                         if (inst.SmpLast >= inst.SmpNext)
                         {
-                            RetSample[0][0] += (int)(inst.LSmpl[0] * volume);
-                            RetSample[1][0] += (int)(inst.LSmpl[1] * volume);
+                            RetSample[0][0] += (short)((Limit(inst.LSmpl[0], 0x7fff, -0x8000) * mul) >> 14);
+                            RetSample[1][0] += (short)((Limit(inst.LSmpl[1], 0x7fff, -0x8000) * mul) >> 14);
+
+                            //RetSample[0][0] += (int)(inst.LSmpl[0] * volume);
+                            //RetSample[1][0] += (int)(inst.LSmpl[1] * volume);
                         }
                         else
                         {
@@ -423,21 +432,31 @@ namespace MDSound
                                 buff[0][0] = 0;
                                 buff[1][0] = 0;
                                 inst.Update(inst.ID, buff, 1);
-                                StreamBufs[0][ind] += (int)(buff[0][0] * volume);
-                                StreamBufs[1][ind] += (int)(buff[1][0] * volume);
+
+                                StreamBufs[0][ind] += (short)((Limit(buff[0][0], 0x7fff, -0x8000) * mul) >> 14);
+                                StreamBufs[1][ind] += (short)((Limit(buff[1][0], 0x7fff, -0x8000) * mul) >> 14);
+
+                                //StreamBufs[0][ind] += (int)(buff[0][0] * volume);
+                                //StreamBufs[1][ind] += (int)(buff[1][0] * volume);
                             }
 
                             if (SmpCnt == 1)
                             {
-                                RetSample[0][0] += (int)(CurBufL[0x00] * volume);
-                                RetSample[1][0] += (int)(CurBufR[0x00] * volume);
+                                RetSample[0][0] += (short)((Limit(CurBufL[0x00], 0x7fff, -0x8000) * mul) >> 14);
+                                RetSample[1][0] += (short)((Limit(CurBufR[0x00], 0x7fff, -0x8000) * mul) >> 14);
+
+                                //RetSample[0][0] += (int)(CurBufL[0x00] * volume);
+                                //RetSample[1][0] += (int)(CurBufR[0x00] * volume);
                                 inst.LSmpl[0] = CurBufL[0x00];
                                 inst.LSmpl[1] = CurBufR[0x00];
                             }
                             else if (SmpCnt == 2)
                             {
-                                RetSample[0][0] += (int)((int)((CurBufL[0x00] + CurBufL[0x01]) * volume) >> 1);
-                                RetSample[1][0] += (int)((int)((CurBufR[0x00] + CurBufR[0x01]) * volume) >> 1);
+                                RetSample[0][0] += (short)((Limit((CurBufL[0x00] + CurBufL[0x01]), 0x7fff, -0x8000) * mul) >> 14 >> 1);
+                                RetSample[1][0] += (short)((Limit((CurBufR[0x00] + CurBufR[0x01]), 0x7fff, -0x8000) * mul) >> 14 >> 1);
+
+                                //RetSample[0][0] += (int)((int)((CurBufL[0x00] + CurBufL[0x01]) * volume) >> 1);
+                                //RetSample[1][0] += (int)((int)((CurBufR[0x00] + CurBufR[0x01]) * volume) >> 1);
                                 inst.LSmpl[0] = CurBufL[0x01];
                                 inst.LSmpl[1] = CurBufR[0x01];
                             }
@@ -450,8 +469,11 @@ namespace MDSound
                                     TempS32L += CurBufL[CurSmpl];
                                     TempS32R += CurBufR[CurSmpl];
                                 }
-                                RetSample[0][0] += (int)(TempS32L * volume / SmpCnt);
-                                RetSample[1][0] += (int)(TempS32R * volume / SmpCnt);
+                                RetSample[0][0] += (short)((Limit(TempS32L, 0x7fff, -0x8000) * mul / SmpCnt) >> 14 );
+                                RetSample[1][0] += (short)((Limit(TempS32R, 0x7fff, -0x8000) * mul / SmpCnt) >> 14 );
+
+                                //RetSample[0][0] += (int)(TempS32L * volume / SmpCnt);
+                                //RetSample[1][0] += (int)(TempS32R * volume / SmpCnt);
                                 inst.LSmpl[0] = CurBufL[SmpCnt - 1];
                                 inst.LSmpl[1] = CurBufR[SmpCnt - 1];
                             }
@@ -483,8 +505,11 @@ namespace MDSound
                             buff[0][0] = 0;
                             buff[1][0] = 0;
                             inst.Update(inst.ID, buff, 1);
-                            StreamPnt[0][ind] += (int)(buff[0][0] * volume);
-                            StreamPnt[1][ind] += (int)(buff[1][0] * volume);
+
+                            StreamPnt[0][ind] += (short)((Limit(buff[0][0], 0x7fff, -0x8000) * mul) >> 14 );
+                            StreamPnt[1][ind] += (short)((Limit(buff[1][0], 0x7fff, -0x8000) * mul) >> 14 );
+                            //StreamPnt[0][ind] += (int)(buff[0][0] * volume);
+                            //StreamPnt[1][ind] += (int)(buff[1][0] * volume);
                         }
                         for (int ind = 0; ind < (int)(InNow - inst.SmpNext); ind++)
                         {
@@ -528,8 +553,12 @@ namespace MDSound
                             buff[0][0] = 0;
                             buff[1][0] = 0;
                             inst.Update(inst.ID, buff, 1);
-                            StreamBufs[0][ind] = (int)(buff[0][0] * volume);
-                            StreamBufs[1][ind] = (int)(buff[1][0] * volume);
+
+                            StreamBufs[0][ind] += (short)((Limit(buff[0][0], 0x7fff, -0x8000) * mul) >> 14);
+                            StreamBufs[1][ind] += (short)((Limit(buff[1][0], 0x7fff, -0x8000) * mul) >> 14);
+
+                            //StreamBufs[0][ind] = (int)(buff[0][0] * volume);
+                            //StreamBufs[1][ind] = (int)(buff[1][0] * volume);
                         }
                         for (OutPos = 0x00; OutPos < Length; OutPos++)
                         {
@@ -558,8 +587,11 @@ namespace MDSound
                             buff[0][0] = 0;
                             buff[1][0] = 0;
                             inst.Update(inst.ID, buff, 1);
-                            StreamPnt[0][ind] += (int)(buff[0][0] * volume);
-                            StreamPnt[1][ind] += (int)(buff[1][0] * volume);
+
+                            StreamPnt[0][ind] += (short)((Limit(buff[0][0], 0x7fff, -0x8000) * mul) >> 14);
+                            StreamPnt[1][ind] += (short)((Limit(buff[1][0], 0x7fff, -0x8000) * mul) >> 14);
+                            //StreamPnt[0][ind] += (int)(buff[0][0] * volume);
+                            //StreamPnt[1][ind] += (int)(buff[1][0] * volume);
                         }
                         for (int ind = 0; ind < (int)(inst.SmpNext - inst.SmpLast); ind++)
                         {
@@ -830,6 +862,258 @@ namespace MDSound
             }
         }
 
+
+        public void SetVolumeYM2151(int vol)
+        {
+            if (iYM2151 == null) return;
+
+            foreach (Chip c in insts)
+            {
+                if (c.type != enmInstrumentType.YM2151) continue;
+                c.Volume = Math.Max(Math.Min(vol, 20), -192);
+            }
+        }
+
+        public void SetVolumeYM2203(int vol)
+        {
+            if (iYM2203 == null) return;
+
+            foreach (Chip c in insts)
+            {
+                if (c.type != enmInstrumentType.YM2203) continue;
+                c.Volume = Math.Max(Math.Min(vol, 20), -192);
+            }
+        }
+
+        public void SetVolumeYM2203FM(int vol)
+        {
+            if (iYM2203 == null) return;
+
+            foreach (Chip c in insts)
+            {
+                if (c.type != enmInstrumentType.YM2203) continue;
+                ((ym2203)c.Instrument).SetFMVolume(0, vol);
+                ((ym2203)c.Instrument).SetFMVolume(1, vol);
+            }
+        }
+
+        public void SetVolumeYM2203PSG(int vol)
+        {
+            if (iYM2203 == null) return;
+
+            foreach (Chip c in insts)
+            {
+                if (c.type != enmInstrumentType.YM2203) continue;
+                ((ym2203)c.Instrument).SetPSGVolume(0, vol);
+                ((ym2203)c.Instrument).SetPSGVolume(1, vol);
+            }
+        }
+
+        public void SetVolumeYM2608(int vol)
+        {
+            if (iYM2608 == null) return;
+
+            foreach (Chip c in insts)
+            {
+                if (c.type != enmInstrumentType.YM2608) continue;
+                c.Volume = Math.Max(Math.Min(vol, 20), -192);
+            }
+        }
+
+        public void SetVolumeYM2608FM(int vol)
+        {
+            if (iYM2608 == null) return;
+
+            foreach (Chip c in insts)
+            {
+                if (c.type != enmInstrumentType.YM2608) continue;
+                ((ym2608)c.Instrument).SetFMVolume(0, vol);
+                ((ym2608)c.Instrument).SetFMVolume(1, vol);
+            }
+        }
+
+        public void SetVolumeYM2608PSG(int vol)
+        {
+            if (iYM2608 == null) return;
+
+            foreach (Chip c in insts)
+            {
+                if (c.type != enmInstrumentType.YM2608) continue;
+                ((ym2608)c.Instrument).SetPSGVolume(0, vol);
+                ((ym2608)c.Instrument).SetPSGVolume(1, vol);
+            }
+        }
+
+        public void SetVolumeYM2608Rhythm(int vol)
+        {
+            if (iYM2608 == null) return;
+
+            foreach (Chip c in insts)
+            {
+                if (c.type != enmInstrumentType.YM2608) continue;
+                ((ym2608)c.Instrument).SetRhythmVolume(0, vol);
+                ((ym2608)c.Instrument).SetRhythmVolume(1, vol);
+            }
+        }
+
+        public void SetVolumeYM2608Adpcm(int vol)
+        {
+            if (iYM2608 == null) return;
+
+            foreach (Chip c in insts)
+            {
+                if (c.type != enmInstrumentType.YM2608) continue;
+                ((ym2608)c.Instrument).SetAdpcmVolume(0, vol);
+                ((ym2608)c.Instrument).SetAdpcmVolume(1, vol);
+            }
+        }
+
+        public void SetVolumeYM2610(int vol)
+        {
+            if (iYM2610 == null) return;
+
+            foreach (Chip c in insts)
+            {
+                if (c.type != enmInstrumentType.YM2610) continue;
+                c.Volume = Math.Max(Math.Min(vol, 20), -192);
+            }
+        }
+
+        public void SetVolumeYM2610FM(int vol)
+        {
+            if (iYM2610 == null) return;
+
+            foreach (Chip c in insts)
+            {
+                if (c.type != enmInstrumentType.YM2610) continue;
+                ((ym2610)c.Instrument).SetFMVolume(0, vol);
+                ((ym2610)c.Instrument).SetFMVolume(1, vol);
+            }
+        }
+
+        public void SetVolumeYM2610PSG(int vol)
+        {
+            if (iYM2610 == null) return;
+
+            foreach (Chip c in insts)
+            {
+                if (c.type != enmInstrumentType.YM2610) continue;
+                ((ym2610)c.Instrument).SetPSGVolume(0, vol);
+                ((ym2610)c.Instrument).SetPSGVolume(1, vol);
+            }
+        }
+
+        public void SetVolumeYM2610AdpcmA(int vol)
+        {
+            if (iYM2610 == null) return;
+
+            foreach (Chip c in insts)
+            {
+                if (c.type != enmInstrumentType.YM2610) continue;
+                ((ym2610)c.Instrument).SetAdpcmAVolume(0, vol);
+                ((ym2610)c.Instrument).SetAdpcmAVolume(1, vol);
+            }
+        }
+
+        public void SetVolumeYM2610AdpcmB(int vol)
+        {
+            if (iYM2610 == null) return;
+
+            foreach (Chip c in insts)
+            {
+                if (c.type != enmInstrumentType.YM2610) continue;
+                ((ym2610)c.Instrument).SetAdpcmBVolume(0, vol);
+                ((ym2610)c.Instrument).SetAdpcmBVolume(1, vol);
+            }
+        }
+
+        public void SetVolumeYM2612(int vol)
+        {
+            if (iYM2612 == null) return;
+
+            foreach (Chip c in insts)
+            {
+                if (c.type != enmInstrumentType.YM2612) continue;
+                c.Volume = Math.Max(Math.Min(vol, 20), -192);
+            }
+        }
+
+        public void SetVolumeSN76489(int vol)
+        {
+            if (iSN76489 == null) return;
+
+            foreach (Chip c in insts)
+            {
+                if (c.type != enmInstrumentType.SN76489) continue;
+                c.Volume = Math.Max(Math.Min(vol, 20), -192);
+            }
+        }
+
+        public void SetVolumeRF5C164(int vol)
+        {
+            if (iRF5C164 == null) return;
+
+            foreach (Chip c in insts)
+            {
+                if (c.type != enmInstrumentType.RF5C164) continue;
+                c.Volume = Math.Max(Math.Min(vol, 20), -192);
+            }
+        }
+
+        public void SetVolumePWM(int vol)
+        {
+            if (iPWM == null) return;
+
+            foreach (Chip c in insts)
+            {
+                if (c.type != enmInstrumentType.PWM) continue;
+                c.Volume = Math.Max(Math.Min(vol, 20),-192);
+            }
+        }
+
+        public void SetVolumeOKIM6258(int vol)
+        {
+            if (iOKIM6258 == null) return;
+
+            foreach (Chip c in insts)
+            {
+                if (c.type != enmInstrumentType.OKIM6258) continue;
+                c.Volume = Math.Max(Math.Min(vol, 20), -192);
+            }
+        }
+
+        public void SetVolumeOKIM6295(int vol)
+        {
+            if (iOKIM6295 == null) return;
+
+            foreach (Chip c in insts)
+            {
+                if (c.type != enmInstrumentType.OKIM6295) continue;
+                c.Volume = Math.Max(Math.Min(vol, 20), -192);
+            }
+        }
+
+        public void SetVolumeC140(int vol)
+        {
+            if (iC140 == null) return;
+
+            foreach (Chip c in insts)
+            {
+                if (c.type != enmInstrumentType.C140) continue;
+                c.Volume = Math.Max(Math.Min(vol, 20), -192);
+            }
+        }
+
+        public void SetVolumeSegaPCM(int vol)
+        {
+            if (iSEGAPCM == null) return;
+
+            foreach (Chip c in insts)
+            {
+                if (c.type != enmInstrumentType.SEGAPCM) continue;
+                c.Volume = Math.Max(Math.Min(vol, 20), -192);
+            }
+        }
 
 
         public int[] ReadSN76489Register()

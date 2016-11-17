@@ -64,6 +64,20 @@
             
         }
 
+        public void SetFMVolume(byte ChipID, int db)
+        {
+            if (chip[ChipID] == null) return;
+
+            chip[ChipID].SetVolumeFM(db);
+        }
+
+        public void SetPSGVolume(byte ChipID, int db)
+        {
+            if (chip[ChipID] == null) return;
+
+            chip[ChipID].SetVolumePSG(db);
+        }
+
 
     }
 }
