@@ -322,13 +322,13 @@ namespace MDSound
 
                             for (int ch = 0; ch < 6; ch++)
                             {
-                                ym2612Vol[chipID][ch][0] = Math.Max(ym2612Vol[chipID][ch][0], ((ym2612)(iYM2612)).YM2612_Chip[chipID].CHANNEL[ch].fmVol[0]);
-                                ym2612Vol[chipID][ch][1] = Math.Max(ym2612Vol[chipID][ch][1], ((ym2612)(iYM2612)).YM2612_Chip[chipID].CHANNEL[ch].fmVol[1]);
+                                //ym2612Vol[chipID][ch][0] = Math.Max(ym2612Vol[chipID][ch][0], ((ym2612)(iYM2612)).YM2612_Chip[chipID].CHANNEL[ch].fmVol[0]);
+                                //ym2612Vol[chipID][ch][1] = Math.Max(ym2612Vol[chipID][ch][1], ((ym2612)(iYM2612)).YM2612_Chip[chipID].CHANNEL[ch].fmVol[1]);
                             }
 
                             for (int slot = 0; slot < 4; slot++)
                             {
-                                ym2612Ch3SlotVol[chipID][slot] = Math.Max(ym2612Ch3SlotVol[chipID][slot], ((ym2612)(iYM2612)).YM2612_Chip[chipID].CHANNEL[2].fmSlotVol[slot]);
+                                //ym2612Ch3SlotVol[chipID][slot] = Math.Max(ym2612Ch3SlotVol[chipID][slot], ((ym2612)(iYM2612)).YM2612_Chip[chipID].CHANNEL[2].fmSlotVol[slot]);
                             }
                         }
                     }
@@ -452,8 +452,8 @@ namespace MDSound
                             }
                             else if (SmpCnt == 2)
                             {
-                                RetSample[0][0] += (short)((Limit((CurBufL[0x00] + CurBufL[0x01]), 0x7fff, -0x8000) * mul) >> 14 >> 1);
-                                RetSample[1][0] += (short)((Limit((CurBufR[0x00] + CurBufR[0x01]), 0x7fff, -0x8000) * mul) >> 14 >> 1);
+                                RetSample[0][0] += (short)(((Limit((CurBufL[0x00] + CurBufL[0x01]), 0x7fff, -0x8000) * mul) >> 14) >> 1);
+                                RetSample[1][0] += (short)(((Limit((CurBufR[0x00] + CurBufR[0x01]), 0x7fff, -0x8000) * mul) >> 14) >> 1);
 
                                 //RetSample[0][0] += (int)((int)((CurBufL[0x00] + CurBufL[0x01]) * volume) >> 1);
                                 //RetSample[1][0] += (int)((int)((CurBufR[0x00] + CurBufR[0x01]) * volume) >> 1);
@@ -469,8 +469,8 @@ namespace MDSound
                                     TempS32L += CurBufL[CurSmpl];
                                     TempS32R += CurBufR[CurSmpl];
                                 }
-                                RetSample[0][0] += (short)((Limit(TempS32L, 0x7fff, -0x8000) * mul / SmpCnt) >> 14 );
-                                RetSample[1][0] += (short)((Limit(TempS32R, 0x7fff, -0x8000) * mul / SmpCnt) >> 14 );
+                                RetSample[0][0] += (short)(((Limit(TempS32L, 0x7fff, -0x8000) * mul) >> 14) / SmpCnt);
+                                RetSample[1][0] += (short)(((Limit(TempS32R, 0x7fff, -0x8000) * mul) >> 14) / SmpCnt);
 
                                 //RetSample[0][0] += (int)(TempS32L * volume / SmpCnt);
                                 //RetSample[1][0] += (int)(TempS32R * volume / SmpCnt);
@@ -554,8 +554,8 @@ namespace MDSound
                             buff[1][0] = 0;
                             inst.Update(inst.ID, buff, 1);
 
-                            StreamBufs[0][ind] += (short)((Limit(buff[0][0], 0x7fff, -0x8000) * mul) >> 14);
-                            StreamBufs[1][ind] += (short)((Limit(buff[1][0], 0x7fff, -0x8000) * mul) >> 14);
+                            StreamBufs[0][ind] = (short)((Limit(buff[0][0], 0x7fff, -0x8000) * mul) >> 14);
+                            StreamBufs[1][ind] = (short)((Limit(buff[1][0], 0x7fff, -0x8000) * mul) >> 14);
 
                             //StreamBufs[0][ind] = (int)(buff[0][0] * volume);
                             //StreamBufs[1][ind] = (int)(buff[1][0] * volume);
@@ -1125,12 +1125,12 @@ namespace MDSound
             }
         }
 
-        public int[][] ReadYM2612Register()
+        public int[][] ReadYM2612Register(byte chipID)
         {
             lock (lockobj)
             {
                 if (iYM2612 == null) return null;
-                return ((ym2612)(iYM2612)).YM2612_Chip[0].REG;
+                return ((ym2612)(iYM2612)).YM2612_Chip[chipID].REG;
             }
         }
 
@@ -1212,16 +1212,14 @@ namespace MDSound
             }
         }
 
-        public int[] ReadYM2612KeyOn(int chipID)
+        public int[] ReadYM2612KeyOn(byte chipID)
         {
             lock (lockobj)
             {
-                if (iYM2612 == null) return null;
-                for (int i = 0; i < 6; i++)
-                {
-                    ym2612Key[chipID][i] = ((ym2612)(iYM2612)).YM2612_Chip[chipID].CHANNEL[i].KeyOn;
-                }
-                return ym2612Key[chipID];
+                int[] keys = new int[((ym2612)(iYM2612)).YM2612_Chip[chipID].CHANNEL.Length];
+                for (int i = 0; i < keys.Length; i++)
+                    keys[i] = ((ym2612)(iYM2612)).YM2612_Chip[chipID].CHANNEL[i].KeyOn;
+                return keys;
             }
         }
 
