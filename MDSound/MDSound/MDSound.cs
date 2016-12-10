@@ -674,13 +674,13 @@ namespace MDSound
         }
 
 
-        public void WriteSN76489(byte Data)
+        public void WriteSN76489(byte ChipID, byte Data)
         {
             lock (lockobj)
             {
                 if (iSN76489 == null) return;
 
-                ((sn76489)(iSN76489)).SN76489_Write(0, Data);
+                ((sn76489)(iSN76489)).SN76489_Write(ChipID, Data);
             }
         }
 

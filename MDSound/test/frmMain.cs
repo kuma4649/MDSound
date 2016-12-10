@@ -364,7 +364,7 @@ namespace test
                 {
                     case 0x4f: //GG PSG
                     case 0x50: //PSG
-                        mds.WriteSN76489(vgmBuf[vgmAdr + 1]);
+                        mds.WriteSN76489(0,vgmBuf[vgmAdr + 1]);
                         vgmAdr += 2;
                         break;
                     case 0x52: //YM2612 Port0
