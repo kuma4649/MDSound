@@ -261,6 +261,27 @@ namespace test
                 lstChip.Add(chip);
             }
 
+            if (getLE32(0x74) != 0)
+            {
+                chip = new MDSound.MDSound.Chip();
+                chip.type = MDSound.MDSound.enmInstrumentType.AY8910;
+                chip.ID = 0;
+                MDSound.ay8910 ay8910 = new MDSound.ay8910();
+                chip.Instrument = ay8910;
+                chip.Update = ay8910.Update;
+                chip.Start = ay8910.Start;
+                chip.Stop = ay8910.Stop;
+                chip.Reset = ay8910.Reset;
+                chip.SamplingRate = SamplingRate;
+                chip.Clock = getLE32(0x74) & 0x7fffffff;
+                chip.Clock /= 2;
+                if ((vgmBuf[0x79] & 0x10) != 0)
+                    chip.Clock /= 2;
+                chip.Volume = 0;
+                chip.Option = null;
+                lstChip.Add(chip);
+            }
+
             //chips[2] = new MDSound.MDSound.Chip();
             //chips[2].type = MDSound.MDSound.enmInstrumentType.RF5C164;
             //chips[2].ID = 0;
@@ -313,6 +334,8 @@ namespace test
 
         }
 
+        static short v = 1200;
+        static short vy = -100;
         private static void callback(IntPtr userData, IntPtr stream, int len)
         {
 
@@ -320,6 +343,13 @@ namespace test
             {
                 short[] buf = new short[2];
                 mds.Update(buf, 0, 2, oneFrameVGM);
+                //buf[0] = v;
+                //buf[1] = v;
+                //v += vy;
+                //if (v < -1200 || v > 1200)
+                //{
+                //    vy = (short)-vy;
+                //}
                 frames[i * 2 + 0] = buf[0];
                 frames[i * 2 + 1] = buf[1];
                 //Console.Write("Adr[{0:x8}] : Wait[{1:d8}] : [{2:d8}]/[{3:d8}]\r\n", vgmAdr, vgmWait, buf[0], buf[1]);
@@ -622,6 +652,13 @@ namespace test
                         vgmStreams[si].wkDataAdr = vgmStreams[si].dataStartOffset;
                         vgmStreams[si].wkDataLen = vgmStreams[si].dataLength;
                         vgmStreams[si].wkDataStep = 1.0;
+
+                        break;
+                    case 0xa0: //AY8910
+                        rAdr = vgmBuf[vgmAdr + 1];
+                        rDat = vgmBuf[vgmAdr + 2];
+                        vgmAdr += 3;
+                        mds.WriteAY8910(0, rAdr, rDat);
 
                         break;
                     case 0xb7:

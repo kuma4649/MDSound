@@ -17,6 +17,7 @@ namespace MDSound
         private int[][] StreamBufs = null;
 
         private Chip[] insts = null;
+        private Instrument iAY8910 = null;
         private Instrument iSN76489 = null;
         private Instrument iYM2612 = null;
         private Instrument iRF5C164 = null;
@@ -90,7 +91,8 @@ namespace MDSound
             YM2151,
             YM2203,
             YM2608,
-            YM2610
+            YM2610,
+            AY8910
         }
 
         public class Chip
@@ -201,6 +203,9 @@ namespace MDSound
                             break;
                         case enmInstrumentType.YM2610:
                             iYM2610 = inst.Instrument;
+                            break;
+                        case enmInstrumentType.AY8910:
+                            iAY8910 = inst.Instrument;
                             break;
                     }
 
@@ -861,6 +866,17 @@ namespace MDSound
                 ((ym2610)(iYM2610)).YM2610_setAdpcmB(ChipID, Buf, Buf.Length);
             }
         }
+
+        public void WriteAY8910(byte ChipID, byte Adr, byte Data)
+        {
+            lock (lockobj)
+            {
+                if (iAY8910 == null) return;
+
+                ((ay8910)(iAY8910)).AY8910_Write(ChipID, Adr, Data);
+            }
+        }
+
 
 
         public void SetVolumeYM2151(int vol)

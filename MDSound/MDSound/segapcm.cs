@@ -217,7 +217,9 @@ namespace MDSound
                 {
                     //const byte* rom = spcm.rom + ((regs[0x86] & spcm.bankmask) << spcm.bankshift);
                     int ptrRom = spcm.ptrRom + ((spcm.ram[ptrRegs + 0x86] & spcm.bankmask) << spcm.bankshift);
-
+                    //Console.WriteLine("spcm.ram[ptrRegs + 0x86]:{0:x}", spcm.ram[ptrRegs + 0x86]);
+                    //Console.WriteLine("spcm.bankmask:{0:x}", spcm.bankmask);
+                    //Console.WriteLine("spcm.bankshift:{0:x}", spcm.bankshift);
                     //# ifdef _DEBUG
                     //                UINT8* romusage = spcm->romusage + ((regs[0x86] & spcm->bankmask) << spcm->bankshift);
                     //#endif
