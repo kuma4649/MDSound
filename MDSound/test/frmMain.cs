@@ -169,6 +169,24 @@ namespace test
                 lstChip.Add(chip);
             }
 
+            if (getLE32(0x10) != 0)
+            {
+                chip = new MDSound.MDSound.Chip();
+                chip.type = MDSound.MDSound.enmInstrumentType.YM2413;
+                chip.ID = 0;
+                MDSound.ym2413 ym2413 = new MDSound.ym2413();
+                chip.Instrument = ym2413;
+                chip.Update = ym2413.Update;
+                chip.Start = ym2413.Start;
+                chip.Stop = ym2413.Stop;
+                chip.Reset = ym2413.Reset;
+                chip.SamplingRate = SamplingRate;
+                chip.Clock = getLE32(0x10); //FMClockValue;
+                chip.Volume = 0;
+                chip.Option = null;
+                lstChip.Add(chip);
+            }
+
             if (getLE32(0x2c) != 0)
             {
                 chip = new MDSound.MDSound.Chip();
@@ -282,6 +300,26 @@ namespace test
                 lstChip.Add(chip);
             }
 
+            if (getLE32(0xa4) != 0)
+            {
+                chip = new MDSound.MDSound.Chip();
+                chip.type = MDSound.MDSound.enmInstrumentType.HuC6280;
+                chip.ID = 0;
+                MDSound.Ootake_PSG huc8910 = new MDSound.Ootake_PSG();
+                chip.Instrument = huc8910;
+                chip.Update = huc8910.Update;
+                chip.Start = huc8910.Start;
+                chip.Stop = huc8910.Stop;
+                chip.Reset = huc8910.Reset;
+                chip.SamplingRate = SamplingRate;
+                chip.Clock = getLE32(0xa4);// & 0x7fffffff;
+                //if ((vgmBuf[0xa4] & 0x10) != 0)
+                    //chip.Clock /= 2;
+                chip.Volume = 0;
+                chip.Option = null;
+                lstChip.Add(chip);
+            }
+
             //chips[2] = new MDSound.MDSound.Chip();
             //chips[2].type = MDSound.MDSound.enmInstrumentType.RF5C164;
             //chips[2].ID = 0;
@@ -334,8 +372,8 @@ namespace test
 
         }
 
-        static short v = 1200;
-        static short vy = -100;
+        //static short v = 1200;
+        //static short vy = -100;
         private static void callback(IntPtr userData, IntPtr stream, int len)
         {
 
@@ -394,8 +432,14 @@ namespace test
                 {
                     case 0x4f: //GG PSG
                     case 0x50: //PSG
-                        mds.WriteSN76489(0,vgmBuf[vgmAdr + 1]);
+                        mds.WriteSN76489(0, vgmBuf[vgmAdr + 1]);
                         vgmAdr += 2;
+                        break;
+                    case 0x51: //YM2413
+                        rAdr = vgmBuf[vgmAdr + 1];
+                        rDat = vgmBuf[vgmAdr + 2];
+                        vgmAdr += 3;
+                        mds.WriteYM2413(0, rAdr, rDat);
                         break;
                     case 0x52: //YM2612 Port0
                     case 0x53: //YM2612 Port1
@@ -663,6 +707,13 @@ namespace test
                         break;
                     case 0xb7:
                         vgmAdr += 3;
+                        break;
+                    case 0xb9: //HuC6280
+                        rAdr = vgmBuf[vgmAdr + 1];
+                        rDat = vgmBuf[vgmAdr + 2];
+                        vgmAdr += 3;
+                        mds.WriteHuC6280(0, rAdr, rDat);
+
                         break;
                     case 0xe0: //seek to offset in PCM data bank
                         vgmPcmPtr = getLE32(vgmAdr + 1) + vgmPcmBaseAdr;

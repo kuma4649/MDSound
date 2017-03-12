@@ -18,6 +18,7 @@ namespace MDSound
 
         private Chip[] insts = null;
         private Instrument iAY8910 = null;
+        private Instrument iHuC6280 = null;
         private Instrument iSN76489 = null;
         private Instrument iYM2612 = null;
         private Instrument iRF5C164 = null;
@@ -28,6 +29,7 @@ namespace MDSound
         private Instrument iSEGAPCM = null;
         private Instrument iYM2151 = null;
         private Instrument iYM2203 = null;
+        private Instrument iYM2413 = null;
         private Instrument iYM2608 = null;
         private Instrument iYM2610 = null;
 
@@ -92,7 +94,9 @@ namespace MDSound
             YM2203,
             YM2608,
             YM2610,
-            AY8910
+            AY8910,
+            YM2413,
+            HuC6280
         }
 
         public class Chip
@@ -206,6 +210,12 @@ namespace MDSound
                             break;
                         case enmInstrumentType.AY8910:
                             iAY8910 = inst.Instrument;
+                            break;
+                        case enmInstrumentType.YM2413:
+                            iYM2413 = inst.Instrument;
+                            break;
+                        case enmInstrumentType.HuC6280:
+                            iHuC6280 = inst.Instrument;
                             break;
                     }
 
@@ -874,6 +884,26 @@ namespace MDSound
                 if (iAY8910 == null) return;
 
                 ((ay8910)(iAY8910)).AY8910_Write(ChipID, Adr, Data);
+            }
+        }
+
+        public void WriteHuC6280(byte ChipID, byte Adr, byte Data)
+        {
+            lock (lockobj)
+            {
+                if (iHuC6280 == null) return;
+
+                ((Ootake_PSG)(iHuC6280)).HuC6280_Write(ChipID, Adr, Data);
+            }
+        }
+
+        public void WriteYM2413(byte ChipID, byte Adr, byte Data)
+        {
+            lock (lockobj)
+            {
+                if (iYM2413 == null) return;
+
+                ((ym2413)(iYM2413)).YM2413_Write(ChipID, Adr, Data);
             }
         }
 
