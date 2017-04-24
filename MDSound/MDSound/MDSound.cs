@@ -42,6 +42,8 @@ namespace MDSound
         private int[] ym2203Mask = new int[] { 0, 0 };
         private uint[] segapcmMask = new uint[] { 0, 0 };
         private uint[] c140Mask = new uint[] { 0, 0 };
+        private int[] ay8910Mask = new int[] { 0, 0 };
+        private int[] huc6280Mask = new int[] { 0, 0 };
 
         private int[][][] ym2612Vol = new int[][][] {
             new int[6][] { new int[2], new int[2], new int[2], new int[2], new int[2], new int[2] }
@@ -155,11 +157,14 @@ namespace MDSound
                 ym2612Mask[0] = 0;
                 segapcmMask[0] = 0;
                 c140Mask[0] = 0;
+                ay8910Mask[0] = 0;
+
                 sn76489Mask[1] = 15;
                 ym2203Mask[1] = 0;
                 ym2612Mask[1] = 0;
                 segapcmMask[1] = 0;
                 c140Mask[1] = 0;
+                ay8910Mask[1] = 0;
 
                 incFlag = false;
 
@@ -955,6 +960,39 @@ namespace MDSound
             }
         }
 
+        public void SetVolumeYM2413(int vol)
+        {
+            if (iYM2413 == null) return;
+
+            foreach (Chip c in insts)
+            {
+                if (c.type != enmInstrumentType.YM2413) continue;
+                c.Volume = Math.Max(Math.Min(vol, 20), -192);
+            }
+        }
+
+        public void setVolumeAY8910(int vol)
+        {
+            if (iAY8910 == null) return;
+
+            foreach (Chip c in insts)
+            {
+                if (c.type != enmInstrumentType.AY8910) continue;
+                c.Volume = Math.Max(Math.Min(vol, 20), -192);
+            }
+        }
+
+        public void setVolumeHuC6280(int vol)
+        {
+            if (iHuC6280 == null) return;
+
+            foreach (Chip c in insts)
+            {
+                if (c.type != enmInstrumentType.HuC6280) continue;
+                c.Volume = Math.Max(Math.Min(vol, 20), -192);
+            }
+        }
+
         public void SetVolumeYM2608(int vol)
         {
             if (iYM2608 == null) return;
@@ -1225,6 +1263,14 @@ namespace MDSound
             }
         }
 
+        public Ootake_PSG.huc6280_state ReadHuC6280Status(int chipID)
+        {
+            lock (lockobj)
+            {
+                if (iHuC6280 == null) return null;
+                return ((Ootake_PSG)iHuC6280).GetState((byte)chipID);
+            }
+        }
 
         public int[][] ReadRf5c164Volume(int chipID)
         {
@@ -1375,6 +1421,25 @@ namespace MDSound
             }
         }
 
+        public void setAY8910Mask(int chipID, int ch)
+        {
+            lock (lockobj)
+            {
+                ay8910Mask[chipID] |= ch;
+                if (iAY8910 != null) ((ay8910)(iAY8910)).AY8910_SetMute((byte)chipID, ay8910Mask[chipID]);
+            }
+        }
+
+        public void setHuC6280Mask(int chipID, int ch)
+        {
+            lock (lockobj)
+            {
+                huc6280Mask[chipID] |= ch;
+                if (iHuC6280 != null) ((Ootake_PSG)(iHuC6280)).HuC6280_SetMute((byte)chipID, huc6280Mask[chipID]);
+            }
+        }
+
+
         public void resetSN76489Mask(int chipID, int ch)
         {
             lock (lockobj)
@@ -1425,6 +1490,24 @@ namespace MDSound
             {
                 segapcmMask[chipID] &= ~(uint)ch;
                 if (iSEGAPCM != null) ((segapcm)(iSEGAPCM)).segapcm_set_mute_mask((byte)chipID, segapcmMask[chipID]);
+            }
+        }
+
+        public void resetAY8910Mask(int chipID, int ch)
+        {
+            lock (lockobj)
+            {
+                ay8910Mask[chipID] &= ~ch;
+                if (iAY8910 != null) ((ay8910)(iAY8910)).AY8910_SetMute((byte)chipID, ay8910Mask[chipID]);
+            }
+        }
+
+        public void resetHuC6280Mask(int chipID, int ch)
+        {
+            lock (lockobj)
+            {
+                huc6280Mask[chipID] &= ~ch;
+                if (iHuC6280 != null) ((Ootake_PSG)(iHuC6280)).HuC6280_SetMute((byte)chipID, huc6280Mask[chipID]);
             }
         }
 

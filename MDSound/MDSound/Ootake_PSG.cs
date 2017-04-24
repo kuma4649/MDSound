@@ -305,7 +305,7 @@ Copyright(C)2006-2012 Kitao Nakamura.
         ---------------------------------------------------------------------------*/
 
 
-        private class PSG
+        public class PSG
         {
             public uint frq;
             public bool bOn;
@@ -325,7 +325,7 @@ Copyright(C)2006-2012 Kitao Nakamura.
             public uint deltaNoisePhase;
         }
 
-        private class huc6280_state
+        public class huc6280_state
         {
             public double SAMPLE_RATE;
             public double PSG_FRQ;
@@ -1059,6 +1059,10 @@ Copyright(C)2006-2012 Kitao Nakamura.
 
         }
 
+        public huc6280_state GetState(byte ChipID)
+        {
+            return chip[ChipID];
+        }
 
         /*// save variable
         #define SAVE_V(V)	if (fwrite(&V, sizeof(V), 1, p) != 1)	return FALSE
