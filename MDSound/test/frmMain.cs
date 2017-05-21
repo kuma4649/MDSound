@@ -11,19 +11,10 @@ namespace test
     {
 
         private static uint SamplingRate = 44100;
-        //private static uint PSGClockValue = 3579545;
-        //private static uint FMClockValue = 7670454;
-        //private static uint YM2151ClockValue = 3579545;
-        //private static uint YM2203ClockValue = 3000000;
-        //private static uint rf5c164ClockValue = 12500000;
-        //private static uint pwmClockValue = 23011361;
-        //private static uint c140ClockValue = 21390;
-        //private static MDSound.c140.C140_TYPE c140Type = MDSound.c140.C140_TYPE.ASIC219;
-
         private static uint samplingBuffer = 1024;
         private static short[] frames = new short[samplingBuffer * 4];
-        private static MDSound.MDSound mds = null;//new MDSound.MDSound(SamplingRate, samplingBuffer, FMClockValue, PSGClockValue, rf5c164ClockValue, pwmClockValue, c140ClockValue, c140Type);
-
+        private static MDSound.MDSound mds = null;
+        
         private static AudioStream sdl;
         private static AudioCallback sdlCb = new AudioCallback(callback);
         private static IntPtr sdlCbPtr;
@@ -37,6 +28,36 @@ namespace test
         private static uint vgmEof;
         private static bool vgmAnalyze;
         private static vgmStream[] vgmStreams = new vgmStream[0x100];
+
+        private static byte[] bufYM2610AdpcmA = null;
+        private static byte[] bufYM2610AdpcmB = null;
+
+        private struct vgmStream
+        {
+
+            public byte chipId;
+            public byte port;
+            public byte cmd;
+
+            public byte databankId;
+            public byte stepsize;
+            public byte stepbase;
+
+            public uint frequency;
+
+            public uint dataStartOffset;
+            public byte lengthMode;
+            public uint dataLength;
+
+            public bool sw;
+
+            public uint blockId;
+
+            public uint wkDataAdr;
+            public uint wkDataLen;
+            public double wkDataStep;
+        }
+
 
 
         public frmMain()
@@ -85,6 +106,22 @@ namespace test
 
             stop();
 
+        }
+
+        private void timer1_Tick(object sender, EventArgs e)
+        {
+            if (mds == null) return;
+            int l = mds.getTotalVolumeL();
+            int r = mds.getTotalVolumeR();
+
+            label2.Location = new System.Drawing.Point(Math.Min((l / 600) * 3 - 174, 0), label2.Location.Y);
+            label3.Location = new System.Drawing.Point(Math.Min((r / 600) * 3 - 174, 0), label3.Location.Y);
+        }
+
+        private void trackBar1_ValueChanged(object sender, EventArgs e)
+        {
+            if (mds == null) return;
+            mds.SetVolumeYM2612(((TrackBar)sender).Value);
         }
 
 
@@ -163,8 +200,8 @@ namespace test
                 chip.Stop = sn76489.Stop;
                 chip.Reset = sn76489.Reset;
                 chip.SamplingRate = SamplingRate;
-                chip.Clock = getLE32(0x0c);// PSGClockValue;
-                chip.Volume = -50;
+                chip.Clock = getLE32(0x0c);
+                chip.Volume = 0;
                 chip.Option = null;
                 lstChip.Add(chip);
             }
@@ -181,7 +218,7 @@ namespace test
                 chip.Stop = ym2413.Stop;
                 chip.Reset = ym2413.Reset;
                 chip.SamplingRate = SamplingRate;
-                chip.Clock = getLE32(0x10); //FMClockValue;
+                chip.Clock = getLE32(0x10); 
                 chip.Volume = 0;
                 chip.Option = null;
                 lstChip.Add(chip);
@@ -199,7 +236,7 @@ namespace test
                 chip.Stop = ym2612.Stop;
                 chip.Reset = ym2612.Reset;
                 chip.SamplingRate = SamplingRate;
-                chip.Clock = getLE32(0x2c); //FMClockValue;
+                chip.Clock = getLE32(0x2c); 
                 chip.Volume = 0;
                 chip.Option = null;
                 lstChip.Add(chip);
@@ -217,7 +254,7 @@ namespace test
                 chip.Stop = ym2151.Stop;
                 chip.Reset = ym2151.Reset;
                 chip.SamplingRate = SamplingRate;
-                chip.Clock = getLE32(0x30); //YM2151ClockValue;
+                chip.Clock = getLE32(0x30); 
                 chip.Volume = 0;
                 chip.Option = null;
                 lstChip.Add(chip);
@@ -235,7 +272,7 @@ namespace test
                 chip.Stop = ym2203.Stop;
                 chip.Reset = ym2203.Reset;
                 chip.SamplingRate = SamplingRate;
-                chip.Clock = getLE32(0x44); //YM2203ClockValue;
+                chip.Clock = getLE32(0x44); 
                 chip.Volume = 0;
                 chip.Option = null;
                 lstChip.Add(chip);
@@ -312,9 +349,7 @@ namespace test
                 chip.Stop = huc8910.Stop;
                 chip.Reset = huc8910.Reset;
                 chip.SamplingRate = SamplingRate;
-                chip.Clock = getLE32(0xa4);// & 0x7fffffff;
-                //if ((vgmBuf[0xa4] & 0x10) != 0)
-                    //chip.Clock /= 2;
+                chip.Clock = getLE32(0xa4);
                 chip.Volume = 0;
                 chip.Option = null;
                 lstChip.Add(chip);
@@ -372,8 +407,7 @@ namespace test
 
         }
 
-        //static short v = 1200;
-        //static short vy = -100;
+
         private static void callback(IntPtr userData, IntPtr stream, int len)
         {
 
@@ -381,13 +415,6 @@ namespace test
             {
                 short[] buf = new short[2];
                 mds.Update(buf, 0, 2, oneFrameVGM);
-                //buf[0] = v;
-                //buf[1] = v;
-                //v += vy;
-                //if (v < -1200 || v > 1200)
-                //{
-                //    vy = (short)-vy;
-                //}
                 frames[i * 2 + 0] = buf[0];
                 frames[i * 2 + 1] = buf[1];
                 //Console.Write("Adr[{0:x8}] : Wait[{1:d8}] : [{2:d8}]/[{3:d8}]\r\n", vgmAdr, vgmWait, buf[0], buf[1]);
@@ -731,9 +758,6 @@ namespace test
 
         }
 
-        static byte[] bufYM2610AdpcmA = null;
-        static byte[] bufYM2610AdpcmB = null;
-
         private static void oneFrameVGMStream()
         {
             for (int i = 0; i < 0x100; i++)
@@ -760,32 +784,6 @@ namespace test
         }
 
 
-        private struct vgmStream
-        {
-
-            public byte chipId;
-            public byte port;
-            public byte cmd;
-
-            public byte databankId;
-            public byte stepsize;
-            public byte stepbase;
-
-            public uint frequency;
-
-            public uint dataStartOffset;
-            public byte lengthMode;
-            public uint dataLength;
-
-            public bool sw;
-
-            public uint blockId;
-
-            public uint wkDataAdr;
-            public uint wkDataLen;
-            public double wkDataStep;
-        }
-
         private static UInt32 getLE16(UInt32 adr)
         {
             UInt32 dat;
@@ -802,18 +800,6 @@ namespace test
             return dat;
         }
 
-        private void timer1_Tick(object sender, EventArgs e)
-        {
-            if (mds == null) return;
 
-            label2.Location = new System.Drawing.Point(Math.Min((mds.getTotalVolumeL() / 600) * 3 - 174, 0), label2.Location.Y);
-            label3.Location = new System.Drawing.Point(Math.Min((mds.getTotalVolumeR() / 600) * 3 - 174, 0), label3.Location.Y);
-        }
-
-        private void trackBar1_ValueChanged(object sender, EventArgs e)
-        {
-            if (mds == null) return;
-            mds.SetVolumeYM2612( ((TrackBar)sender).Value);
-        }
     }
 }

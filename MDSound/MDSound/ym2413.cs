@@ -69,7 +69,7 @@ namespace MDSound
         private int OPLL_MASK_TOM = (1 << (11));
         private int OPLL_MASK_SD = (1 << (12));
         private int OPLL_MASK_BD = (1 << (13));
-        private int OPLL_MASK_RHYTHM = 0x1f << 9;//(OPLL_MASK_HH | OPLL_MASK_CYM | OPLL_MASK_TOM | OPLL_MASK_SD | OPLL_MASK_BD);
+        //private int OPLL_MASK_RHYTHM = 0x1f << 9;//(OPLL_MASK_HH | OPLL_MASK_CYM | OPLL_MASK_TOM | OPLL_MASK_SD | OPLL_MASK_BD);
 
         /* opll */
         private class OPLL
@@ -293,24 +293,24 @@ namespace MDSound
         private int DP_BASE_BITS = 18 - 9;//(DP_BITS - PG_BITS);
 
         /* Dynamic range (Accuracy of sin table) */
-        private int DB_BITS = 8;
+        //private int DB_BITS = 8;
         private double DB_STEP = (48.0 / (1 << 8));// DB_BITS));
         private const int DB_MUTE = (1 << 8);// DB_BITS);
 
         /* Dynamic range of envelope */
         private double EG_STEP = 0.375;
         private const int EG_BITS = 7;
-        private int EG_MUTE = (1 << 7);// EG_BITS);
+        //private int EG_MUTE = (1 << 7);// EG_BITS);
 
         /* Dynamic range of total level */
         private double TL_STEP = 0.75;
-        private int TL_BITS = 6;
-        private int TL_MUTE = (1 << 6);// TL_BITS);
+        //private int TL_BITS = 6;
+        //private int TL_MUTE = (1 << 6);// TL_BITS);
 
         /* Dynamic range of sustine level */
         private double SL_STEP = 3.0;
-        private int SL_BITS = 4;
-        private int SL_MUTE = (1 << 4);// SL_BITS);
+        //private int SL_BITS = 4;
+        //private int SL_MUTE = (1 << 4);// SL_BITS);
 
         //#define EG2DB(d) ((d)*(e_int32)(EG_STEP/DB_STEP))
         private int EG2DB(int d) { return ((d) * (int)(EG_STEP / DB_STEP)); }

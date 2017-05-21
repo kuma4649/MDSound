@@ -34,7 +34,6 @@ namespace MDSound
         private Instrument iYM2610 = null;
 
         private int[][] buffer = null;
-        private int[][] buffer2 = null;
         private int[][] buff = new int[2][] { new int[1], new int[1] };
 
         private int[] sn76489Mask =new int[] { 15, 15 };// psgはmuteを基準にしているのでビットが逆です
@@ -45,15 +44,6 @@ namespace MDSound
         private int[] ay8910Mask = new int[] { 0, 0 };
         private int[] huc6280Mask = new int[] { 0, 0 };
 
-        private int[][][] ym2612Vol = new int[][][] {
-            new int[6][] { new int[2], new int[2], new int[2], new int[2], new int[2], new int[2] }
-            ,new int[6][] { new int[2], new int[2], new int[2], new int[2], new int[2], new int[2] }
-        };
-        private int[][] ym2612Ch3SlotVol = new int[][] { new int[4], new int[4] };
-        private int[][][] sn76489Vol = new int[][][] {
-            new int[4][] { new int[2], new int[2], new int[2], new int[2] }
-            , new int[4][] { new int[2], new int[2], new int[2], new int[2] }
-        };
         private int[][][] rf5c164Vol = new int[][][] {
             new int[8][] { new int[2], new int[2], new int[2], new int[2], new int[2], new int[2], new int[2], new int[2] }
             ,new int[8][] { new int[2], new int[2], new int[2], new int[2], new int[2], new int[2], new int[2], new int[2] }
@@ -148,8 +138,7 @@ namespace MDSound
                 this.SamplingBuffer = SamplingBuffer;
                 this.insts = insts;
 
-                buffer = new int[2][] { new int[SamplingBuffer], new int[SamplingBuffer] };
-                buffer2 = new int[2][] { new int[1], new int[1] };
+                buffer = new int[2][] { new int[1], new int[1] };
                 StreamBufs = new int[2][] { new int[0x100], new int[0x100] };
 
                 sn76489Mask[0] = 15;
@@ -287,20 +276,6 @@ namespace MDSound
 
                 for (int chipID = 0; chipID < 2; chipID++)
                 {
-                    for (int i = 0; i < 6; i++)
-                    {
-                        ym2612Vol[chipID][i][0] = 0;
-                        ym2612Vol[chipID][i][1] = 0;
-                    }
-                    for (int i = 0; i < 4; i++)
-                    {
-                        ym2612Ch3SlotVol[chipID][i] = 0;
-                    }
-                    for (int i = 0; i < 4; i++)
-                    {
-                        sn76489Vol[chipID][i][0] = 0;
-                        sn76489Vol[chipID][i][1] = 0;
-                    }
                     for (int i = 0; i < 8; i++)
                     {
                         rf5c164Vol[chipID][i][0] = 0;
@@ -316,11 +291,11 @@ namespace MDSound
                     a = 0;
                     b = 0;
 
-                    buffer2[0][0] = 0;
-                    buffer2[1][0] = 0;
-                    ResampleChipStream(insts, buffer2, 1);
-                    a += buffer2[0][0];
-                    b += buffer2[1][0];
+                    buffer[0][0] = 0;
+                    buffer[1][0] = 0;
+                    ResampleChipStream(insts, buffer, 1);
+                    a += buffer[0][0];
+                    b += buffer[1][0];
 
 
                     if (incFlag)
@@ -332,38 +307,6 @@ namespace MDSound
                     {
                         buf[offset + i * 2 + 0] = (short)Math.Max(Math.Min(a, short.MaxValue), short.MinValue);
                         buf[offset + i * 2 + 1] = (short)Math.Max(Math.Min(b, short.MaxValue), short.MinValue);
-                    }
-
-                    if (iYM2612 != null)
-                    {
-                        for (int chipID = 0; chipID < 2; chipID++)
-                        {
-                            if (((ym2612)(iYM2612)).YM2612_Chip[chipID] == null) continue;
-
-                            for (int ch = 0; ch < 6; ch++)
-                            {
-                                //ym2612Vol[chipID][ch][0] = Math.Max(ym2612Vol[chipID][ch][0], ((ym2612)(iYM2612)).YM2612_Chip[chipID].CHANNEL[ch].fmVol[0]);
-                                //ym2612Vol[chipID][ch][1] = Math.Max(ym2612Vol[chipID][ch][1], ((ym2612)(iYM2612)).YM2612_Chip[chipID].CHANNEL[ch].fmVol[1]);
-                            }
-
-                            for (int slot = 0; slot < 4; slot++)
-                            {
-                                //ym2612Ch3SlotVol[chipID][slot] = Math.Max(ym2612Ch3SlotVol[chipID][slot], ((ym2612)(iYM2612)).YM2612_Chip[chipID].CHANNEL[2].fmSlotVol[slot]);
-                            }
-                        }
-                    }
-
-                    if (iSN76489 != null)
-                    {
-                        for (int chipID = 0; chipID < 2; chipID++)
-                        {
-                            if (((sn76489)(iSN76489)).SN76489_Chip[chipID] == null) continue;
-                            for (int ch = 0; ch < 4; ch++)
-                            {
-                                sn76489Vol[chipID][ch][0] = Math.Max(sn76489Vol[chipID][ch][0], ((sn76489)(iSN76489)).SN76489_Chip[chipID].volume[ch][0]);
-                                sn76489Vol[chipID][ch][1] = Math.Max(sn76489Vol[chipID][ch][1], ((sn76489)(iSN76489)).SN76489_Chip[chipID].volume[ch][0]);
-                            }
-                        }
                     }
 
                     if (iRF5C164 != null)
@@ -392,6 +335,8 @@ namespace MDSound
 
         private void ResampleChipStream(Chip[] insts, int[][] RetSample, uint Length)
         {
+            if (insts == null || insts.Length < 1) return;
+
             Chip inst;
             int[] CurBufL;
             int[] CurBufR;
@@ -1280,30 +1225,6 @@ namespace MDSound
             }
         }
 
-        public int[][] ReadYM2612Volume(int chipID)
-        {
-            lock (lockobj)
-            {
-                return ym2612Vol[chipID];
-            }
-        }
-
-        public int[] ReadYM2612Ch3SlotVolume(int chipID)
-        {
-            lock (lockobj)
-            {
-                return ym2612Ch3SlotVol[chipID];
-            }
-        }
-
-        public int[][] ReadSN76489Volume(int chipID)
-        {
-            lock (lockobj)
-            {
-                return sn76489Vol[chipID];
-            }
-        }
-
         public int[] ReadYM2612KeyOn(byte chipID)
         {
             lock (lockobj)
@@ -1511,7 +1432,9 @@ namespace MDSound
             }
         }
 
-
+        /// <summary>
+        /// Left全体ボリュームの取得(視覚効果向け)
+        /// </summary>
         public int getTotalVolumeL()
         {
             lock (lockobj)
@@ -1525,6 +1448,9 @@ namespace MDSound
             }
         }
 
+        /// <summary>
+        /// Right全体ボリュームの取得(視覚効果向け)
+        /// </summary>
         public int getTotalVolumeR()
         {
             lock (lockobj)
