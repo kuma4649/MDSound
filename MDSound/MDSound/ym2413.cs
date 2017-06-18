@@ -2416,7 +2416,8 @@ namespace MDSound
         public override uint Start(byte ChipID, uint SamplingRate)
         {
             opll_[ChipID] = OPLL_new(DefaultYM2413ClockValue, SamplingRate);
-            OPLL_set_quality(opll_[ChipID], 1);
+            //OPLL_set_quality(opll_[ChipID], 1);
+            OPLL_set_quality(opll_[ChipID], 0);
             return SamplingRate;
         }
 
@@ -2425,7 +2426,8 @@ namespace MDSound
         public uint Start(byte ChipID, uint SamplingRate, uint FMClockValue, params object[] Option)
         {
             opll_[ChipID] = OPLL_new(FMClockValue, SamplingRate);
-            OPLL_set_quality(opll_[ChipID], 1);
+            //OPLL_set_quality(opll_[ChipID], 1);
+            OPLL_set_quality(opll_[ChipID], 0);
             return SamplingRate;
         }
 
@@ -2434,9 +2436,17 @@ namespace MDSound
             opll_[ChipID] = null;
         }
 
+        System.Diagnostics.Stopwatch sw = System.Diagnostics.Stopwatch.StartNew();
+
         public override void Update(byte ChipID, int[][] outputs, int samples)
         {
+            //sw.Reset();
+            //sw.Start();
+
             OPLL_calc_stereo(opll_[ChipID], outputs, samples);
+
+            //Console.WriteLine(sw.Elapsed);
+
         }
 
         public void YM2413_Write(byte ChipID, byte Adr, byte Data)

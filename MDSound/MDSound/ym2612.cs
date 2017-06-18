@@ -13,6 +13,7 @@ namespace MDSound
         // Gens always uses 16 bits sound (in 32 bits buffer) and do the convertion later if needed.
         private const int OUTPUT_BITS = 15;
         // OUTPUT_BITS 15 is MAME's volume level
+        //private const int DAC_SHIFT = (OUTPUT_BITS - 9);
         private const int DAC_SHIFT = (OUTPUT_BITS - 9);
         // DAC_SHIFT makes sure that FM and DAC volume has the same volume
 
@@ -1726,7 +1727,8 @@ namespace MDSound
                     break;
 
                 case 0x2A:
-                    YM2612.DACdata = ((int)data - 0x80) << DAC_SHIFT;  // donn馥 du DAC
+                    //YM2612.DACdata = ((int)data - 0x80) << DAC_SHIFT;  // donn馥 du DAC
+                    YM2612.DACdata = data; //((int)data - 0x80) << DAC_SHIFT;  // donn馥 du DAC
                     break;
 
                 case 0x2B:
@@ -2177,7 +2179,7 @@ namespace MDSound
                         YM2612.dac_highpass += dac >> 9;
                     //dac >>= highpass.fract;
                     dac >>= 15;
-                    dac = YM2612.DACdata;
+                    dac = (YM2612.DACdata - 0x80) << DAC_SHIFT;
                     bufL[i] += (int)(dac & YM2612.CHANNEL[5].LEFT);
                     bufR[i] += (int)(dac & YM2612.CHANNEL[5].RIGHT);
                     YM2612.CHANNEL[5].fmVol[0] = (int)(dac & YM2612.CHANNEL[5].LEFT);
@@ -2387,7 +2389,8 @@ namespace MDSound
                     // Trivial optimisation
                     if (YM2612.OPNAadr == 0x2A)
                     {
-                        YM2612.DACdata = data << DAC_SHIFT; //((int)data - 0x80) << DAC_SHIFT;
+                        //YM2612.DACdata = data << DAC_SHIFT; //((int)data - 0x80) << DAC_SHIFT;
+                        YM2612.DACdata = data;// - 0x80) << DAC_SHIFT;
                         return 0;
                     }
 

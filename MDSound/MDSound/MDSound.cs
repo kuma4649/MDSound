@@ -268,6 +268,8 @@ namespace MDSound
 
         }
 
+        //System.Diagnostics.Stopwatch sw = System.Diagnostics.Stopwatch.StartNew();
+
         public int Update(short[] buf, int offset, int sampleCount, Action frame)
         {
             lock (lockobj)
@@ -291,12 +293,16 @@ namespace MDSound
                     a = 0;
                     b = 0;
 
+                    //sw.Reset();
+                    //sw.Start();
+
                     buffer[0][0] = 0;
                     buffer[1][0] = 0;
                     ResampleChipStream(insts, buffer, 1);
                     a += buffer[0][0];
                     b += buffer[1][0];
 
+                    //Console.WriteLine(sw.Elapsed);
 
                     if (incFlag)
                     {
