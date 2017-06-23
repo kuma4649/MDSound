@@ -42,6 +42,7 @@
   <ItemGroup>
     <Compile Include="ay8910.cs" />
     <Compile Include="c140.cs" />
+    <Compile Include="c352.cs" />
     <Compile Include="fmgen\file.cs" />
     <Compile Include="fmgen\fmgen.cs" />
     <Compile Include="fmgen\opm.cs" />

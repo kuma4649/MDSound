@@ -24,6 +24,7 @@ namespace MDSound
         private Instrument iRF5C164 = null;
         private Instrument iPWM = null;
         private Instrument iC140 = null;
+        private Instrument iC352 = null;
         private Instrument iOKIM6258 = null;
         private Instrument iOKIM6295 = null;
         private Instrument iSEGAPCM = null;
@@ -88,7 +89,8 @@ namespace MDSound
             YM2610,
             AY8910,
             YM2413,
-            HuC6280
+            HuC6280,
+            C352
         }
 
         public class Chip
@@ -210,6 +212,9 @@ namespace MDSound
                             break;
                         case enmInstrumentType.HuC6280:
                             iHuC6280 = inst.Instrument;
+                            break;
+                        case enmInstrumentType.C352:
+                            iC352 = inst.Instrument;
                             break;
                     }
 
@@ -726,6 +731,26 @@ namespace MDSound
             }
         }
 
+        public void WriteC352(byte ChipID, uint Adr, uint Data)
+        {
+            lock (lockobj)
+            {
+                if (iC352 == null) return;
+
+                ((c352)(iC352)).c352_w(ChipID, (int)Adr, (ushort)Data);
+            }
+        }
+
+        public void WriteC352PCMData(byte ChipID, uint ROMSize, uint DataStart, uint DataLength, byte[] ROMData, uint SrcStartAdr)
+        {
+            lock (lockobj)
+            {
+                if (iC352 == null) return;
+
+                ((c352)(iC352)).c352_write_rom2(ChipID, ROMSize, (int)DataStart, (int)DataLength, ROMData, SrcStartAdr);
+            }
+        }
+
         public void WriteOKIM6258(byte ChipID, byte Port, byte Data)
         {
             lock (lockobj)
@@ -1135,6 +1160,17 @@ namespace MDSound
             foreach (Chip c in insts)
             {
                 if (c.type != enmInstrumentType.C140) continue;
+                c.Volume = Math.Max(Math.Min(vol, 20), -192);
+            }
+        }
+
+        public void SetVolumeC352(int vol)
+        {
+            if (iC352 == null) return;
+
+            foreach (Chip c in insts)
+            {
+                if (c.type != enmInstrumentType.C352) continue;
                 c.Volume = Math.Max(Math.Min(vol, 20), -192);
             }
         }

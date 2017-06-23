@@ -99,12 +99,14 @@ namespace MDSound
 			public int ptrROM;
 			public byte[] ROM;
 
-			//SRATE_CALLBACK SmpRateFunc;
-			//void* SmpRateData;
-		};
+            public dlgSRATE_CALLBACK SmpRateFunc;
+            public MDSound.Chip SmpRateData;
+        };
 
-		/* step size index shift table */
-		private static int[] index_shift = new int[8] { -1, -1, -1, -1, 2, 4, 6, 8 };
+        public delegate void dlgSRATE_CALLBACK(MDSound.Chip chip,int clk);
+
+        /* step size index shift table */
+        private static int[] index_shift = new int[8] { -1, -1, -1, -1, 2, 4, 6, 8 };
 
 		/* lookup table for the precomputed difference */
 		private static int[] diff_lookup = new int[49 * 16];
@@ -505,7 +507,7 @@ namespace MDSound
 			info.initial_clock = (uint)clock;
 			info.master_clock = (uint)clock & 0x7FFFFFFF;
 			info.pin7_state = (byte)(((uint)clock & 0x80000000) >> 31);
-			//info.SmpRateFunc=null;
+			info.SmpRateFunc=null;
 
 			/* generate the name and create the stream */
 			divisor = info.pin7_state != 0 ? 132 : 165;
@@ -614,8 +616,8 @@ namespace MDSound
 			int divisor;
 			divisor = info.pin7_state != 0 ? 132 : 165;
 			//stream_set_sample_rate(info->stream, info->master_clock/divisor);
-			//if (info.SmpRateFunc != null)
-			//    info.SmpRateFunc(info.SmpRateData, info.master_clock / divisor);
+			if (info.SmpRateFunc != null)
+			    info.SmpRateFunc(info.SmpRateData, (int)info.master_clock / divisor);
 
 		}
 
@@ -791,7 +793,8 @@ namespace MDSound
 					chip.master_clock |= (uint)(data << 16);
 					break;
 				case 0x0B:
-					chip.master_clock &= ~((uint)0xFF000000);
+                    data &= 0x7F;
+                    chip.master_clock &= ~((uint)0xFF000000);
 					chip.master_clock |= (uint)(data << 24);
 					okim6295_clock_changed(chip);
 					break;
@@ -889,23 +892,23 @@ namespace MDSound
 			return;
 		}
 
-		//public void okim6295_set_srchg_cb(byte ChipID, SRATE_CALLBACK CallbackFunc, intptr DataPtr)
-		//{
-		//    okim6295_state info = OKIM6295Data[ChipID];
+        public void okim6295_set_srchg_cb(byte ChipID, dlgSRATE_CALLBACK CallbackFunc, MDSound.Chip DataPtr)
+        {
+            okim6295_state info = OKIM6295Data[ChipID];
 
-		//    // set Sample Rate Change Callback routine
-		//    info.SmpRateFunc = CallbackFunc;
-		//    info.SmpRateData = DataPtr;
+            // set Sample Rate Change Callback routine
+            info.SmpRateFunc = CallbackFunc;
+            info.SmpRateData = DataPtr;
 
-		//    return;
-		//}
+            return;
+        }
 
 
-		/**************************************************************************
+        /**************************************************************************
 		 * Generic get_info
 		 **************************************************************************/
 
-		/*DEVICE_GET_INFO( okim6295 )
+        /*DEVICE_GET_INFO( okim6295 )
 		{
 			switch (state)
 			{
@@ -932,5 +935,5 @@ namespace MDSound
 		}*/
 
 
-	}
+    }
 }

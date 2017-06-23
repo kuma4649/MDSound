@@ -47,9 +47,11 @@ namespace MDSound
                                           //sound_stream *stream;	/* which stream are we playing on? */
 
             public byte output_bits;
+            public uint output_mask;
 
             // Valley Bell: Added a small queue to prevent race conditions.
-            public byte[] data_buf=new byte[2];
+            public byte[] data_buf=new byte[8];
+            public byte data_in_last;
             public byte data_buf_pos;
             // Data Empty Values:
             //	00 - data written, but not read yet
@@ -66,7 +68,12 @@ namespace MDSound
             public byte[] clock_buffer=new byte[0x04];
             public uint initial_clock;
             public byte initial_div;
+
+            public dlgSRATE_CALLBACK SmpRateFunc;
+            public MDSound.Chip SmpRateData;
         };
+
+        public delegate void dlgSRATE_CALLBACK(MDSound.Chip chip, int vclk);
 
         /* step size index shift table */
         private static int[] index_shift=new int[8]{ -1, -1, -1, -1, 2, 4, 6, 8 };
@@ -79,6 +86,7 @@ namespace MDSound
 
         private const int MAX_CHIPS = 0x02;
         public static okim6258_state[] OKIM6258Data = new okim6258_state[MAX_CHIPS] { new okim6258_state(), new okim6258_state() };
+        public static byte Iternal10Bit = 0x00;
 
         /*INLINE okim6258_state *get_safe_token(running_device *device)
         {
@@ -131,10 +139,11 @@ namespace MDSound
 
         private static short clock_adpcm(okim6258_state chip, byte nibble)
         {
-            int max = (1 << (chip.output_bits - 1)) - 1;
-            int min = -(1 << (chip.output_bits - 1));
+            int max = (int)chip.output_mask - 1;
+            int min = -(int)chip.output_mask;
 
-            chip.signal += diff_lookup[chip.step * 16 + (nibble & 15)];
+            int sample = diff_lookup[chip.step * 16 + (nibble & 15)];
+            chip.signal = ((sample << 8) + (chip.signal * 245)) >> 8;
 
             /* clamp to the maximum */
             if (chip.signal > max)
@@ -188,13 +197,13 @@ namespace MDSound
                         if (chip.data_empty==0)
                         {
                             chip.data_in = chip.data_buf[chip.data_buf_pos >> 4];
-                            chip.data_buf_pos ^= 0x10;
+                            chip.data_buf_pos += 0x10;
+                            chip.data_buf_pos &= 0x7f;
                             if ((chip.data_buf_pos >> 4) == (chip.data_buf_pos & 0x0F))
                                 chip.data_empty++;
                         }
                         else
                         {
-                            chip.data_in = 0x80;
                             if (chip.data_empty < 0x80)
                                 chip.data_empty++;
                         }
@@ -210,16 +219,18 @@ namespace MDSound
                     }
                     else
                     {
-                        sample = (short)chip.last_smpl;
                         // Valley Bell: data_empty behaviour (loosely) ported from XM6
-                        if (chip.data_empty >= 0x12)
+                        if (chip.data_empty >= 0x02+0x01)
                         {
-                            chip.data_empty -= 0x10;
-                            if (chip.signal < 0)
-                                chip.signal++;
-                            else if (chip.signal > 0)
-                                chip.signal--;
+                            chip.data_empty -= 0x01;
+                            //if (chip.signal < 0)
+                            //    chip.signal++;
+                            //else if (chip.signal > 0)
+                            //    chip.signal--;
+                            chip.signal = chip.signal * 15 / 16;
+                            chip.last_smpl = chip.signal << 4;
                         }
+                        sample = (short)chip.last_smpl;
                     }
 
                     nibble_shift ^= 4;
@@ -267,6 +278,16 @@ namespace MDSound
         }*/
 
 
+        private static int get_vclk(okim6258_state info)
+        {
+            int clk_rnd;
+
+            clk_rnd = (int)info.master_clock;
+            clk_rnd += (int)(info.divider / 2);    // for better rounding - should help some of the streams
+            return (int)(clk_rnd / info.divider);
+        }
+
+
         /**********************************************************************************************
 
              OKIM6258_start -- start emulation of an OKIM6258-compatible chip
@@ -297,9 +318,14 @@ namespace MDSound
             info.clock_buffer[0x01] = (byte)((clock & 0x0000FF00) >> 8);
             info.clock_buffer[0x02] = (byte)((clock & 0x00FF0000) >> 16);
             info.clock_buffer[0x03] = (byte)((clock & 0xFF000000) >> 24);
+            info.SmpRateFunc = null;
 
             /* D/A precision is 10-bits but 12-bit data can be output serially to an external DAC */
             info.output_bits = /*intf->*/(byte)((output_12bits != 0) ? 12 : 10);
+            if (Iternal10Bit!=0)
+                info.output_mask = (uint)(1 << (info.output_bits - 1));
+            else
+                info.output_mask = (1 << (12 - 1));
             info.divider = (uint)dividers[/*intf->*/divider];
 
             //info->stream = stream_create(device, 0, 1, device->clock()/info->divider, info, okim6258_update);
@@ -309,7 +335,7 @@ namespace MDSound
 
             //okim6258_state_save_register(info, device);
 
-            return (int)(info.master_clock / info.divider);
+            return get_vclk(info);// (int)(info.master_clock / info.divider);
         }
 
         /**********************************************************************************************
@@ -335,6 +361,8 @@ namespace MDSound
             info.clock_buffer[0x02] = (byte)((info.initial_clock & 0x00FF0000) >> 16);
             info.clock_buffer[0x03] = (byte)((info.initial_clock & 0xFF000000) >> 24);
             info.divider = (uint)dividers[info.initial_div];
+            if (info.SmpRateFunc != null)
+                info.SmpRateFunc(info.SmpRateData, get_vclk(info));
 
 
             info.signal = -2;
@@ -363,6 +391,8 @@ namespace MDSound
 
             info.divider = (uint)dividers[val];
             //stream_set_sample_rate(info->stream, info->master_clock / divider);
+            if (info.SmpRateFunc != null)
+                info.SmpRateFunc(info.SmpRateData, get_vclk(info));
         }
 
         /**********************************************************************************************
@@ -389,6 +419,8 @@ namespace MDSound
                                         (info.clock_buffer[0x03] << 24));
             }
             //stream_set_sample_rate(info->stream, info->master_clock / info->divider);
+            if (info.SmpRateFunc != null)
+                info.SmpRateFunc(info.SmpRateData, get_vclk(info));
         }
 
         /**********************************************************************************************
@@ -403,7 +435,7 @@ namespace MDSound
             //okim6258_state *info = get_safe_token(device);
             okim6258_state info = OKIM6258Data[ChipID];
 
-            return (int)(info.master_clock / info.divider);
+            return get_vclk(info); //(int)(info.master_clock / info.divider);
         }
 
         /**********************************************************************************************
@@ -441,10 +473,16 @@ namespace MDSound
             if (info.data_empty >= 0x02)
             {
                 info.data_buf_pos = 0x00;
-                info.data_buf[info.data_buf_pos & 0x0F] = 0x80;
             }
+            info.data_in_last = data;
             info.data_buf[info.data_buf_pos & 0x0F] = data;
-            info.data_buf_pos ^= 0x01;
+            info.data_buf_pos += 0x01;
+            info.data_buf_pos &= 0xf7;
+            if ((info.data_buf_pos >> 4) == (info.data_buf_pos & 0x0F))
+            {
+                //logerror("Warning: FIFO full!\n");
+                info.data_buf_pos = (byte)((info.data_buf_pos & 0xF0) | ((info.data_buf_pos - 1) & 0x07));
+            }
             info.data_empty = 0x00;
         }
 
@@ -465,8 +503,8 @@ namespace MDSound
 
             if ((data & COMMAND_STOP)!=0)
             {
-                //info.status &= ~(STATUS_PLAYING | STATUS_RECORDING));
-                info.status &= 9;
+                //info.status &= (byte)(~((byte)STATUS_PLAYING | (byte)STATUS_RECORDING)));
+                info.status &= (byte)(0x2+0x4);
                 return;
             }
 
@@ -477,11 +515,14 @@ namespace MDSound
                     info.status |= STATUS_PLAYING;
 
                     /* Also reset the ADPCM parameters */
-                    //info->signal = -2;
-                    //info->step = 0;
-                    //info->nibble_shift = 0;
+                    info.signal = -2;
+                    info.step = 0;
+                    info.nibble_shift = 0;
+
+                    info.data_buf[0x00] = data;
+                    info.data_buf_pos = 0x01;  // write pos 01, read pos 00
+                    info.data_empty = 0x00;
                 }
-                //info->signal = -2;
                 info.step = 0;
                 info.nibble_shift = 0;
             }
@@ -607,6 +648,26 @@ namespace MDSound
 
             return;
         }
+
+        public void okim6258_set_options(ushort Options)
+        {
+            Iternal10Bit = (byte)((Options >> 0) & 0x01);
+
+            return;
+        }
+
+        public void okim6258_set_srchg_cb(byte ChipID, dlgSRATE_CALLBACK CallbackFunc, MDSound.Chip chip)
+        {
+            okim6258_state info = OKIM6258Data[ChipID];
+
+            // set Sample Rate Change Callback routine
+            info.SmpRateFunc = CallbackFunc;
+            info.SmpRateData = chip;
+
+            return;
+        }
+
+
 
     }
 }
