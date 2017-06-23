@@ -355,6 +355,25 @@ namespace test
                 lstChip.Add(chip);
             }
 
+            if (getLE32(0xdc) != 0)
+            {
+                chip = new MDSound.MDSound.Chip();
+                chip.type = MDSound.MDSound.enmInstrumentType.C352;
+                chip.ID = 0;
+                MDSound.c352 c352 = new MDSound.c352();
+                chip.Instrument = c352;
+                chip.Update = c352.Update;
+                chip.Start = c352.Start;
+                chip.Stop = c352.Stop;
+                chip.Reset = c352.Reset;
+                chip.SamplingRate = SamplingRate;
+                chip.Clock = getLE32(0xdc);
+                chip.Volume = 0;
+                chip.Option = new object[] { vgmBuf[0xd6] };
+                    ;
+                lstChip.Add(chip);
+            }
+
             //chips[2] = new MDSound.MDSound.Chip();
             //chips[2].type = MDSound.MDSound.enmInstrumentType.RF5C164;
             //chips[2].ID = 0;
@@ -617,6 +636,9 @@ namespace test
 
                                     case 0x8d:
                                         break;
+                                    case 0x92:
+                                        mds.WriteC352PCMData(0, romSize, startAddress, bLen - 8, vgmBuf, vgmAdr + 15);
+                                        break;
                                 }
                                 vgmAdr += (uint)bLen + 7;
                                 break;
@@ -745,6 +767,13 @@ namespace test
                     case 0xe0: //seek to offset in PCM data bank
                         vgmPcmPtr = getLE32(vgmAdr + 1) + vgmPcmBaseAdr;
                         vgmAdr += 5;
+                        break;
+                    case 0xe1: //C352
+                        uint adr = (uint)((vgmBuf[vgmAdr + 1] & 0xff) * 0x100 + (vgmBuf[vgmAdr + 2] & 0xff));
+                        uint dat = (uint)((vgmBuf[vgmAdr + 3] & 0xff) * 0x100 + (vgmBuf[vgmAdr + 4] & 0xff));
+                        vgmAdr += 5;
+                        mds.WriteC352(0, adr, dat);
+
                         break;
                     default:
                         //わからんコマンド
