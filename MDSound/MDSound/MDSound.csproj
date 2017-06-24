@@ -50,6 +50,7 @@
     <Compile Include="fmgen\psg.cs" />
     <Compile Include="fmgen\Timer.cs" />
     <Compile Include="Instrument.cs" />
+    <Compile Include="K054539.cs" />
     <Compile Include="MDSound.cs" />
     <Compile Include="okim6258.cs" />
     <Compile Include="okim6295.cs" />

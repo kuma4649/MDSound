@@ -370,8 +370,31 @@ namespace test
                 chip.Clock = getLE32(0xdc);
                 chip.Volume = 0;
                 chip.Option = new object[] { vgmBuf[0xd6] };
-                    ;
+
                 lstChip.Add(chip);
+            }
+
+            if (getLE32(0xa0) != 0)
+            {
+                MDSound.K054539 k054539 = new MDSound.K054539();
+                int max = (getLE32(0xa0) & 0x40000000) != 0 ? 2 : 1;
+                for (int i = 0; i < max; i++)
+                {
+                    chip = new MDSound.MDSound.Chip();
+                    chip.type = MDSound.MDSound.enmInstrumentType.K054539;
+                    chip.ID = (byte)i;
+                    chip.Instrument = k054539;
+                    chip.Update = k054539.Update;
+                    chip.Start = k054539.Start;
+                    chip.Stop = k054539.Stop;
+                    chip.Reset = k054539.Reset;
+                    chip.SamplingRate = SamplingRate;
+                    chip.Clock = getLE32(0xa0) & 0x3fffffff;
+                    chip.Volume = 0;
+                    chip.Option = new object[] { vgmBuf[0x95] };
+
+                    lstChip.Add(chip);
+                }
             }
 
             //chips[2] = new MDSound.MDSound.Chip();
@@ -493,7 +516,7 @@ namespace test
                         rAdr = vgmBuf[vgmAdr + 1];
                         rDat = vgmBuf[vgmAdr + 2];
                         vgmAdr += 3;
-                        mds.WriteYM2612(0,p, rAdr, rDat);
+                        mds.WriteYM2612(0, p, rAdr, rDat);
 
                         break;
                     case 0x54: //YM2151
@@ -562,10 +585,11 @@ namespace test
                         uint bAdr = vgmAdr + 7;
                         byte bType = vgmBuf[vgmAdr + 2];
                         uint bLen = getLE32(vgmAdr + 3);
+                        byte chipID = 0;
                         if ((bLen & 0x80000000) != 0)
                         {
                             bLen &= 0x7fffffff;
-                            //CurrentChip 1
+                            chipID = 1;
                         }
 
                         switch (bType & 0xc0)
@@ -615,10 +639,10 @@ namespace test
                                         break;
 
                                     case 0x82:
-                                        if (bufYM2610AdpcmA == null || bufYM2610AdpcmA.Length!=romSize) bufYM2610AdpcmA = new byte[romSize];
+                                        if (bufYM2610AdpcmA == null || bufYM2610AdpcmA.Length != romSize) bufYM2610AdpcmA = new byte[romSize];
                                         for (int cnt = 0; cnt < bLen - 8; cnt++)
                                         {
-                                            bufYM2610AdpcmA[startAddress+ cnt] = vgmBuf[vgmAdr + 15 + cnt];
+                                            bufYM2610AdpcmA[startAddress + cnt] = vgmBuf[vgmAdr + 15 + cnt];
                                         }
                                         mds.WriteYM2610_SetAdpcmA(0, bufYM2610AdpcmA);
                                         break;
@@ -632,6 +656,10 @@ namespace test
                                         break;
 
                                     case 0x8b:
+                                        break;
+
+                                    case 0x8c:
+                                        mds.WriteK054539PCMData(chipID, romSize, startAddress, bLen - 8, vgmBuf, vgmAdr + 15);
                                         break;
 
                                     case 0x8d:
@@ -682,7 +710,7 @@ namespace test
                     case 0x8d: //Write adr2A and Wait 13 sample
                     case 0x8e: //Write adr2A and Wait 14 sample
                     case 0x8f: //Write adr2A and Wait 15 sample
-                        mds.WriteYM2612(0,0, 0x2a, vgmBuf[vgmPcmPtr++]);
+                        mds.WriteYM2612(0, 0, 0x2a, vgmBuf[vgmPcmPtr++]);
                         vgmWait += (int)(cmd - 0x80);
                         vgmAdr++;
                         break;
@@ -763,6 +791,13 @@ namespace test
                         vgmAdr += 3;
                         mds.WriteHuC6280(0, rAdr, rDat);
 
+                        break;
+                    case 0xd3: //K054539
+                        int k054539_adr = (vgmBuf[vgmAdr + 1] & 0x7f) * 0x100 + vgmBuf[vgmAdr + 2];
+                        rDat = vgmBuf[vgmAdr + 3];
+                        byte chipid = (byte)((vgmBuf[vgmAdr + 1] & 0x80) != 0 ? 1 : 0);
+                        vgmAdr += 4;
+                        mds.WriteK054539(chipid, k054539_adr, rDat);
                         break;
                     case 0xe0: //seek to offset in PCM data bank
                         vgmPcmPtr = getLE32(vgmAdr + 1) + vgmPcmBaseAdr;
