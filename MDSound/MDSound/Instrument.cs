@@ -10,6 +10,7 @@ namespace MDSound
 
         public byte CHIP_SAMPLING_MODE = 2;
         public int CHIP_SAMPLE_RATE = 44100;
+        public int[][][] visVolume = null;// chipid , type , LR
 
         public string Name = "Instrument";
 

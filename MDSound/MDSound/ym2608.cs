@@ -10,6 +10,15 @@ namespace MDSound
         private fmgen.OPNA[] chip = new fmgen.OPNA[2];
         private const uint DefaultYM2608ClockValue = 8000000;
 
+        public ym2608()
+        {
+            visVolume = new int[2][][] {
+                new int[5][] { new int[2] { 0, 0 }, new int[2] { 0, 0 }, new int[2] { 0, 0 } , new int[2] { 0, 0 } , new int[2] { 0, 0 } }
+                , new int[5][] { new int[2] { 0, 0 }, new int[2] { 0, 0 }, new int[2] { 0, 0 } , new int[2] { 0, 0 } , new int[2] { 0, 0 } }
+            };
+            //0..Main 1..FM 2..SSG 3..Rhm 4..PCM
+        }
+
         public override void Reset(byte ChipID)
         {
             chip[ChipID].Reset();
@@ -48,6 +57,17 @@ namespace MDSound
                 outputs[1][i] = buffer[i * 2 + 1];
                 //Console.Write("[{0:d8}] : [{1:d8}] [{2}]\r\n", outputs[0][i], outputs[1][i],i);
             }
+
+            visVolume[ChipID][0][0] = outputs[0][0];
+            visVolume[ChipID][0][1] = outputs[1][0];
+            visVolume[ChipID][1][0] = chip[ChipID].visVolume[0];
+            visVolume[ChipID][1][1] = chip[ChipID].visVolume[1];
+            visVolume[ChipID][2][0] = chip[ChipID].psg.visVolume;
+            visVolume[ChipID][2][1] = chip[ChipID].psg.visVolume;
+            visVolume[ChipID][3][0] = chip[ChipID].visRtmVolume[0];
+            visVolume[ChipID][3][1] = chip[ChipID].visRtmVolume[1];
+            visVolume[ChipID][4][0] = chip[ChipID].visAPCMVolume[0];
+            visVolume[ChipID][4][1] = chip[ChipID].visAPCMVolume[1];
         }
 
         public int YM2608_Write(byte ChipID, uint adr, byte data)

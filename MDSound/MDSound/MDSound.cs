@@ -1509,6 +1509,31 @@ namespace MDSound
             }
         }
 
+        public int[][][] getYM2151VisVolume()
+        {
+            return (iYM2151 != null) ? ((ym2151)iYM2151).visVolume : null;
+        }
+
+        public int[][][] getYM2203VisVolume()
+        {
+            return (iYM2203 != null) ? ((ym2203)iYM2203).visVolume : null;
+        }
+
+        public int[][][] getYM2413VisVolume()
+        {
+            return (iYM2413 != null) ? ((ym2413)iYM2413).visVolume : null;
+        }
+
+        public int[][][] getYM2608VisVolume()
+        {
+            return (iYM2608 != null) ? ((ym2608)iYM2608).visVolume : null;
+        }
+
+        public int[][][] getYM2610VisVolume()
+        {
+            return (iYM2610 != null) ? ((ym2610)iYM2610).visVolume : null;
+        }
+
         /// <summary>
         /// Left全体ボリュームの取得(視覚効果向け)
         /// </summary>

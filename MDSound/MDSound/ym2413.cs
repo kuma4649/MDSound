@@ -2371,6 +2371,7 @@ namespace MDSound
                 }
                 bufMO[i] <<= 1;
                 bufRO[i] <<= 1;
+
                 //Console.WriteLine("OPLL_calc_stereo:out[0][{0}]:{1}:out[1][{0}]:{2}:samples:{3}", i, _out[0][i], _out[1][i], samples);
             }
 
@@ -2403,6 +2404,15 @@ namespace MDSound
         private void centre_panning(float[] channels)
         {
             channels[0] = channels[1] = 1.0f;
+        }
+
+        public ym2413()
+        {
+            visVolume = new int[2][][] {
+                new int[1][] { new int[2] { 0, 0 } }
+                , new int[1][] { new int[2] { 0, 0 } }
+            };
+            //0..Main
         }
 
 
@@ -2444,6 +2454,9 @@ namespace MDSound
             //sw.Start();
 
             OPLL_calc_stereo(opll_[ChipID], outputs, samples);
+
+            visVolume[ChipID][0][0] = outputs[0][0];
+            visVolume[ChipID][0][1] = outputs[1][0];
 
             //Console.WriteLine(sw.Elapsed);
 

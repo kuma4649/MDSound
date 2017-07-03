@@ -5,6 +5,15 @@
         private fmgen.OPN[] chip = new fmgen.OPN[2];
         private const uint DefaultYM2203ClockValue = 3000000;
 
+        public ym2203()
+        {
+            visVolume = new int[2][][] {
+                new int[3][] { new int[2] { 0, 0 }, new int[2] { 0, 0 }, new int[2] { 0, 0 } }
+                , new int[3][] { new int[2] { 0, 0 }, new int[2] { 0, 0 }, new int[2] { 0, 0 } }
+            };
+            //0..Main 1..FM 2..SSG
+        }
+
         public override void Reset(byte ChipID)
         {
             if (chip[ChipID] == null) return;
@@ -43,8 +52,14 @@
             {
                 outputs[0][i] = buffer[i * 2 + 0];
                 outputs[1][i] = buffer[i * 2 + 1];
-                //Console.Write("[{0:d8}] : [{1:d8}] [{2}]\r\n", outputs[0][i], outputs[1][i],i);
             }
+
+            visVolume[ChipID][0][0] = outputs[0][0];
+            visVolume[ChipID][0][1] = outputs[1][0];
+            visVolume[ChipID][1][0] = chip[ChipID].visVolume[0];
+            visVolume[ChipID][1][1] = chip[ChipID].visVolume[1];
+            visVolume[ChipID][2][0] = chip[ChipID].psg.visVolume;
+            visVolume[ChipID][2][1] = chip[ChipID].psg.visVolume;
         }
 
         public int YM2203_Write(byte ChipID, byte adr, byte data)

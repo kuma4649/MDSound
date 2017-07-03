@@ -45,6 +45,8 @@ namespace MDSound.fmgen
         public const int noiseshift = 14;
         public const int oversampling = 2;       // ← 音質より速度が優先なら減らすといいかも
 
+        public int visVolume = 0;
+
         public PSG()
         {
             SetVolume(0);
@@ -289,6 +291,9 @@ namespace MDSound.fmgen
                             StoreSample(ref dest[ptrDest + 0], sample);
                             StoreSample(ref dest[ptrDest + 1], sample);
                             ptrDest += 2;
+
+                            visVolume = sample;
+
                         }
                     }
                     else
@@ -324,6 +329,9 @@ namespace MDSound.fmgen
                             StoreSample(ref dest[ptrDest + 0], sample);
                             StoreSample(ref dest[ptrDest + 1], sample);
                             ptrDest += 2;
+
+                            visVolume = sample;
+
                         }
                     }
 
@@ -379,6 +387,9 @@ namespace MDSound.fmgen
                         StoreSample(ref dest[ptrDest + 0], sample);
                         StoreSample(ref dest[ptrDest + 1], sample);
                         ptrDest += 2;
+
+                        visVolume = sample;
+
                     }
                 }
             }

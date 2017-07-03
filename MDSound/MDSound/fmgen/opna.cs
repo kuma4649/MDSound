@@ -223,6 +223,7 @@ namespace MDSound.fmgen
         protected new uint status;
         protected fmgen.Channel4 csmch;
 
+        public int[] visVolume = new int[2] { 0, 0 };
 
         protected uint[] lfotable = new uint[8];
 
@@ -239,13 +240,16 @@ namespace MDSound.fmgen
         private byte prescale;
 
         protected fmgen.Chip chip;
-        protected PSG psg;
+        public PSG psg;
 
     }
 
     //	OPN2 Base ------------------------------------------------------
     public class OPNABase : OPNBase
     {
+        public int[] visRtmVolume = new int[2] { 0, 0 };
+        public int[] visAPCMVolume = new int[2] { 0, 0 };
+
         public OPNABase()
         {
             amtable[0] = -1;
@@ -723,8 +727,13 @@ namespace MDSound.fmgen
                     MixSubS(activech, idest, ibuf);
                 }
 
-                fmgen.StoreSample(ref buffer[dest+0], ((fmgen.Limit(ibuf[2] + ibuf[3], 0x7fff, -0x8000) * fmvolume) >> 14));
-                fmgen.StoreSample(ref buffer[dest+1], ((fmgen.Limit(ibuf[1] + ibuf[3], 0x7fff, -0x8000) * fmvolume) >> 14));
+                int v = ((fmgen.Limit(ibuf[2] + ibuf[3], 0x7fff, -0x8000) * fmvolume) >> 14);
+                fmgen.StoreSample(ref buffer[dest + 0], v);// ((fmgen.Limit(ibuf[2] + ibuf[3], 0x7fff, -0x8000) * fmvolume) >> 14));
+                visVolume[0] = v;
+
+                v = ((fmgen.Limit(ibuf[1] + ibuf[3], 0x7fff, -0x8000) * fmvolume) >> 14);
+                fmgen.StoreSample(ref buffer[dest + 1], v);// ((fmgen.Limit(ibuf[1] + ibuf[3], 0x7fff, -0x8000) * fmvolume) >> 14));
+                visVolume[1] = v;
             }
         }
 
@@ -847,6 +856,8 @@ namespace MDSound.fmgen
                         int s = (adplc * apout0 + (8192 - adplc) * apout1) >> 13;
                         fmgen.StoreSample(ref dest[ptrDest+0], (int)(s & maskl));
                         fmgen.StoreSample(ref dest[ptrDest + 1], (int)(s & maskr));
+                        visAPCMVolume[0] = (int)(s & maskl);
+                        visAPCMVolume[1] = (int)(s & maskr);
                         ptrDest += 2;
                         adplc -= adpld;
                     }
@@ -861,6 +872,8 @@ namespace MDSound.fmgen
                         int s = (adplc * apout1) >> 13;
                         fmgen.StoreSample(ref dest[ptrDest + 0], (int)(s & maskl));
                         fmgen.StoreSample(ref dest[ptrDest + 1], (int)(s & maskr));
+                        visAPCMVolume[0] = (int)(s & maskl);
+                        visAPCMVolume[1] = (int)(s & maskr);
                         ptrDest += 2;
                         adplc -= adpld;
                     }
@@ -883,6 +896,8 @@ namespace MDSound.fmgen
                         s >>= 13;
                         fmgen.StoreSample(ref dest[ptrDest + 0], (int)(s & maskl));
                         fmgen.StoreSample(ref dest[ptrDest + 1], (int)(s & maskr));
+                        visAPCMVolume[0] = (int)(s & maskl);
+                        visAPCMVolume[1] = (int)(s & maskr);
                         ptrDest += 2;
                     }
                     stop:
@@ -1167,6 +1182,7 @@ namespace MDSound.fmgen
     //	YM2203(OPN) ----------------------------------------------------
     public class OPN : OPNBase
     {
+
         public OPN()
         {
             SetVolumeFM(0);
@@ -1253,6 +1269,10 @@ namespace MDSound.fmgen
                     s = ((fmgen.Limit(s, 0x7fff, -0x8000) * fmvolume) >> 14);
                     fmgen.StoreSample(ref buffer[dest + 0], s);
                     fmgen.StoreSample(ref buffer[dest + 1], s);
+
+                    visVolume[0] = s;
+                    visVolume[1] = s;
+
                 }
             }
         }
@@ -1760,6 +1780,8 @@ namespace MDSound.fmgen
             if (rhythmtvol < 128 && rhythm[0].sample != null && ((rhythmkey & 0x3f) != 0))
             {
                 int limit = (int)count * 2;
+                visRtmVolume[0] = 0;
+                visRtmVolume[1] = 0;
                 for (int i = 0; i < 6; i++)
                 {
                     Rhythm r = rhythm[i];
@@ -1781,6 +1803,8 @@ namespace MDSound.fmgen
                             r.pos += r.step;
                             fmgen.StoreSample(ref buffer[dest + 0], sample & maskl);
                             fmgen.StoreSample(ref buffer[dest + 1], sample & maskr);
+                            visRtmVolume[0] += sample & maskl;
+                            visRtmVolume[1] += sample & maskr;
                         }
                     }
                 }
@@ -2211,6 +2235,8 @@ namespace MDSound.fmgen
                             int sample = (r.adpcmx * vol) >> 10;
                             fmgen.StoreSample(ref buffer[dest+0], (int)(sample & maskl));
                             fmgen.StoreSample(ref buffer[dest+1], (int)(sample & maskr));
+                            visRtmVolume[0] = (int)(sample & maskl);
+                            visRtmVolume[1] = (int)(sample & maskr);
                         }
                     }
                 }
