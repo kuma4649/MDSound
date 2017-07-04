@@ -354,11 +354,23 @@ namespace MDSound
 
         public new const string Name = "PWM";
 
+        public pwm()
+        {
+            visVolume = new int[2][][] {
+                new int[1][] { new int[2] { 0, 0 } }
+                , new int[1][] { new int[2] { 0, 0 } }
+            };
+            //0..Main
+        }
+
         public override void Update(byte ChipID, int[][] outputs, int samples)
         {
             pwm_chip chip = PWM_Chip[ChipID];
 
             PWM_Update(chip, outputs, samples);
+
+            visVolume[ChipID][0][0] = outputs[0][0];
+            visVolume[ChipID][0][1] = outputs[1][0];
         }
 
         public uint Start(byte ChipID, uint Samplingrate, uint clock, params object[] option)

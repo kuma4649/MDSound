@@ -10,6 +10,15 @@ namespace MDSound
         private fmgen.PSG[] chip = new fmgen.PSG[2];
         private const uint DefaultAY8910ClockValue = 1789750;
 
+        public ay8910()
+        {
+            visVolume = new int[2][][] {
+                new int[1][] { new int[2] { 0, 0 } }
+                , new int[1][] { new int[2] { 0, 0 } }
+            };
+            //0..Main
+        }
+
         public override void Reset(byte ChipID)
         {
             if (chip[ChipID] == null) return;
@@ -50,6 +59,9 @@ namespace MDSound
                 outputs[1][i] = buffer[i * 2 + 1];
                 //Console.Write("[{0:d8}] : [{1:d8}] [{2}]\r\n", outputs[0][i], outputs[1][i],i);
             }
+
+            visVolume[ChipID][0][0] = outputs[0][0];
+            visVolume[ChipID][0][1] = outputs[1][0];
         }
 
         public int AY8910_Write(byte ChipID, byte adr, byte data)

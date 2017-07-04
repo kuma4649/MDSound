@@ -31,7 +31,16 @@ namespace MDSound
 	{
 		public new const string Name = "OKIM6295";
 
-		override public uint Start(byte ChipID, uint clock)
+        public okim6295()
+        {
+            visVolume = new int[2][][] {
+                new int[1][] { new int[2] { 0, 0 } }
+                , new int[1][] { new int[2] { 0, 0 } }
+            };
+            //0..Main
+        }
+
+        override public uint Start(byte ChipID, uint clock)
 		{
 			return (uint)device_start_okim6295(ChipID, (int)clock);
 		}
@@ -54,9 +63,12 @@ namespace MDSound
 		override public void Update(byte ChipID, int[][] outputs, int samples)
 		{
 			okim6295_update(ChipID, outputs, samples);
-		}
 
-		public class adpcm_state
+            visVolume[ChipID][0][0] = outputs[0][0];
+            visVolume[ChipID][0][1] = outputs[1][0];
+        }
+
+        public class adpcm_state
 		{
 			public int signal;
 			public int step;

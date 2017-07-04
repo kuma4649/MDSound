@@ -258,6 +258,9 @@ namespace MDSound
                     ind++;
                 }
             }
+
+            visVolume[ChipID][0][0] = outputs[0][0];
+            visVolume[ChipID][0][1] = outputs[1][0];
         }
 
         /**********************************************************************************************
@@ -593,6 +596,14 @@ namespace MDSound
 
 
 
+        public okim6258()
+        {
+            visVolume = new int[2][][] {
+                new int[1][] { new int[2] { 0, 0 } }
+                , new int[1][] { new int[2] { 0, 0 } }
+            };
+            //0..Main
+        }
 
         override public uint Start(byte ChipID, uint clock)
         {

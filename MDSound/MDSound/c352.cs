@@ -9,6 +9,15 @@ namespace MDSound
     {
         public new const string Name = "C352";
 
+        public c352()
+        {
+            visVolume = new int[2][][] {
+                new int[1][] { new int[2] { 0, 0 } }
+                , new int[1][] { new int[2] { 0, 0 } }
+            };
+            //0..Main
+        }
+
         public override void Reset(byte ChipID)
         {
             device_reset_c352(ChipID);
@@ -27,6 +36,9 @@ namespace MDSound
         public override void Update(byte ChipID, int[][] outputs, int samples)
         {
             c352_update(ChipID, outputs, samples);
+
+            visVolume[ChipID][0][0] = outputs[0][0];
+            visVolume[ChipID][0][1] = outputs[1][0];
         }
 
         public uint Start(byte ChipID, uint SamplingRate, uint clock, params object[] Option)

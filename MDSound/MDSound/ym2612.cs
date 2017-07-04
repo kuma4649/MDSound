@@ -2245,6 +2245,16 @@ namespace MDSound
         public ym2612_[] YM2612_Chip = new ym2612_[MAX_CHIPS] { null, null };
         public new const string Name = "YM2612";
 
+        public ym2612()
+        {
+            visVolume = new int[2][][] {
+                new int[1][] { new int[2] { 0, 0 } }
+                , new int[1][] { new int[2] { 0, 0 } }
+            };
+            //0..Main
+        }
+
+
         public override uint Start(byte ChipID, uint clock)
         {
             ym2612_ ym2612 = YM2612_Init(DefaultFMClockValue, clock, 0);
@@ -2367,6 +2377,9 @@ namespace MDSound
             ym2612_ YM2612 = YM2612_Chip[ChipID];
             YM2612_Update(YM2612, outputs, samples);
             YM2612_DacAndTimers_Update(YM2612, outputs, samples);
+
+            visVolume[ChipID][0][0] = outputs[0][0];
+            visVolume[ChipID][0][1] = outputs[1][0];
         }
 
         public int YM2612_Write(byte ChipID, byte adr, byte data)

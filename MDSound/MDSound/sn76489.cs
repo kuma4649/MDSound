@@ -158,6 +158,15 @@ namespace MDSound
 
         public new const string Name = "SN76489";
 
+        public sn76489()
+        {
+            visVolume = new int[2][][] {
+                new int[1][] { new int[2] { 0, 0 } }
+                , new int[1][] { new int[2] { 0, 0 } }
+            };
+            //0..Main
+        }
+
         public override uint Start(byte ChipID, uint clock)
         {
             return Start(ChipID, DefaultPSGClockValue, clock);
@@ -456,6 +465,10 @@ namespace MDSound
                     }
                 }
             }
+
+            visVolume[ChipID][0][0] = chip.volume[0][0];
+            visVolume[ChipID][0][1] = chip.volume[0][1];
+
         }
 
         public void SN76489_Write(byte ChipID, int data)

@@ -97,250 +97,257 @@ namespace MDSound
                     init_voice(C140Data[i].voi[j]);
                 }
             }
+
+            visVolume = new int[2][][] {
+                new int[1][] { new int[2] { 0, 0 } }
+                , new int[1][] { new int[2] { 0, 0 } }
+            };
+            //0..Main
+
         }
 
-        /* C140.h */
+    /* C140.h */
 
-        //#pragma once
+    //#pragma once
 
-        //public void c140_update(byte ChipID, int[][] outputs, int samples)
-        //{
+    //public void c140_update(byte ChipID, int[][] outputs, int samples)
+    //{
 
-        //    //c140_state *info = (c140_state *)param;
-        //    c140_state info = C140Data[ChipID];
-        //    int i, j;
+    //    //c140_state *info = (c140_state *)param;
+    //    c140_state info = C140Data[ChipID];
+    //    int i, j;
 
-        //    int rvol, lvol;
-        //    int dt;
-        //    int sdt;
-        //    int st, ed, sz;
+    //    int rvol, lvol;
+    //    int dt;
+    //    int sdt;
+    //    int st, ed, sz;
 
-        //    long pSampleData;
-        //    int frequency, delta, offset, pos;
-        //    int cnt, voicecnt;
-        //    int lastdt, prevdt, dltdt;
-        //    float pbase = (float)info.baserate * 2.0f / (float)info.sample_rate;
-        //    //System.Console.Write("pbase={0:f6} info->baserate={1:d} info->sample_rate={2:d} \n", pbase, info.baserate, info.sample_rate);
+    //    long pSampleData;
+    //    int frequency, delta, offset, pos;
+    //    int cnt, voicecnt;
+    //    int lastdt, prevdt, dltdt;
+    //    float pbase = (float)info.baserate * 2.0f / (float)info.sample_rate;
+    //    //System.Console.Write("pbase={0:f6} info->baserate={1:d} info->sample_rate={2:d} \n", pbase, info.baserate, info.sample_rate);
 
-        //    int[] lmix, rmix;
+    //    int[] lmix, rmix;
 
-        //    if (samples > info.sample_rate) samples = info.sample_rate;
+    //    if (samples > info.sample_rate) samples = info.sample_rate;
 
-        //    /* zap the contents of the mixer buffer */
-        //    for (int ind = 0; ind < samples; ind++)
-        //    {
-        //        info.mixer_buffer_left[ind] = 0;
-        //        info.mixer_buffer_right[ind] = 0;
-        //    }
-        //    if (info.pRom == null)
-        //        return;
+    //    /* zap the contents of the mixer buffer */
+    //    for (int ind = 0; ind < samples; ind++)
+    //    {
+    //        info.mixer_buffer_left[ind] = 0;
+    //        info.mixer_buffer_right[ind] = 0;
+    //    }
+    //    if (info.pRom == null)
+    //        return;
 
-        //    //System.Console.WriteLine("c140_update");
+    //    //System.Console.WriteLine("c140_update");
 
-        //    /* get the number of voices to update */
-        //    voicecnt = (info.banking_type == C140_TYPE.ASIC219) ? 16 : 24;
+    //    /* get the number of voices to update */
+    //    voicecnt = (info.banking_type == C140_TYPE.ASIC219) ? 16 : 24;
 
-        //    //--- audio update
-        //    for (i = 0; i < voicecnt; i++)
-        //    {
-        //        VOICE v = info.voi[i];
-        //        //voice_registers vreg = (voice_registers)info.REG[i * 16];
-        //        int vreg = i * 16;
+    //    //--- audio update
+    //    for (i = 0; i < voicecnt; i++)
+    //    {
+    //        VOICE v = info.voi[i];
+    //        //voice_registers vreg = (voice_registers)info.REG[i * 16];
+    //        int vreg = i * 16;
 
-        //        if (v.key != 0 && v.Muted == 0)
-        //        {
-        //            System.Console.Write("voicecnt={0:d} ", i);
-        //            frequency = info.REG[vreg + 2] * 256 + info.REG[vreg + 3];
+    //        if (v.key != 0 && v.Muted == 0)
+    //        {
+    //            System.Console.Write("voicecnt={0:d} ", i);
+    //            frequency = info.REG[vreg + 2] * 256 + info.REG[vreg + 3];
 
-        //            /* Abort voice if no frequency value set */
-        //            if (frequency == 0) continue;
-        //            System.Console.Write("frequency={0:d} ", frequency);
+    //            /* Abort voice if no frequency value set */
+    //            if (frequency == 0) continue;
+    //            System.Console.Write("frequency={0:d} ", frequency);
 
-        //            /* Delta =  frequency * ((8MHz/374)*2 / sample rate) */
-        //            delta = (int)((float)frequency * pbase);
-        //            System.Console.Write("delta={0:d} ", delta);
+    //            /* Delta =  frequency * ((8MHz/374)*2 / sample rate) */
+    //            delta = (int)((float)frequency * pbase);
+    //            System.Console.Write("delta={0:d} ", delta);
 
-        //            /* Calculate left/right channel volumes */
-        //            lvol = (info.REG[vreg + 1] * 32) / MAX_VOICE; //32ch -> 24ch
-        //            rvol = (info.REG[vreg + 0] * 32) / MAX_VOICE;
-        //            System.Console.Write("MAX_VOICE={0} lvol={1} vreg->volume_left={2} ", MAX_VOICE, lvol, info.REG[vreg + 1]);
-        //            System.Console.Write("rvol={0} vreg->volume_right={1} ", rvol, info.REG[vreg + 0]);
+    //            /* Calculate left/right channel volumes */
+    //            lvol = (info.REG[vreg + 1] * 32) / MAX_VOICE; //32ch -> 24ch
+    //            rvol = (info.REG[vreg + 0] * 32) / MAX_VOICE;
+    //            System.Console.Write("MAX_VOICE={0} lvol={1} vreg->volume_left={2} ", MAX_VOICE, lvol, info.REG[vreg + 1]);
+    //            System.Console.Write("rvol={0} vreg->volume_right={1} ", rvol, info.REG[vreg + 0]);
 
-        //            /* Set mixer outputs base pointers */
-        //            lmix = info.mixer_buffer_left;
-        //            rmix = info.mixer_buffer_right;
+    //            /* Set mixer outputs base pointers */
+    //            lmix = info.mixer_buffer_left;
+    //            rmix = info.mixer_buffer_right;
 
-        //            /* Retrieve sample start/end and calculate size */
-        //            st = (int)v.sample_start;
-        //            ed = (int)v.sample_end;
-        //            sz = ed - st;
-        //            System.Console.Write("st={0} ed={1} ", st, ed);
+    //            /* Retrieve sample start/end and calculate size */
+    //            st = (int)v.sample_start;
+    //            ed = (int)v.sample_end;
+    //            sz = ed - st;
+    //            System.Console.Write("st={0} ed={1} ", st, ed);
 
-        //            /* Retrieve base pointer to the sample data */
-        //            //pSampleData=(signed char*)((FPTR)info->pRom + find_sample(info, st, v->bank, i));
-        //            //pSampleData = info.pRom[find_sample(info, st, v.bank, i)];
-        //            pSampleData = find_sample(info, st, v.bank, i);
-        //            System.Console.Write("find_sample={0} ", find_sample(info, st, v.bank, i));
+    //            /* Retrieve base pointer to the sample data */
+    //            //pSampleData=(signed char*)((FPTR)info->pRom + find_sample(info, st, v->bank, i));
+    //            //pSampleData = info.pRom[find_sample(info, st, v.bank, i)];
+    //            pSampleData = find_sample(info, st, v.bank, i);
+    //            System.Console.Write("find_sample={0} ", find_sample(info, st, v.bank, i));
 
-        //            /* Fetch back previous data pointers */
-        //            offset = (int)v.ptoffset;
-        //            pos = (int)v.pos;
-        //            lastdt = (int)v.lastdt;
-        //            prevdt = (int)v.prevdt;
-        //            dltdt = (int)v.dltdt;
-        //            System.Console.Write("offset={0} pos={1} lastdt={2} prevdt={3} dltdt={4} ", offset, pos, lastdt, prevdt, dltdt);
+    //            /* Fetch back previous data pointers */
+    //            offset = (int)v.ptoffset;
+    //            pos = (int)v.pos;
+    //            lastdt = (int)v.lastdt;
+    //            prevdt = (int)v.prevdt;
+    //            dltdt = (int)v.dltdt;
+    //            System.Console.Write("offset={0} pos={1} lastdt={2} prevdt={3} dltdt={4} ", offset, pos, lastdt, prevdt, dltdt);
 
-        //            System.Console.Write("v->mode={0} info->banking_type={1} ", v.mode, (int)info.banking_type);
-        //            /* Switch on data type - compressed PCM is only for C140 */
-        //            if ((v.mode & 8) != 0 && (info.banking_type != C140_TYPE.ASIC219))
-        //            {
-        //                //compressed PCM (maybe correct...)
-        //                /* Loop for enough to fill sample buffer as requested */
-        //                for (j = 0; j < samples; j++)
-        //                {
-        //                    offset += delta;
-        //                    cnt = (offset >> 16) & 0x7fff;
-        //                    offset &= 0xffff;
-        //                    pos += cnt;
-        //                    System.Console.Write("offset={0} cnt={1} pos={2} ", offset, cnt, pos);
-        //                    //for(;cnt>0;cnt--)
-        //                    {
-        //                        /* Check for the end of the sample */
-        //                        if (pos >= sz)
-        //                        {
-        //                            /* Check if its a looping sample, either stop or loop */
-        //                            if ((v.mode & 0x10) != 0)
-        //                            {
-        //                                pos = (int)(v.sample_loop - st);
-        //                            }
-        //                            else
-        //                            {
-        //                                v.key = 0;
-        //                                break;
-        //                            }
-        //                        }
+    //            System.Console.Write("v->mode={0} info->banking_type={1} ", v.mode, (int)info.banking_type);
+    //            /* Switch on data type - compressed PCM is only for C140 */
+    //            if ((v.mode & 8) != 0 && (info.banking_type != C140_TYPE.ASIC219))
+    //            {
+    //                //compressed PCM (maybe correct...)
+    //                /* Loop for enough to fill sample buffer as requested */
+    //                for (j = 0; j < samples; j++)
+    //                {
+    //                    offset += delta;
+    //                    cnt = (offset >> 16) & 0x7fff;
+    //                    offset &= 0xffff;
+    //                    pos += cnt;
+    //                    System.Console.Write("offset={0} cnt={1} pos={2} ", offset, cnt, pos);
+    //                    //for(;cnt>0;cnt--)
+    //                    {
+    //                        /* Check for the end of the sample */
+    //                        if (pos >= sz)
+    //                        {
+    //                            /* Check if its a looping sample, either stop or loop */
+    //                            if ((v.mode & 0x10) != 0)
+    //                            {
+    //                                pos = (int)(v.sample_loop - st);
+    //                            }
+    //                            else
+    //                            {
+    //                                v.key = 0;
+    //                                break;
+    //                            }
+    //                        }
 
-        //                        /* Read the chosen sample byte */
-        //                        dt = info.pRom[pSampleData + pos];
-        //                        System.Console.Write("dt={0} ", dt);
+    //                        /* Read the chosen sample byte */
+    //                        dt = info.pRom[pSampleData + pos];
+    //                        System.Console.Write("dt={0} ", dt);
 
-        //                        /* decompress to 13bit range */        //2000.06.26 CAB
-        //                        sdt = dt >> 3;              //signed
-        //                        System.Console.Write("sdt={0} ", sdt);
-        //                        if (sdt < 0) sdt = (sdt << (dt & 7)) - info.pcmtbl[dt & 7];
-        //                        else sdt = (sdt << (dt & 7)) + info.pcmtbl[dt & 7];
-        //                        System.Console.Write("sdt={0} info->pcmtbl[dt&7]={1} ", sdt, info.pcmtbl[dt & 7]);
+    //                        /* decompress to 13bit range */        //2000.06.26 CAB
+    //                        sdt = dt >> 3;              //signed
+    //                        System.Console.Write("sdt={0} ", sdt);
+    //                        if (sdt < 0) sdt = (sdt << (dt & 7)) - info.pcmtbl[dt & 7];
+    //                        else sdt = (sdt << (dt & 7)) + info.pcmtbl[dt & 7];
+    //                        System.Console.Write("sdt={0} info->pcmtbl[dt&7]={1} ", sdt, info.pcmtbl[dt & 7]);
 
-        //                        prevdt = lastdt;
-        //                        lastdt = sdt;
-        //                        dltdt = (lastdt - prevdt);
-        //                        System.Console.Write("prevdt={0} lastdt={1} dltdt={2} ", prevdt, lastdt, dltdt);
-        //                    }
+    //                        prevdt = lastdt;
+    //                        lastdt = sdt;
+    //                        dltdt = (lastdt - prevdt);
+    //                        System.Console.Write("prevdt={0} lastdt={1} dltdt={2} ", prevdt, lastdt, dltdt);
+    //                    }
 
-        //                    /* Caclulate the sample value */
-        //                    dt = ((dltdt * offset) >> 16) + prevdt;
-        //                    System.Console.Write("dt={0} ", dt);
+    //                    /* Caclulate the sample value */
+    //                    dt = ((dltdt * offset) >> 16) + prevdt;
+    //                    System.Console.Write("dt={0} ", dt);
 
-        //                    /* Write the data to the sample buffers */
-        //                    lmix[j] += (dt * lvol) >> (5 + 5);
-        //                    rmix[j] += (dt * rvol) >> (5 + 5);
-        //                    System.Console.Write("(dt*lvol)>>(5+5)={0} ", (dt * lvol) >> (5 + 5));
-        //                    System.Console.Write("(dt*rvol)>>(5+5)={0} ", (dt * rvol) >> (5 + 5));
-        //                }
-        //            }
-        //            else
-        //            {
-        //                /* linear 8bit signed PCM */
-        //                for (j = 0; j < samples; j++)
-        //                {
-        //                    offset += delta;
-        //                    cnt = (offset >> 16) & 0x7fff;
-        //                    offset &= 0xffff;
-        //                    pos += cnt;
-        //                    System.Console.Write("linear offset={0} cnt={1} pos={2} ", offset, cnt, pos);
-        //                    /* Check for the end of the sample */
-        //                    if (pos >= sz)
-        //                    {
-        //                        /* Check if its a looping sample, either stop or loop */
-        //                        if ((v.mode & 0x10) != 0)
-        //                        {
-        //                            pos = (int)(v.sample_loop - st);
-        //                        }
-        //                        else
-        //                        {
-        //                            v.key = 0;
-        //                            break;
-        //                        }
-        //                    }
+    //                    /* Write the data to the sample buffers */
+    //                    lmix[j] += (dt * lvol) >> (5 + 5);
+    //                    rmix[j] += (dt * rvol) >> (5 + 5);
+    //                    System.Console.Write("(dt*lvol)>>(5+5)={0} ", (dt * lvol) >> (5 + 5));
+    //                    System.Console.Write("(dt*rvol)>>(5+5)={0} ", (dt * rvol) >> (5 + 5));
+    //                }
+    //            }
+    //            else
+    //            {
+    //                /* linear 8bit signed PCM */
+    //                for (j = 0; j < samples; j++)
+    //                {
+    //                    offset += delta;
+    //                    cnt = (offset >> 16) & 0x7fff;
+    //                    offset &= 0xffff;
+    //                    pos += cnt;
+    //                    System.Console.Write("linear offset={0} cnt={1} pos={2} ", offset, cnt, pos);
+    //                    /* Check for the end of the sample */
+    //                    if (pos >= sz)
+    //                    {
+    //                        /* Check if its a looping sample, either stop or loop */
+    //                        if ((v.mode & 0x10) != 0)
+    //                        {
+    //                            pos = (int)(v.sample_loop - st);
+    //                        }
+    //                        else
+    //                        {
+    //                            v.key = 0;
+    //                            break;
+    //                        }
+    //                    }
 
-        //                    if (cnt != 0)
-        //                    {
-        //                        prevdt = lastdt;
+    //                    if (cnt != 0)
+    //                    {
+    //                        prevdt = lastdt;
 
-        //                        if (info.banking_type == C140_TYPE.ASIC219)
-        //                        {
-        //                            //lastdt = pSampleData[BYTE_XOR_BE(pos)];
-        //                            lastdt = info.pRom[pSampleData + (pos ^ 0x01)];
+    //                        if (info.banking_type == C140_TYPE.ASIC219)
+    //                        {
+    //                            //lastdt = pSampleData[BYTE_XOR_BE(pos)];
+    //                            lastdt = info.pRom[pSampleData + (pos ^ 0x01)];
 
-        //                            // Sign + magnitude format
-        //                            if ((v.mode & 0x01) != 0 && ((lastdt & 0x80) != 0))
-        //                                lastdt = -(lastdt & 0x7f);
+    //                            // Sign + magnitude format
+    //                            if ((v.mode & 0x01) != 0 && ((lastdt & 0x80) != 0))
+    //                                lastdt = -(lastdt & 0x7f);
 
-        //                            // Sign flip
-        //                            if ((v.mode & 0x40) != 0)
-        //                                lastdt = -lastdt;
-        //                        }
-        //                        else
-        //                        {
-        //                            lastdt = ((info.pRom[pSampleData + pos] & 0x80) != 0) ? (info.pRom[pSampleData + pos] - 256) : info.pRom[pSampleData + pos];
-        //                        }
+    //                            // Sign flip
+    //                            if ((v.mode & 0x40) != 0)
+    //                                lastdt = -lastdt;
+    //                        }
+    //                        else
+    //                        {
+    //                            lastdt = ((info.pRom[pSampleData + pos] & 0x80) != 0) ? (info.pRom[pSampleData + pos] - 256) : info.pRom[pSampleData + pos];
+    //                        }
 
-        //                        dltdt = (lastdt - prevdt);
-        //                        System.Console.Write("prevdt={0} lastdt={1} dltdt={2} ", prevdt, lastdt, dltdt);
-        //                    }
+    //                        dltdt = (lastdt - prevdt);
+    //                        System.Console.Write("prevdt={0} lastdt={1} dltdt={2} ", prevdt, lastdt, dltdt);
+    //                    }
 
-        //                    /* Caclulate the sample value */
-        //                    dt = ((dltdt * offset) >> 16) + prevdt;
-        //                    System.Console.Write("dt={0} ", dt);
+    //                    /* Caclulate the sample value */
+    //                    dt = ((dltdt * offset) >> 16) + prevdt;
+    //                    System.Console.Write("dt={0} ", dt);
 
-        //                    /* Write the data to the sample buffers */
-        //                    lmix[j] += (dt * lvol) >> 5;
-        //                    rmix[j] += (dt * rvol) >> 5;
-        //                    System.Console.Write("(dt*lvol)>>5={0} ", (dt * lvol) >> 5);
-        //                    System.Console.Write("(dt*rvol)>>5={0} ", (dt * rvol) >> 5);
-        //                }
-        //            }
+    //                    /* Write the data to the sample buffers */
+    //                    lmix[j] += (dt * lvol) >> 5;
+    //                    rmix[j] += (dt * rvol) >> 5;
+    //                    System.Console.Write("(dt*lvol)>>5={0} ", (dt * lvol) >> 5);
+    //                    System.Console.Write("(dt*rvol)>>5={0} ", (dt * rvol) >> 5);
+    //                }
+    //            }
 
-        //            /* Save positional data for next callback */
-        //            v.ptoffset = offset;
-        //            v.pos = pos;
-        //            v.lastdt = lastdt;
-        //            v.prevdt = prevdt;
-        //            v.dltdt = dltdt;
-        //            System.Console.Write("\n");
-        //        }
-        //    }
+    //            /* Save positional data for next callback */
+    //            v.ptoffset = offset;
+    //            v.pos = pos;
+    //            v.lastdt = lastdt;
+    //            v.prevdt = prevdt;
+    //            v.dltdt = dltdt;
+    //            System.Console.Write("\n");
+    //        }
+    //    }
 
-        //    /* render to MAME's stream buffer */
-        //    lmix = info.mixer_buffer_left;
-        //    rmix = info.mixer_buffer_right;
-        //    {
-        //        int[] dest1 = outputs[0];
-        //        int[] dest2 = outputs[1];
-        //        for (i = 0; i < samples; i++)
-        //        {
-        //            //*dest1++ = limit(8*(*lmix++));
-        //            //*dest2++ = limit(8*(*rmix++));
-        //            dest1[i] = 8 * lmix[i];
-        //            dest2[i] = 8 * rmix[i];
-        //        }
-        //    }
-        //}
+    //    /* render to MAME's stream buffer */
+    //    lmix = info.mixer_buffer_left;
+    //    rmix = info.mixer_buffer_right;
+    //    {
+    //        int[] dest1 = outputs[0];
+    //        int[] dest2 = outputs[1];
+    //        for (i = 0; i < samples; i++)
+    //        {
+    //            //*dest1++ = limit(8*(*lmix++));
+    //            //*dest2++ = limit(8*(*rmix++));
+    //            dest1[i] = 8 * lmix[i];
+    //            dest2[i] = 8 * rmix[i];
+    //        }
+    //    }
+    //}
 
-        //READ8_DEVICE_HANDLER( c140_r );
-        //WRITE8_DEVICE_HANDLER( c140_w );
+    //READ8_DEVICE_HANDLER( c140_r );
+    //WRITE8_DEVICE_HANDLER( c140_w );
 
-        public byte c140_r(byte ChipID, uint offset)
+    public byte c140_r(byte ChipID, uint offset)
         {
             //c140_state *info = get_safe_token(device);
             c140_state info = C140Data[ChipID];
@@ -795,6 +802,9 @@ namespace MDSound
                     dest2[i] = 8 * rmix[i];
                 }
             }
+
+            visVolume[ChipID][0][0] = outputs[0][0];
+            visVolume[ChipID][0][1] = outputs[1][0];
         }
 
         public override uint Start(byte ChipID, uint clock)

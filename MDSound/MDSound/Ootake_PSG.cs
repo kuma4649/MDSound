@@ -1005,6 +1005,15 @@ Copyright(C)2006-2012 Kitao Nakamura.
         private huc6280_state[] chip = new huc6280_state[2];
         private const uint DefaultHuC6280ClockValue = 3579545;
 
+        public Ootake_PSG()
+        {
+            visVolume = new int[2][][] {
+                new int[1][] { new int[2] { 0, 0 } }
+                , new int[1][] { new int[2] { 0, 0 } }
+            };
+            //0..Main
+        }
+
         public override uint Start(byte ChipID, uint clock)
         {
             Start(ChipID, clock, DefaultHuC6280ClockValue);
@@ -1035,6 +1044,9 @@ Copyright(C)2006-2012 Kitao Nakamura.
         {
             if (chip[ChipID] == null) return;
             PSG_Mix(chip[ChipID], outputs, samples);
+
+            visVolume[ChipID][0][0] = outputs[0][0];
+            visVolume[ChipID][0][1] = outputs[1][0];
         }
 
         public int HuC6280_Write(byte ChipID, byte adr, byte data)

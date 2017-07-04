@@ -1534,6 +1534,66 @@ namespace MDSound
             return (iYM2610 != null) ? ((ym2610)iYM2610).visVolume : null;
         }
 
+        public int[][][] getYM2612VisVolume()
+        {
+            return (iYM2612 != null) ? ((ym2612)iYM2612).visVolume : null;
+        }
+
+        public int[][][] getAY8910VisVolume()
+        {
+            return (iAY8910 != null) ? ((ay8910)iAY8910).visVolume : null;
+        }
+
+        public int[][][] getSN76489VisVolume()
+        {
+            return (iSN76489 != null) ? ((sn76489)iSN76489).visVolume : null;
+        }
+
+        public int[][][] getHuC6280VisVolume()
+        {
+            return (iHuC6280 != null) ? ((Ootake_PSG)iHuC6280).visVolume : null;
+        }
+
+        public int[][][] getRF5C164VisVolume()
+        {
+            return (iRF5C164 != null) ? ((scd_pcm)iRF5C164).visVolume : null;
+        }
+
+        public int[][][] getPWMVisVolume()
+        {
+            return (iPWM != null) ? ((pwm)iPWM).visVolume : null;
+        }
+
+        public int[][][] getOKIM6258VisVolume()
+        {
+            return (iOKIM6258 != null) ? ((okim6258)iOKIM6258).visVolume : null;
+        }
+
+        public int[][][] getOKIM6295VisVolume()
+        {
+            return (iOKIM6295 != null) ? ((okim6295)iOKIM6295).visVolume : null;
+        }
+
+        public int[][][] getC140VisVolume()
+        {
+            return (iC140 != null) ? ((c140)iC140).visVolume : null;
+        }
+
+        public int[][][] getSegaPCMVisVolume()
+        {
+            return (iSEGAPCM != null) ? ((segapcm)iSEGAPCM).visVolume : null;
+        }
+
+        public int[][][] getC352VisVolume()
+        {
+            return (iC352 != null) ? ((c352)iC352).visVolume : null;
+        }
+
+        public int[][][] getK054539VisVolume()
+        {
+            return (iK054539 != null) ? ((K054539)iK054539).visVolume : null;
+        }
+
         /// <summary>
         /// Left全体ボリュームの取得(視覚効果向け)
         /// </summary>

@@ -344,11 +344,23 @@ namespace MDSound
 
         public new const string Name = "RF5C164";
 
+        public scd_pcm()
+        {
+            visVolume = new int[2][][] {
+                new int[1][] { new int[2] { 0, 0 } }
+                , new int[1][] { new int[2] { 0, 0 } }
+            };
+            //0..Main
+        }
+
         public override void Update(byte ChipID, int[][] outputs, int samples)
         {
             pcm_chip_ chip = PCM_Chip[ChipID];
 
             PCM_Update(ChipID, outputs, samples);
+
+            visVolume[ChipID][0][0] = outputs[0][0];
+            visVolume[ChipID][0][1] = outputs[1][0];
         }
 
         public uint Start(byte ChipID,uint Samplingrate, uint clock,params object[] option)
