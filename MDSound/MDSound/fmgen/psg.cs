@@ -83,7 +83,7 @@ namespace MDSound.fmgen
             // 各データの更新
             int tmp;
             tmp = ((reg[0] + reg[1] * 256) & 0xfff);
-            speriod[0] = (uint)(tmp!=0 ? tperiodbase / tmp : tperiodbase);
+            speriod[0] = (uint)(tmp != 0 ? tperiodbase / tmp : tperiodbase);
             tmp = ((reg[2] + reg[3] * 256) & 0xfff);
             speriod[1] = (uint)(tmp != 0 ? tperiodbase / tmp : tperiodbase);
             tmp = ((reg[4] + reg[5] * 256) & 0xfff);
@@ -99,7 +99,7 @@ namespace MDSound.fmgen
         //
         public void MakeNoiseTable()
         {
-            if (noisetable[0]==0)
+            if (noisetable[0] == 0)
             {
                 int noise = 14321;
                 for (int i = 0; i < noisetablesize; i++)
@@ -138,7 +138,7 @@ namespace MDSound.fmgen
         {
             mask = ~c;
             for (int i = 0; i < 3; i++)
-                olevel[i] = (uint)((mask & (1 << i))!=0 ? EmitTable[(reg[8 + i] & 15) * 2 + 1] : 0);
+                olevel[i] = (uint)((mask & (1 << i)) != 0 ? EmitTable[(reg[8 + i] & 15) * 2 + 1] : 0);
         }
 
         // ---------------------------------------------------------------------------
@@ -151,8 +151,8 @@ namespace MDSound.fmgen
                 2,0, 2,0, 2,0, 2,0, 1,0, 1,0, 1,0, 1,0,
                 2,2, 2,0, 2,1, 2,3, 1,1, 1,3, 1,2, 1,0
             };
-            byte[] table2=new byte[4]{ 0, 0, 31, 31 };
-            byte[] table3=new byte[4]{ 0, 1, 255, 0 };
+            byte[] table2 = new byte[4] { 0, 0, 31, 31 };
+            byte[] table3 = new byte[4] { 0, 1, 255, 0 };
 
             //uint* ptr = enveloptable[0];
             uint ptr = 0;
@@ -163,7 +163,7 @@ namespace MDSound.fmgen
 
                 for (int j = 0; j < 32; j++)
                 {
-                    enveloptable[ptr/64][ptr%64] = (uint)EmitTable[v];
+                    enveloptable[ptr / 64][ptr % 64] = (uint)EmitTable[v];
                     ptr++;
                     v += table3[table1[i]];
                 }
@@ -175,7 +175,7 @@ namespace MDSound.fmgen
         //	regnum		レジスタの番号 (0 - 15)
         //	data		セットする値
         //
-        public void SetReg(uint regnum, byte data)
+        public virtual void SetReg(uint regnum, byte data)
         {
             if (regnum < 0x10)
             {
@@ -237,10 +237,10 @@ namespace MDSound.fmgen
         //	dest		PCM データを展開するポインタ
         //	nsamples	展開する PCM のサンプル数
         //
-        public void Mix(int[] dest, int nsamples)
+        public virtual void Mix(int[] dest, int nsamples)
         {
             byte[] chenable = new byte[3];
-            byte[] nenable=new byte[3];
+            byte[] nenable = new byte[3];
             byte r7 = (byte)~reg[7];
 
             if (((r7 & 0x3f) | ((reg[8] | reg[9] | reg[10]) & 0x1f)) != 0)
@@ -277,6 +277,7 @@ namespace MDSound.fmgen
                             for (int j = 0; j < (1 << oversampling); j++)
                             {
                                 int x, y, z;
+
                                 x = ((int)(scount[0] >> (toneshift + oversampling)) & chenable[0]) - 1;
                                 sample += (int)((olevel[0] + x) ^ x);
                                 scount[0] += speriod[0];
@@ -306,6 +307,8 @@ namespace MDSound.fmgen
                             for (int j = 0; j < (1 << oversampling); j++)
                             {
                                 //# ifdef _M_IX86
+                                //noise = (int)(noisetable[(ncount >> (int)((noiseshift + oversampling + 6)) & (noisetablesize - 1))]
+                                //    >> (int)(ncount >> (noiseshift + oversampling + 1)));
                                 noise = (int)(noisetable[(ncount >> (int)((noiseshift + oversampling + 6)) & (noisetablesize - 1))]
                                     >> (int)(ncount >> (noiseshift + oversampling + 1)));
                                 //#else
@@ -315,12 +318,15 @@ namespace MDSound.fmgen
                                 ncount += nperiod;
 
                                 int x, y, z;
+
                                 x = (((int)(scount[0] >> (toneshift + oversampling)) & chenable[0]) | (nenable[0] & noise)) - 1;     // 0 or -1
                                 sample += (int)((olevel[0] + x) ^ x);
                                 scount[0] += speriod[0];
+
                                 y = (((int)(scount[1] >> (toneshift + oversampling)) & chenable[1]) | (nenable[1] & noise)) - 1;
                                 sample += (int)((olevel[1] + y) ^ y);
                                 scount[1] += speriod[1];
+
                                 z = (((int)(scount[2] >> (toneshift + oversampling)) & chenable[2]) | (nenable[2] & noise)) - 1;
                                 sample += (int)((olevel[2] + z) ^ z);
                                 scount[2] += speriod[2];
@@ -373,7 +379,7 @@ namespace MDSound.fmgen
 
                             int x, y, z;
                             x = (((int)(scount[0] >> (toneshift + oversampling)) & chenable[0]) | (nenable[0] & noise)) - 1;     // 0 or -1
-                            //sample += (int)((p1 + x) ^ x);
+                                                                                                                                 //sample += (int)((p1 + x) ^ x);
                             sample += (int)(((p1 == null ? env : olevel[0]) + x) ^ x);
                             scount[0] += speriod[0];
                             y = (((int)(scount[1] >> (toneshift + oversampling)) & chenable[1]) | (nenable[1] & noise)) - 1;
@@ -403,9 +409,9 @@ namespace MDSound.fmgen
         protected static void StoreSample(ref int dest, int data)
         {
             //if (sizeof(int) == 2)
-                //dest = (int)Limit(dest + data, 0x7fff, -0x8000);
+            //dest = (int)Limit(dest + data, 0x7fff, -0x8000);
             //else
-                dest += data;
+            dest += data;
         }
 
         protected byte[] reg = new byte[16];
@@ -434,3 +440,4 @@ namespace MDSound.fmgen
 
     }
 }
+

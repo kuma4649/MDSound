@@ -48,6 +48,7 @@
     <Compile Include="fmgen\opm.cs" />
     <Compile Include="fmgen\opna.cs" />
     <Compile Include="fmgen\psg.cs" />
+    <Compile Include="fmgen\psg2.cs" />
     <Compile Include="fmgen\Timer.cs" />
     <Compile Include="Instrument.cs" />
     <Compile Include="K054539.cs" />
