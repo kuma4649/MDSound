@@ -33,6 +33,7 @@ namespace MDSound
         private Instrument iYM2203 = null;
         private Instrument iYM2413 = null;
         private Instrument iYM2608 = null;
+        private Instrument iYM2609 = null;
         private Instrument iYM2610 = null;
 
         private int[][] buffer = null;
@@ -55,6 +56,7 @@ namespace MDSound
         private int[][] ym2151Key = new int[][] { new int[8], new int[8] };
         private int[][] ym2203Key = new int[][] { new int[6], new int[6] };
         private int[][] ym2608Key = new int[][] { new int[11], new int[11] };
+        private int[][] ym2609Key = new int[][] { new int[12+12+3+1], new int[28] };
         private int[][] ym2610Key = new int[][] { new int[11], new int[11] };
 
         private bool incFlag = false;
@@ -92,7 +94,8 @@ namespace MDSound
             YM2413,
             HuC6280,
             C352,
-            K054539
+            K054539,
+            YM2609
         }
 
         public class Chip
@@ -220,6 +223,9 @@ namespace MDSound
                             break;
                         case enmInstrumentType.K054539:
                             iK054539 = inst.Instrument;
+                            break;
+                        case enmInstrumentType.YM2609:
+                            iYM2609 = inst.Instrument;
                             break;
                     }
 
@@ -833,6 +839,16 @@ namespace MDSound
             }
         }
 
+        public void WriteYM2609(byte ChipID, byte Port, byte Adr, byte Data)
+        {
+            lock (lockobj)
+            {
+                if (iYM2609 == null) return;
+
+                ((ym2609)(iYM2609)).YM2609_Write(ChipID, (uint)(Port * 0x100 + Adr), Data);
+            }
+        }
+
         public void WriteYM2610(byte ChipID, byte Port, byte Adr, byte Data)
         {
             lock (lockobj)
@@ -1049,6 +1065,54 @@ namespace MDSound
                 if (c.type != enmInstrumentType.YM2608) continue;
                 ((ym2608)c.Instrument).SetAdpcmVolume(0, vol);
                 ((ym2608)c.Instrument).SetAdpcmVolume(1, vol);
+            }
+        }
+
+        public void SetVolumeYM2609FM(int vol)
+        {
+            if (iYM2609 == null) return;
+
+            foreach (Chip c in insts)
+            {
+                if (c.type != enmInstrumentType.YM2609) continue;
+                ((ym2609)c.Instrument).SetFMVolume(0, vol);
+                ((ym2609)c.Instrument).SetFMVolume(1, vol);
+            }
+        }
+
+        public void SetVolumeYM2609PSG(int vol)
+        {
+            if (iYM2609 == null) return;
+
+            foreach (Chip c in insts)
+            {
+                if (c.type != enmInstrumentType.YM2609) continue;
+                ((ym2609)c.Instrument).SetPSGVolume(0, vol);
+                ((ym2609)c.Instrument).SetPSGVolume(1, vol);
+            }
+        }
+
+        public void SetVolumeYM2609Rhythm(int vol)
+        {
+            if (iYM2609 == null) return;
+
+            foreach (Chip c in insts)
+            {
+                if (c.type != enmInstrumentType.YM2609) continue;
+                ((ym2609)c.Instrument).SetRhythmVolume(0, vol);
+                ((ym2609)c.Instrument).SetRhythmVolume(1, vol);
+            }
+        }
+
+        public void SetVolumeYM2609Adpcm(int vol)
+        {
+            if (iYM2609 == null) return;
+
+            foreach (Chip c in insts)
+            {
+                if (c.type != enmInstrumentType.YM2609) continue;
+                ((ym2609)c.Instrument).SetAdpcmVolume(0, vol);
+                ((ym2609)c.Instrument).SetAdpcmVolume(1, vol);
             }
         }
 
@@ -1352,6 +1416,19 @@ namespace MDSound
             }
         }
 
+        public int[] ReadYM2609KeyOn(int chipID)
+        {
+            lock (lockobj)
+            {
+                if (iYM2609 == null) return null;
+                for (int i = 0; i < 11; i++)
+                {
+                    //ym2608Key[chipID][i] = ((ym2608)(iYM2608)).YM2608_Chip[chipID].CHANNEL[i].KeyOn;
+                }
+                return ym2609Key[chipID];
+            }
+        }
+
         public int[] ReadYM2610KeyOn(int chipID)
         {
             lock (lockobj)
@@ -1527,6 +1604,11 @@ namespace MDSound
         public int[][][] getYM2608VisVolume()
         {
             return (iYM2608 != null) ? ((ym2608)iYM2608).visVolume : null;
+        }
+
+        public int[][][] getYM2609VisVolume()
+        {
+            return (iYM2609 != null) ? ((ym2608)iYM2609).visVolume : null;
         }
 
         public int[][][] getYM2610VisVolume()

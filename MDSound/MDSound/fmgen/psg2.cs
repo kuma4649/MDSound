@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace MDSound.fmgen
+﻿namespace MDSound.fmgen
 {
     public class PSG2 : PSG
     {

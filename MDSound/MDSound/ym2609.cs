@@ -1,12 +1,16 @@
-﻿namespace MDSound
-{
-    public class ym2608 : Instrument
-    {
-        private fmgen.OPNA[] chip = new fmgen.OPNA[2];
-        //private fmgen.OPNA2[] chip = new fmgen.OPNA2[2];
-        private const uint DefaultYM2608ClockValue = 8000000;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 
-        public ym2608()
+namespace MDSound
+{
+    public class ym2609 : Instrument
+    {
+        private fmgen.OPNA2[] chip = new fmgen.OPNA2[2];
+        private const uint DefaultYM2609ClockValue = 8000000;
+
+        public ym2609()
         {
             visVolume = new int[2][][] {
                 new int[5][] { new int[2] { 0, 0 }, new int[2] { 0, 0 }, new int[2] { 0, 0 } , new int[2] { 0, 0 } , new int[2] { 0, 0 } }
@@ -22,17 +26,15 @@
 
         public override uint Start(byte ChipID, uint clock)
         {
-            chip[ChipID] = new fmgen.OPNA();
-            //chip[ChipID] = new fmgen.OPNA2();
-            chip[ChipID].Init(DefaultYM2608ClockValue, clock);
+            chip[ChipID] = new fmgen.OPNA2();
+            chip[ChipID].Init(DefaultYM2609ClockValue, clock);
 
             return clock;
         }
 
         public uint Start(byte ChipID, uint clock, uint FMClockValue, params object[] option)
         {
-            chip[ChipID] = new fmgen.OPNA();
-            //chip[ChipID] = new fmgen.OPNA2();
+            chip[ChipID] = new fmgen.OPNA2();
             chip[ChipID].Init(FMClockValue, clock);
 
             return clock;
@@ -53,7 +55,6 @@
             {
                 outputs[0][i] = buffer[i * 2 + 0];
                 outputs[1][i] = buffer[i * 2 + 1];
-                //Console.Write("[{0:d8}] : [{1:d8}] [{2}]\r\n", outputs[0][i], outputs[1][i],i);
             }
 
             visVolume[ChipID][0][0] = outputs[0][0];
@@ -68,7 +69,7 @@
             visVolume[ChipID][4][1] = chip[ChipID].visAPCMVolume[1];
         }
 
-        public int YM2608_Write(byte ChipID, uint adr, byte data)
+        public int YM2609_Write(byte ChipID, uint adr, byte data)
         {
             if (chip[ChipID] == null) return 0;
 

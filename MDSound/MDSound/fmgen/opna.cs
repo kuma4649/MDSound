@@ -237,7 +237,7 @@ namespace MDSound.fmgen
             }
         }
 
-        private byte prescale;
+        protected byte prescale;
 
         protected fmgen.Chip chip;
         public PSG psg;
@@ -1526,68 +1526,78 @@ namespace MDSound.fmgen
             for (i = 0; i < 6; i++)
             {
                 FileIO file = new FileIO();
-                uint fsize;
-                string buf = "";
-                if (path != null && path != "")
-                    buf = path;
-                buf = buf + "2608_";
-                buf = buf + rhythmname[i];
-                buf = buf + ".WAV";
-
-                if (!file.Open(buf, (uint)FileIO.Flags.Readonly))
+                try
                 {
-                    if (i != 5)
-                        break;
+                    uint fsize;
+                    string buf = "";
                     if (path != null && path != "")
                         buf = path;
-                    buf = buf + "2608_RYM.WAV";
+                    buf = buf + "2608_";
+                    buf = buf + rhythmname[i];
+                    buf = buf + ".WAV";
+
                     if (!file.Open(buf, (uint)FileIO.Flags.Readonly))
+                    {
+                        if (i != 5)
+                            break;
+                        if (path != null && path != "")
+                            buf = path;
+                        buf = buf + "2608_RYM.WAV";
+                        if (!file.Open(buf, (uint)FileIO.Flags.Readonly))
+                            break;
+                    }
+
+                    whdr whdr = new whdr();
+
+                    file.Seek(0x10, FileIO.SeekMethod.begin);
+                    byte[] bufWhdr = new byte[4 + 2 + 2 + 4 + 4 + 2 + 2 + 2];
+                    file.Read(bufWhdr, 4 + 2 + 2 + 4 + 4 + 2 + 2 + 2);
+                    whdr.chunksize = (uint)(bufWhdr[0] + bufWhdr[1] * 0x100 + bufWhdr[2] * 0x10000 + bufWhdr[3] * 0x10000);
+                    whdr.tag = (uint)(bufWhdr[4] + bufWhdr[5] * 0x100);
+                    whdr.nch = (uint)(bufWhdr[6] + bufWhdr[7] * 0x100);
+                    whdr.rate = (uint)(bufWhdr[8] + bufWhdr[9] * 0x100 + bufWhdr[10] * 0x10000 + bufWhdr[11] * 0x10000);
+                    whdr.avgbytes = (uint)(bufWhdr[12] + bufWhdr[13] * 0x100 + bufWhdr[14] * 0x10000 + bufWhdr[15] * 0x10000);
+                    whdr.align = (uint)(bufWhdr[16] + bufWhdr[17] * 0x100);
+                    whdr.bps = (uint)(bufWhdr[18] + bufWhdr[19] * 0x100);
+                    whdr.size = (uint)(bufWhdr[20] + bufWhdr[21] * 0x100);
+
+                    byte[] subchunkname = new byte[4];
+                    fsize = 4 + whdr.chunksize - (4 + 2 + 2 + 4 + 4 + 2 + 2 + 2);
+                    do
+                    {
+                        file.Seek((int)fsize, FileIO.SeekMethod.current);
+                        file.Read(subchunkname, 4);
+                        file.Read(bufWhdr, 4);
+                        fsize = (uint)(bufWhdr[0] + bufWhdr[1] * 0x100 + bufWhdr[2] * 0x10000 + bufWhdr[3] * 0x10000);
+                    } while ('d' != subchunkname[0] && 'a' != subchunkname[1] && 't' != subchunkname[2] && 'a' != subchunkname[3]);
+
+                    fsize /= 2;
+                    if (fsize >= 0x100000 || whdr.tag != 1 || whdr.nch != 1)
                         break;
+                    fsize = (uint)Math.Max(fsize, (1 << 31) / 1024);
+
+                    rhythm[i].sample = null;
+                    rhythm[i].sample = new int[fsize];
+                    if (rhythm[i].sample == null)
+                        break;
+                    byte[] bufSample = new byte[fsize * 2];
+                    file.Read(bufSample, (int)(fsize * 2));
+                    for (int si = 0; si < fsize; si++)
+                    {
+                        rhythm[i].sample[si] = (short)(bufSample[si * 2] + bufSample[si * 2 + 1] * 0x100);
+                    }
+
+                    rhythm[i].rate = whdr.rate;
+                    rhythm[i].step = rhythm[i].rate * 1024 / rate;
+                    rhythm[i].pos = rhythm[i].size = fsize * 1024;
                 }
-
-                whdr whdr = new whdr();
-
-                file.Seek(0x10, FileIO.SeekMethod.begin);
-                byte[] bufWhdr = new byte[4 + 2 + 2 + 4 + 4 + 2 + 2 + 2];
-                file.Read(bufWhdr, 4 + 2 + 2 + 4 + 4 + 2 + 2 + 2);
-                whdr.chunksize = (uint)(bufWhdr[0] + bufWhdr[1] * 0x100 + bufWhdr[2] * 0x10000 + bufWhdr[3] * 0x10000);
-                whdr.tag = (uint)(bufWhdr[4] + bufWhdr[5] * 0x100);
-                whdr.nch = (uint)(bufWhdr[6] + bufWhdr[7] * 0x100);
-                whdr.rate = (uint)(bufWhdr[8] + bufWhdr[9] * 0x100 + bufWhdr[10] * 0x10000 + bufWhdr[11] * 0x10000);
-                whdr.avgbytes = (uint)(bufWhdr[12] + bufWhdr[13] * 0x100 + bufWhdr[14] * 0x10000 + bufWhdr[15] * 0x10000);
-                whdr.align = (uint)(bufWhdr[16] + bufWhdr[17] * 0x100);
-                whdr.bps = (uint)(bufWhdr[18] + bufWhdr[19] * 0x100);
-                whdr.size = (uint)(bufWhdr[20] + bufWhdr[21] * 0x100);
-
-                byte[] subchunkname = new byte[4];
-                fsize = 4 + whdr.chunksize - (4 + 2 + 2 + 4 + 4 + 2 + 2 + 2);
-                do
+                catch 
                 {
-                    file.Seek((int)fsize, FileIO.SeekMethod.current);
-                    file.Read(subchunkname, 4);
-                    file.Read(bufWhdr, 4);
-                    fsize = (uint)(bufWhdr[0] + bufWhdr[1] * 0x100 + bufWhdr[2] * 0x10000 + bufWhdr[3] * 0x10000);
-                } while ('d' != subchunkname[0] && 'a' != subchunkname[1] && 't' != subchunkname[2] && 'a' != subchunkname[3]);
-
-                fsize /= 2;
-                if (fsize >= 0x100000 || whdr.tag != 1 || whdr.nch != 1)
-                    break;
-                fsize = (uint)Math.Max(fsize, (1 << 31) / 1024);
-
-                rhythm[i].sample = null;
-                rhythm[i].sample = new int[fsize];
-                if (rhythm[i].sample == null)
-                    break;
-                byte[] bufSample = new byte[fsize * 2];
-                file.Read(bufSample, (int)(fsize * 2));
-                for (int si = 0; si < fsize; si++)
-                {
-                    rhythm[i].sample[si] = (short)(bufSample[si * 2] + bufSample[si * 2 + 1] * 0x100);
                 }
-
-                rhythm[i].rate = whdr.rate;
-                rhythm[i].step = rhythm[i].rate * 1024 / rate;
-                rhythm[i].pos = rhythm[i].size = fsize * 1024;
+                finally
+                {
+                    file.Close();
+                }
             }
             if (i != 6)
             {
@@ -1819,7 +1829,7 @@ namespace MDSound.fmgen
         private byte rhythmkey;     // リズムのキー
     };
 
-    //	YM2610/B(OPNB) ---------------------------------------------------
+    //	YM2610/B(OPNB) -------------------------------------------------
     public class OPNB : OPNABase
     {
         // ---------------------------------------------------------------------------
@@ -2276,7 +2286,7 @@ namespace MDSound.fmgen
         //public new fmgen.Channel4[] ch = new fmgen.Channel4[6];
     };
 
-    //	YM2612/3438(OPN2) ----------------------------------------------------
+    //	YM2612/3438(OPN2) ----------------------------------------------
     public class OPN2 : OPNBase
     {
         public OPN2()
@@ -2351,7 +2361,3 @@ namespace MDSound.fmgen
     };
 
 }
-
-
-
-
