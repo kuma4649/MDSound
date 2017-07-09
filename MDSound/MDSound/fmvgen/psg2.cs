@@ -1,6 +1,6 @@
-﻿namespace MDSound.fmgen
+﻿namespace MDSound.fmvgen
 {
-    public class PSG2 : PSG
+    public class PSG2 : fmgen.PSG
     {
 
         protected byte[] panpot = new byte[3];

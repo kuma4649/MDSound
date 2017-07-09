@@ -47,9 +47,12 @@
     <Compile Include="fmgen\fmgen.cs" />
     <Compile Include="fmgen\opm.cs" />
     <Compile Include="fmgen\opna.cs" />
-    <Compile Include="fmgen\opna2.cs" />
+    <Compile Include="fmvgen\ADPCMB.cs" />
+    <Compile Include="fmvgen\FM6.cs" />
+    <Compile Include="fmvgen\fmvgen.cs" />
+    <Compile Include="fmvgen\opna2.cs" />
     <Compile Include="fmgen\psg.cs" />
-    <Compile Include="fmgen\psg2.cs" />
+    <Compile Include="fmvgen\psg2.cs" />
     <Compile Include="fmgen\Timer.cs" />
     <Compile Include="Instrument.cs" />
     <Compile Include="K054539.cs" />

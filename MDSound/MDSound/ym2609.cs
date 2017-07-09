@@ -7,7 +7,7 @@ namespace MDSound
 {
     public class ym2609 : Instrument
     {
-        private fmgen.OPNA2[] chip = new fmgen.OPNA2[2];
+        private fmvgen.OPNA2[] chip = new fmvgen.OPNA2[2];
         private const uint DefaultYM2609ClockValue = 8000000;
 
         public ym2609()
@@ -26,7 +26,7 @@ namespace MDSound
 
         public override uint Start(byte ChipID, uint clock)
         {
-            chip[ChipID] = new fmgen.OPNA2();
+            chip[ChipID] = new fmvgen.OPNA2();
             chip[ChipID].Init(DefaultYM2609ClockValue, clock);
 
             return clock;
@@ -34,7 +34,7 @@ namespace MDSound
 
         public uint Start(byte ChipID, uint clock, uint FMClockValue, params object[] option)
         {
-            chip[ChipID] = new fmgen.OPNA2();
+            chip[ChipID] = new fmvgen.OPNA2();
             chip[ChipID].Init(FMClockValue, clock);
 
             return clock;

@@ -1173,8 +1173,8 @@ namespace MDSound.fmgen
 
         protected fmgen.Channel4[] ch = new fmgen.Channel4[6];
 
-        protected static int[] amtable = new int[fmgen.FM_LFOENTS];
-        protected static int[] pmtable = new int[fmgen.FM_LFOENTS];
+        public static int[] amtable = new int[fmgen.FM_LFOENTS];
+        public static int[] pmtable = new int[fmgen.FM_LFOENTS];
         protected static int[] tltable = new int[fmgen.FM_TLENTS + fmgen.FM_TLPOS];
         protected static bool tablehasmade;
     };
