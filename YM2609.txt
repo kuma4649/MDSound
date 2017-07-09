@@ -125,9 +125,9 @@ Virtual Instrument YM2609(Register Map)
      +10   | FLAG CONTROL       |
     ____   |____________________|
 
-    Extend Memory Access
-		ADPCM1:YM2608 Compatible
-		ADPCM2,3:YM2610 Compatible(TBD)
+    Extend Memory Capacity
+		ADPCM1:64Kbyte
+		ADPCM2,3:16Mbyte
 
     Write Data  (FM)
     ADDR.    D7  D6  D5  D4  D3  D2  D1  D0         COMMENT
@@ -197,7 +197,7 @@ Virtual Instrument YM2609(Register Map)
     B4Å`B6 | L  | R |   AMS | AC|    PMS    |  LR /AMS /AlgConstSw /PMS
            |____|___|_______|___|___________|  __________________________
 
-   DT2 (TBD)
+   DT2
       OPM's DT2 Compatible
    FB (TBD)
       OP2 - OP4's Self feed back
@@ -205,9 +205,9 @@ Virtual Instrument YM2609(Register Map)
       ALG Construction Switch 1.
       It set Link Op Number.
       Self number is Carrier.
-   L(M)ul (TBD)
+   L(M)ul
       Left Panpot Multiple 0:x1.0 1:x0.75 2:x0.5 3:x0.25
-   R(M)ul (TBD)
+   R(M)ul
       Right Panpot Multiple 0:x1.0 1:x0.75 2:x0.5 3:x0.25
    AC (TBD)
       ALG Construction Switch.
