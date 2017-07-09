@@ -44,4 +44,9 @@
      +0D  |=========================| CON | ATT | ALT | HLD  |  Envelop Shape Cycle
     ____  |_________________________|_____|_____|_____|______|  _______________________
 
-
+    Duty cycle
+        7:1/8 6:2/8 5:3/8 4:4/8 3:5/8 2:6/8 1:7/8 duty. 0:8/8 Pure square wave.
+        8:Triangle Wave  9:Saw Wave
+    L/R panpot
+        0:LR Enable 1:R Enable 2:L Enable 3:LR Enable
+        
