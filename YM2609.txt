@@ -175,9 +175,9 @@ Virtual Instrument YM2609(Register Map)
            |                |               |
     80Å`8E |   SL           |   RR          |  Sustain Level/Release Rate
            |________________|_______________|  __________________________
-           |        |       |               |
-    90Å`9E |ALG Link|=======|   SSG-EG      |  ALG Link /SSG-Type Envelop Control
-           |________|_______|_______________|  __________________________
+           |                |               |
+    90Å`9E |   ALG Link     |   SSG-EG      |  ALG Link /SSG-Type Envelop Control
+           |________________|_______________|  __________________________
            |                                |
     A0Å`A2 |             F-Num 1            |
            |________________________________|  F-Numbers/Block
@@ -199,16 +199,16 @@ Virtual Instrument YM2609(Register Map)
 
    DT2
       OPM's DT2 Compatible
-   FB (TBD)
+   FB
       OP2 - OP4's Self feed back
-   ALG Link (TBD)
-      ALG Construction Switch 1.
-      It set Link Op Number.
+   ALG Link  bit3:Op4  bit2:Op3  bit1:Op2  bit0:Op1
+      ALG Construction Switch = 1.
+      It set Link parent Op bits.
       Self number is Carrier.
    L(M)ul
       Left Panpot Multiple 0:x1.0 1:x0.75 2:x0.5 3:x0.25
    R(M)ul
       Right Panpot Multiple 0:x1.0 1:x0.75 2:x0.5 3:x0.25
-   AC (TBD)
+   AC
       ALG Construction Switch.
 
