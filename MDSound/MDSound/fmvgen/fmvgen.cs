@@ -201,8 +201,8 @@ namespace MDSound.fmvgen
             private uint ks_;           // Keyscale      (0-3)
             private uint ssg_type_; // SSG-Type Envelop Control
 
-            private uint fb_;
-            private uint algLink_;
+            public uint fb_;
+            public byte algLink_;
 
             private bool keyon_;
             public bool amon_;     // enable Amplitude Modulation
@@ -620,7 +620,15 @@ namespace MDSound.fmvgen
                 out2_ = out_;
 
                 int pgin = (int)(PGCalc() >> (20 + FM_PGBITS - FM_OPSINBITS));
-                pgin += In >> (20 + FM_PGBITS - FM_OPSINBITS - (2 + IS2EC_SHIFT));
+                //pgin += In >> (20 + FM_PGBITS - FM_OPSINBITS - (2 + IS2EC_SHIFT));
+                if (fb_ < 31)
+                {
+                    pgin += ((In << (int)(1 + IS2EC_SHIFT)) >> (int)fb_) >> (20 + FM_PGBITS - FM_OPSINBITS);
+                }
+                else
+                {
+                    pgin += In >> (20 + FM_PGBITS - FM_OPSINBITS - (2 + IS2EC_SHIFT));
+                }
                 out_ = LogToLin((uint)(eg_out_ + SINE(pgin)));
 
                 dbgopout_ = out_;
@@ -632,7 +640,17 @@ namespace MDSound.fmvgen
                 EGStep();
 
                 int pgin = (int)(PGCalcL() >> (20 + FM_PGBITS - FM_OPSINBITS));
-                pgin += In >> (20 + FM_PGBITS - FM_OPSINBITS - (2 + IS2EC_SHIFT));
+                //pgin += In >> (20 + FM_PGBITS - FM_OPSINBITS - (2 + IS2EC_SHIFT));
+                if (fb_ < 31)
+                {
+                    //                        17                                       19
+                    pgin += ((In << (int)(1 + IS2EC_SHIFT)) >> (int)fb_) >> (20 + FM_PGBITS - FM_OPSINBITS);
+                }
+                else
+                {
+                    //                                      1
+                    pgin += In >> (20 + FM_PGBITS - FM_OPSINBITS - (2 + IS2EC_SHIFT));
+                }
                 out_ = LogToLin((uint)(eg_out_ + SINE(pgin) + ams_[chip_.GetAML()]));
 
                 dbgopout_ = out_;
@@ -832,14 +850,14 @@ namespace MDSound.fmvgen
 
             public void SetFB(uint fb)
             {
-                fb_ = fb;
+                fb_ = Channel4.fbtable[fb];
                 param_changed_ = true;
                 PARAMCHANGE(15);
             }
 
             public void SetALGLink(uint AlgLink)
             {
-                algLink_ = AlgLink;
+                algLink_ = (byte)AlgLink;
                 param_changed_ = true;
                 PARAMCHANGE(16);
             }
@@ -922,7 +940,7 @@ namespace MDSound.fmvgen
             // ---------------------------------------------------------------------------
             //	4-op Channel
             //
-            private static byte[] fbtable = new byte[8] { 31, 7, 6, 5, 4, 3, 2, 1 };
+            public static byte[] fbtable = new byte[8] { 31, 7, 6, 5, 4, 3, 2, 1 };
 
             private static bool tablehasmade = false;
             private static int[] kftable = new int[64];
@@ -933,6 +951,9 @@ namespace MDSound.fmvgen
             private int[] pms;
             private int algo_;
             private Chip chip_;
+            private bool ac = false;
+            private byte carrier;
+            private List<int> oAlg = new List<int>();
 
             public Operator[] op = new Operator[4] {
                 new Operator(),new Operator(),new Operator(),new Operator()
@@ -1064,57 +1085,83 @@ namespace MDSound.fmvgen
             public int Calc()
             {
                 int r = 0;
-                switch (algo_)
+
+                if (!ac)
                 {
-                    case 0:
-                        op[2].Calc(op[1].Out());
-                        op[1].Calc(op[0].Out());
-                        r = op[3].Calc(op[2].Out());
-                        op[0].CalcFB(fb);
-                        break;
-                    case 1:
-                        op[2].Calc(op[0].Out() + op[1].Out());
-                        op[1].Calc(0);
-                        r = op[3].Calc(op[2].Out());
-                        op[0].CalcFB(fb);
-                        break;
-                    case 2:
-                        op[2].Calc(op[1].Out());
-                        op[1].Calc(0);
-                        r = op[3].Calc(op[0].Out() + op[2].Out());
-                        op[0].CalcFB(fb);
-                        break;
-                    case 3:
-                        op[2].Calc(0);
-                        op[1].Calc(op[0].Out());
-                        r = op[3].Calc(op[1].Out() + op[2].Out());
-                        op[0].CalcFB(fb);
-                        break;
-                    case 4:
-                        op[2].Calc(0);
-                        r = op[1].Calc(op[0].Out());
-                        r += op[3].Calc(op[2].Out());
-                        op[0].CalcFB(fb);
-                        break;
-                    case 5:
-                        r = op[2].Calc(op[0].Out());
-                        r += op[1].Calc(op[0].Out());
-                        r += op[3].Calc(op[0].Out());
-                        op[0].CalcFB(fb);
-                        break;
-                    case 6:
-                        r = op[2].Calc(0);
-                        r += op[1].Calc(op[0].Out());
-                        r += op[3].Calc(0);
-                        op[0].CalcFB(fb);
-                        break;
-                    case 7:
-                        r = op[2].Calc(0);
-                        r += op[1].Calc(0);
-                        r += op[3].Calc(0);
-                        r += op[0].CalcFB(fb);
-                        break;
+                    switch (algo_)
+                    {
+                        case 0:
+                            op[2].Calc(op[1].Out());
+                            op[1].Calc(op[0].Out());
+                            r = op[3].Calc(op[2].Out());
+                            op[0].CalcFB(fb);
+                            break;
+                        case 1:
+                            op[2].Calc(op[0].Out() + op[1].Out());
+                            op[1].Calc(0);
+                            r = op[3].Calc(op[2].Out());
+                            op[0].CalcFB(fb);
+                            break;
+                        case 2:
+                            op[2].Calc(op[1].Out());
+                            op[1].Calc(0);
+                            r = op[3].Calc(op[0].Out() + op[2].Out());
+                            op[0].CalcFB(fb);
+                            break;
+                        case 3:
+                            op[2].Calc(0);
+                            op[1].Calc(op[0].Out());
+                            r = op[3].Calc(op[1].Out() + op[2].Out());
+                            op[0].CalcFB(fb);
+                            break;
+                        case 4:
+                            op[2].Calc(0);
+                            r = op[1].Calc(op[0].Out());
+                            r += op[3].Calc(op[2].Out());
+                            op[0].CalcFB(fb);
+                            break;
+                        case 5:
+                            r = op[2].Calc(op[0].Out());
+                            r += op[1].Calc(op[0].Out());
+                            r += op[3].Calc(op[0].Out());
+                            op[0].CalcFB(fb);
+                            break;
+                        case 6:
+                            r = op[2].Calc(0);
+                            r += op[1].Calc(op[0].Out());
+                            r += op[3].Calc(0);
+                            op[0].CalcFB(fb);
+                            break;
+                        case 7:
+                            r = op[2].Calc(0);
+                            r += op[1].Calc(0);
+                            r += op[3].Calc(0);
+                            r += op[0].CalcFB(fb);
+                            break;
+                    }
                 }
+                else
+                {
+                    foreach (int n in oAlg)
+                    {
+                        if (n == 0)
+                        {
+                            op[n].CalcFB(fb);
+                            continue;
+                        }
+                        int v = 0;
+                        v += ((op[n].algLink_ & 0x1) != 0) ? op[0].Out() : 0;
+                        v += ((op[n].algLink_ & 0x2) != 0) ? op[1].Out() : 0;
+                        v += ((op[n].algLink_ & 0x4) != 0) ? op[2].Out() : 0;
+                        v += ((op[n].algLink_ & 0x8) != 0) ? op[3].Out() : 0;
+                        op[n].Calc(v);
+                    }
+                    r += ((carrier & 0x1) != 0) ? op[0].Out() : 0;
+                    r += ((carrier & 0x2) != 0) ? op[1].Out() : 0;
+                    r += ((carrier & 0x4) != 0) ? op[2].Out() : 0;
+                    r += ((carrier & 0x8) != 0) ? op[3].Out() : 0;
+                }
+
                 return r;
             }
 
@@ -1124,57 +1171,82 @@ namespace MDSound.fmvgen
                 chip_.SetPMV(pms[chip_.GetPML()]);
 
                 int r = 0;
-                switch (algo_)
+                if (!ac)
                 {
-                    case 0:
-                        op[2].CalcL(op[1].Out());
-                        op[1].CalcL(op[0].Out());
-                        r = op[3].CalcL(op[2].Out());
-                        op[0].CalcFBL(fb);
-                        break;
-                    case 1:
-                        op[2].CalcL(op[0].Out() + op[1].Out());
-                        op[1].CalcL(0);
-                        r = op[3].CalcL(op[2].Out());
-                        op[0].CalcFBL(fb);
-                        break;
-                    case 2:
-                        op[2].CalcL(op[1].Out());
-                        op[1].CalcL(0);
-                        r = op[3].CalcL(op[0].Out() + op[2].Out());
-                        op[0].CalcFBL(fb);
-                        break;
-                    case 3:
-                        op[2].CalcL(0);
-                        op[1].CalcL(op[0].Out());
-                        r = op[3].CalcL(op[1].Out() + op[2].Out());
-                        op[0].CalcFBL(fb);
-                        break;
-                    case 4:
-                        op[2].CalcL(0);
-                        r = op[1].CalcL(op[0].Out());
-                        r += op[3].CalcL(op[2].Out());
-                        op[0].CalcFBL(fb);
-                        break;
-                    case 5:
-                        r = op[2].CalcL(op[0].Out());
-                        r += op[1].CalcL(op[0].Out());
-                        r += op[3].CalcL(op[0].Out());
-                        op[0].CalcFBL(fb);
-                        break;
-                    case 6:
-                        r = op[2].CalcL(0);
-                        r += op[1].CalcL(op[0].Out());
-                        r += op[3].CalcL(0);
-                        op[0].CalcFBL(fb);
-                        break;
-                    case 7:
-                        r = op[2].CalcL(0);
-                        r += op[1].CalcL(0);
-                        r += op[3].CalcL(0);
-                        r += op[0].CalcFBL(fb);
-                        break;
+                    switch (algo_)
+                    {
+                        case 0:
+                            op[2].CalcL(op[1].Out());
+                            op[1].CalcL(op[0].Out());
+                            r = op[3].CalcL(op[2].Out());
+                            op[0].CalcFBL(fb);
+                            break;
+                        case 1:
+                            op[2].CalcL(op[0].Out() + op[1].Out());
+                            op[1].CalcL(0);
+                            r = op[3].CalcL(op[2].Out());
+                            op[0].CalcFBL(fb);
+                            break;
+                        case 2:
+                            op[2].CalcL(op[1].Out());
+                            op[1].CalcL(0);
+                            r = op[3].CalcL(op[0].Out() + op[2].Out());
+                            op[0].CalcFBL(fb);
+                            break;
+                        case 3:
+                            op[2].CalcL(0);
+                            op[1].CalcL(op[0].Out());
+                            r = op[3].CalcL(op[1].Out() + op[2].Out());
+                            op[0].CalcFBL(fb);
+                            break;
+                        case 4:
+                            op[2].CalcL(0);
+                            r = op[1].CalcL(op[0].Out());
+                            r += op[3].CalcL(op[2].Out());
+                            op[0].CalcFBL(fb);
+                            break;
+                        case 5:
+                            r = op[2].CalcL(op[0].Out());
+                            r += op[1].CalcL(op[0].Out());
+                            r += op[3].CalcL(op[0].Out());
+                            op[0].CalcFBL(fb);
+                            break;
+                        case 6:
+                            r = op[2].CalcL(0);
+                            r += op[1].CalcL(op[0].Out());
+                            r += op[3].CalcL(0);
+                            op[0].CalcFBL(fb);
+                            break;
+                        case 7:
+                            r = op[2].CalcL(0);
+                            r += op[1].CalcL(0);
+                            r += op[3].CalcL(0);
+                            r += op[0].CalcFBL(fb);
+                            break;
+                    }
                 }
+                else
+                {
+                    foreach (int n in oAlg)
+                    {
+                        if (n == 0)
+                        {
+                            op[n].CalcFBL(fb);
+                            continue;
+                        }
+                        int v = 0;
+                        v += ((op[n].algLink_ & 0x1) != 0) ? op[0].Out() : 0;
+                        v += ((op[n].algLink_ & 0x2) != 0) ? op[1].Out() : 0;
+                        v += ((op[n].algLink_ & 0x4) != 0) ? op[2].Out() : 0;
+                        v += ((op[n].algLink_ & 0x8) != 0) ? op[3].Out() : 0;
+                        op[n].CalcL(v);
+                    }
+                    r += ((carrier & 0x1) != 0) ? op[0].Out() : 0;
+                    r += ((carrier & 0x2) != 0) ? op[1].Out() : 0;
+                    r += ((carrier & 0x4) != 0) ? op[2].Out() : 0;
+                    r += ((carrier & 0x8) != 0) ? op[3].Out() : 0;
+                }
+
                 return r;
             }
 
@@ -1218,6 +1290,12 @@ namespace MDSound.fmvgen
                 fb = fbtable[feedback];
             }
 
+            public void SetAC(bool sw)
+            {
+                ac = sw;
+                buildAlg();
+            }
+
             //	OPNA 系 LFO の設定
             public void SetMS(uint ms)
             {
@@ -1252,6 +1330,32 @@ namespace MDSound.fmvgen
             public void dbgStopPG()
             {
                 for (int i = 0; i < 4; i++) op[i].dbgStopPG();
+            }
+
+            public void buildAlg()
+            {
+                byte mask = 0xf;
+                byte omask = 0;
+                bool[] use = new bool[4] { false, false, false, false };
+
+                carrier = 0xf;
+                oAlg.Clear();
+
+                for (int j = 0; j < 4; j++)
+                {
+                    omask = (byte)(~mask);
+                    for (int i = 0; i < 4; i++)
+                    {
+                        if (!use[i] && ( ((op[i].algLink_ & mask) == 0) || i == 0 ))
+                        {
+                            use[i] = true;
+                            oAlg.Add(i);
+                            omask |= (byte)(1 << i);
+                            carrier &= (byte)(~op[i].algLink_);
+                        }
+                    }
+                    mask = (byte)(~omask);
+                }
             }
 
         };

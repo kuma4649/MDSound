@@ -24,7 +24,7 @@ namespace MDSound.fmvgen
         protected float[] panTable = new float[4] { 1.0f, 0.75f, 0.5f, 0.25f };
         protected float[] panL = new float[6];
         protected float[] panR = new float[6];
-        protected bool[] ac = new bool[6];
+        //protected bool[] ac = new bool[6];
         protected uint lfocount;
         protected uint lfodcount;
         public int[] visVolume = new int[2] { 0, 0 };
@@ -169,14 +169,14 @@ namespace MDSound.fmvgen
                     c += 3;
                     pan[c] = (byte)((data >> 6) & 3);
                     ch[c].SetMS(data);
-                    ac[c] = (data & 0x08) != 0;
+                    ch[c].SetAC((data & 0x08) != 0);
                     break;
                 case 0xb4:
                 case 0xb5:
                 case 0xb6:
                     pan[c] = (byte)((data >> 6) & 3);
                     ch[c].SetMS(data);
-                    ac[c] = (data & 0x08) != 0;
+                    ch[c].SetAC((data & 0x08) != 0);
                     break;
 
                 // LFO -------------------------------------------------------------------
@@ -237,6 +237,7 @@ namespace MDSound.fmvgen
 
                     case 7: // 70-7E SR
                         op.SetSR((data & 0x1f) * 2);
+                        op.SetFB((data >> 5) & 7);
                         break;
 
                     case 8: // 80-8E SL/RR
@@ -246,6 +247,8 @@ namespace MDSound.fmvgen
 
                     case 9: // 90-9E SSG-EC
                         op.SetSSGEC(data & 0x0f);
+                        op.SetALGLink(data >> 4);
+                        ch.buildAlg();
                         break;
                 }
             }
@@ -284,6 +287,7 @@ namespace MDSound.fmvgen
 
         protected void Mix6(int[] buffer, int nsamples, int activech)
         {
+
             // Mix
             int[] ibuf = new int[4];
             int[] idest = new int[6];
