@@ -30,6 +30,8 @@ namespace MDSound.fmvgen
         public int[] visVolume = new int[2] { 0, 0 };
         protected byte regtc;
         public fmvgen.Chip chip;
+        public int wavetype = 0;
+        public int wavecounter = 0;
 
         protected uint[] lfotable = new uint[8];
 
@@ -89,6 +91,29 @@ namespace MDSound.fmvgen
                 case 0x29:
                     reg29 = data;
                     //		UpdateStatus(); //?
+                    break;
+
+                case 0x2a:
+                    break;
+
+                // WaveType -----------------------------------------------------------
+                case 0x2b:
+                    wavetype = (int)(data & 0x3);
+                    wavecounter = 0;
+                    break;
+
+                // Write WaveData -----------------------------------------------------------
+                case 0x2c:
+                    int cnt = wavecounter / 2;
+                    int d = wavecounter % 2;
+                    uint s =
+                        d == 0
+                        ? ((fmvgen.sinetable[wavetype][cnt] & 0xffff0000) | data)
+                        : ((fmvgen.sinetable[wavetype][cnt] & 0xffff) | ((data & 0x1f) << 8));
+                    fmvgen.sinetable[wavetype][cnt] = s * 2;
+                    fmvgen.sinetable[wavetype][fmvgen.FM_OPSINENTS / 2 + cnt] = s * 2 + 1;
+                    wavecounter++;
+                    if (fmvgen.FM_OPSINENTS / 2 <= wavecounter) wavecounter = 0;
                     break;
 
                 // Prescaler -------------------------------------------------------------
@@ -218,10 +243,12 @@ namespace MDSound.fmvgen
                     case 3: // 30-3E DT/MULTI
                         op.SetDT((data >> 4) & 0x07);
                         op.SetMULTI(data & 0x0f);
+                        op.SetWaveTypeL((byte)(data >> 7));
                         break;
 
                     case 4: // 40-4E TL
                         op.SetTL(data & 0x7f, ((regtc & 0x80) != 0) && (csmch == ch));
+                        op.SetWaveTypeH((byte)(data >> 7));
                         break;
 
                     case 5: // 50-5E KS/AR

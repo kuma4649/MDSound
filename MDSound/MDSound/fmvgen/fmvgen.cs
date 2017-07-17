@@ -13,6 +13,8 @@ namespace MDSound.fmvgen
             typeM = 1
         };
 
+        public static uint[][] sinetable = new uint[4][] { new uint[1024], new uint[1024], new uint[1024], new uint[1024] };
+
         //	Operator -------------------------------------------------------------
         public new class Operator
         {
@@ -164,7 +166,7 @@ namespace MDSound.fmvgen
             //	Operator
             //
             bool tablehasmade = false;
-            static uint[] sinetable = new uint[1024];
+            //uint[] sinetable = new uint[1024];
             static int[] cltable = new int[FM_CLENTS];
 
             public OpType type_;       // OP の種類 (M, N...)
@@ -203,6 +205,7 @@ namespace MDSound.fmvgen
 
             public uint fb_;
             public byte algLink_;
+            public byte wt_;
 
             private bool keyon_;
             public bool amon_;     // enable Amplitude Modulation
@@ -305,6 +308,7 @@ namespace MDSound.fmvgen
                 while (p < FM_CLENTS)
                 {
                     cltable[p] = cltable[p - 512] / 2;
+                    //Console.Write("{0}:", cltable[p]);
                     p++;
                 }
 
@@ -319,8 +323,14 @@ namespace MDSound.fmvgen
                     double q = -256 * Math.Log(Math.Sin(r)) / log2;
                     uint s = (uint)((int)(Math.Floor(q + 0.5)) + 1);
                     //		printf("%d, %d\n", s, cltable[s * 2] / 8);
-                    sinetable[i] = s * 2;
-                    sinetable[FM_OPSINENTS / 2 + i] = s * 2 + 1;
+                    sinetable[0][i] = s * 2;
+                    sinetable[0][FM_OPSINENTS / 2 + i] = s * 2 + 1;
+                    sinetable[1][i] = s * 2;
+                    sinetable[1][FM_OPSINENTS / 2 + i] = s * 2 + 1;
+                    sinetable[2][i] = s * 2;
+                    sinetable[2][FM_OPSINENTS / 2 + i] = s * 2 + 1;
+                    sinetable[3][i] = s * 2;
+                    sinetable[3][FM_OPSINENTS / 2 + i] = s * 2 + 1;
                 }
 
                 fmvgen.MakeLFOTable();
@@ -500,12 +510,12 @@ namespace MDSound.fmvgen
             // 入力: s = 20+FM_PGBITS = 29
             public uint Sine(int s)
             {
-                return sinetable[((s) >> (20 + FM_PGBITS - FM_OPSINBITS)) & (FM_OPSINENTS - 1)];
+                return sinetable[wt_][((s) >> (20 + FM_PGBITS - FM_OPSINBITS)) & (FM_OPSINENTS - 1)];
             }
 
             public int SINE(int s)
             {
-                return (int)sinetable[(s) & (FM_OPSINENTS - 1)];
+                return (int)sinetable[wt_][(s) & (FM_OPSINENTS - 1)];
             }
 
 
@@ -862,6 +872,20 @@ namespace MDSound.fmvgen
                 PARAMCHANGE(16);
             }
 
+            public void SetWaveTypeL(byte wt)
+            {
+                wt_ = (byte)((wt_ & 2) | (wt & 1));
+                param_changed_ = true;
+                PARAMCHANGE(17);
+            }
+
+            public void SetWaveTypeH(byte wt)
+            {
+                wt_ = (byte)((wt_ & 1) | ((wt & 1) << 1));
+                param_changed_ = true;
+                PARAMCHANGE(17);
+            }
+
             public void Mute(bool mute)
             {
                 mute_ = mute;
@@ -929,9 +953,9 @@ namespace MDSound.fmvgen
                 return cltable;
             }
 
-            public static uint[] dbgGetSineTable()
+            public uint[] dbgGetSineTable(int t)
             {
-                return sinetable;
+                return sinetable[t];
             }
         };
 
