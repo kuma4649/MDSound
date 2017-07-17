@@ -155,46 +155,58 @@ Virtual Instrument YM2609(Register Map)
      28    |      Slot      |===|     CH    |  Key-ON/OFF
            |________________|___|___________|  __________________________
            |                                |
-    29Å`   |================================|
-       2F  |________________________________|  __________________________
+     29    |      STATUS Mask               |
+           |________________________________|  __________________________
+           |                                |
+     2A    |================================|
+           |________________________________|  __________________________
+           |                         |      |
+     2B    |=========================|WavTyp|  Wave Type(0-3)
+           |_________________________|______|  __________________________
+           |                                |
+     2C    |      Wave data(L/H)            |  Write Wave data( 512 * 2 count (L:8bit H:5bit))
+           |________________________________|  __________________________
+           |                                |
+    2D-2F  |      Prescaler                 |  Prescaler
+           |________________________________|  __________________________
            |    |           |               |
-    30Å`3E |====|    DT1    |   MULTI       |  Detune/Multiple
+    30-3E  |WT L|    DT1    |   MULTI       |  Wave Type(L)/Detune/Multiple
            |____|___________|_______________|  __________________________
            |    |                           |
-    40Å`4E |====|               TL          |  Total Level
+    40-4E  |WT H|               TL          |  Wave Type(H)/Total Level
            |____|___________________________|  __________________________
            |        |   |                   |
-    50Å`5E |   KS   |===|       AR          |  Key Scale/Attack Rate
+    50-5E  |   KS   |===|       AR          |  Key Scale/Attack Rate
            |________|___|___________________|  __________________________
            |    |       |                   |
-    60Å`6E | AM |  DT2  |       DR          |  AMON/DT2/Decay Rate
+    60-6E  | AM |  DT2  |       DR          |  AMON/DT2/Decay Rate
            |____|_______|___________________|  __________________________
            |            |                   |
-    70Å`7E |   FB       |       SR          |  SelfFeedback(2OP-4OP)/Sustain Rate
+    70-7E  |   FB       |       SR          |  SelfFeedback(2OP-4OP)/Sustain Rate
            |____________|___________________|  __________________________
            |                |               |
-    80Å`8E |   SL           |   RR          |  Sustain Level/Release Rate
+    80-8E  |   SL           |   RR          |  Sustain Level/Release Rate
            |________________|_______________|  __________________________
            |                |               |
-    90Å`9E |   ALG Link     |   SSG-EG      |  ALG Link /SSG-Type Envelop Control
+    90-9E  |   ALG Link     |   SSG-EG      |  ALG Link /SSG-Type Envelop Control
            |________________|_______________|  __________________________
            |                                |
-    A0Å`A2 |             F-Num 1            |
+    A0-A2  |             F-Num 1            |
            |________________________________|  F-Numbers/Block
            |        |           |           |
-    A4Å`A6 |========|    Block  |  F-Num 2  |
+    A4-A6  |========|    Block  |  F-Num 2  |
            |________|___________|___________|  __________________________
            |                                |
-    A8Å`AA |           3 CH * F-Num 1       |
+    A8-AA  |           3 CH * F-Num 1       |
            |________________________________|  3 CH
            |        |           |           |  F-Numbers/Block
-    ACÅ`AE |   L(M) | 3CH*Block | 3CH*F-Num2|  L(M)ul
+    AC-AE  |   L(M) | 3CH*Block | 3CH*F-Num2|  L(M)ul
            |________|___________|___________|  __________________________
            |        |           |           |
-    B0Å`B2 |   R(M) |    FB     |   ALG     |  R(M)ul/Self Feedback/Alg
+    B0-B2  |   R(M) |    FB     |   ALG     |  R(M)ul/Self Feedback/Alg
            |________|___________|___________|  __________________________
            |    |   |       |   |           |
-    B4Å`B6 | L  | R |   AMS | AC|    PMS    |  LR /AMS /AlgConstSw /PMS
+    B4-B6  | L  | R |   AMS | AC|    PMS    |  LR /AMS /AlgConstSw /PMS
            |____|___|_______|___|___________|  __________________________
 
    DT2
