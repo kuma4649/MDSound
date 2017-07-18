@@ -306,13 +306,13 @@ namespace MDSound
                         // Left
                         //_out[0] += (((v.flags & C352_FLG_PHASEFL) ? -s : s) * v.curr_vol[0]) >> 8;
                         //_out[2] += (((v.flags & C352_FLG_PHASEFR) ? -s : s) * v.curr_vol[2]) >> 8;
-                        _out[0] +=( (((v.flags & 0x0100) != 0 ? -s : s) * v.curr_vol[0]) >> 8);
-                        _out[2] +=( (((v.flags & 0x0080) != 0 ? -s : s) * v.curr_vol[2]) >> 8);
+                        _out[0] +=( (((v.flags & 0x0100) != 0 ? -s : s) * v.curr_vol[0]) >> 9);
+                        _out[2] +=( (((v.flags & 0x0080) != 0 ? -s : s) * v.curr_vol[2]) >> 9);
                         // Right
                         //_out[1] += (((v.flags & C352_FLG_PHASERL) ? -s : s) * v.curr_vol[1]) >> 8;
                         //_out[3] += (((v.flags & C352_FLG_PHASERL) ? -s : s) * v.curr_vol[3]) >> 8;
-                        _out[1] +=( (((v.flags & 0x0200) != 0 ? -s : s) * v.curr_vol[1]) >> 8);
-                        _out[3] +=( (((v.flags & 0x0200) != 0 ? -s : s) * v.curr_vol[3]) >> 8);
+                        _out[1] +=( (((v.flags & 0x0200) != 0 ? -s : s) * v.curr_vol[1]) >> 9);
+                        _out[3] +=( (((v.flags & 0x0200) != 0 ? -s : s) * v.curr_vol[3]) >> 9);
                     }
 
                     //Console.WriteLine("out [0]={0}  [1]={1}  [2]={2}  [3]={3}", _out[0] , _out[1] , _out[2] , _out[3]);
@@ -596,7 +596,7 @@ namespace MDSound
             return muteMask;
         }
 
-        private void c352_set_options(byte Flags)
+        public void c352_set_options(byte Flags)
         {
             MuteAllRear = (byte)((Flags & 0x01) >> 0);
 

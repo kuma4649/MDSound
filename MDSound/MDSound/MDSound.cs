@@ -1263,6 +1263,17 @@ namespace MDSound
             }
         }
 
+        public void SetRearMute(byte flag)
+        {
+            if (iC352 == null) return;
+
+            foreach (Chip c in insts)
+            {
+                if (c.type != enmInstrumentType.C352) continue;
+                ((c352)iC352).c352_set_options(flag);
+            }
+        }
+
         public void SetVolumeK054539(int vol)
         {
             if (iK054539 == null) return;
