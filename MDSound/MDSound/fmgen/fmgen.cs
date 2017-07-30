@@ -552,7 +552,8 @@ namespace MDSound.fmgen
                         int m = ar_ >= ((ssg_type_ == 8 || ssg_type_ == 12) ? 56 : 60) ? 1 : 0;
 
                         //assert(0 <= ssg_phase_ && ssg_phase_ <= 2);
-                        int[] table = ssgenvtable[ssg_type_ & 7][m][ssg_phase_];
+                        int phase = (ssg_phase_ >= 0 && ssg_phase_ <= 2) ? ssg_phase_ : 0;
+                        int[] table = ssgenvtable[ssg_type_ & 7][m][phase];
 
                         ssg_offset_ = table[0] * 0x200;
                         ssg_vector_ = table[1];
@@ -581,7 +582,8 @@ namespace MDSound.fmgen
                             int m = ar_ >= ((ssg_type_ == 8 || ssg_type_ == 12) ? 56 : 60) ? 1 : 0;
 
                             //assert(0 <= ssg_phase_ && ssg_phase_ <= 2);
-                            int[] table = ssgenvtable[ssg_type_ & 7][m][ssg_phase_];
+                            int phase = (ssg_phase_ >= 0 && ssg_phase_ <= 2) ? ssg_phase_ : 0;
+                            int[] table = ssgenvtable[ssg_type_ & 7][m][phase];
 
                             ssg_offset_ = table[0] * 0x200;
                             ssg_vector_ = table[1];
