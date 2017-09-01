@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 
@@ -1243,6 +1244,11 @@ namespace MDSound
         private OPLL OPLL_new(uint clk, uint rate)
         {
 
+            SL = new uint[16]{
+    S2E (0.0), S2E (3.0), S2E (6.0), S2E (9.0), S2E (12.0), S2E (15.0), S2E (18.0), S2E (21.0),
+    S2E (24.0), S2E (27.0), S2E (30.0), S2E (33.0), S2E (36.0), S2E (39.0), S2E (42.0), S2E (48.0)
+            };
+
             OPLL opll;
             int i;
 
@@ -1460,15 +1466,13 @@ namespace MDSound
             return (uint)(SL2EG((int)(x / SL_STEP)) << (EG_DP_BITS - EG_BITS));
         }
 
+        uint[] SL;
+
         /* EG */
         private void calc_envelope(OPLL_SLOT slot, int lfo)
         {
             //#define S2E(x) (SL2EG((e_int32)(x/SL_STEP))<<(EG_DP_BITS-EG_BITS))
 
-            uint[] SL = new uint[16]{
-    S2E (0.0), S2E (3.0), S2E (6.0), S2E (9.0), S2E (12.0), S2E (15.0), S2E (18.0), S2E (21.0),
-    S2E (24.0), S2E (27.0), S2E (30.0), S2E (33.0), S2E (36.0), S2E (39.0), S2E (42.0), S2E (48.0)
-            };
 
             uint egout;
 
@@ -2144,14 +2148,21 @@ namespace MDSound
             int i;
             int channel;
 
+            //e0 = sw.ElapsedTicks;
+
             update_ampm(opll);
             update_noise(opll);
 
+
             for (i = 0; i < 18; i++)
             {
+                //e1 = sw.ElapsedTicks;
                 calc_phase(opll.slot[i], opll.lfo_pm);
+                //e2 = sw.ElapsedTicks;
                 calc_envelope(opll.slot[i], opll.lfo_am);
+                //e3 = sw.ElapsedTicks;
             }
+
 
             for (i = 0; i < 6; i++)
                 if ((opll.mask & OPLL_MASK_CH(i))==0 && (CAR(opll, i).eg_mode != (int)OPLL_EG_STATE.FINISH))
@@ -2169,6 +2180,7 @@ namespace MDSound
                     }
                 }
 
+            //e3 = sw.ElapsedTicks;
 
             if (opll.vrc7_mode == 0)
             {
@@ -2312,6 +2324,7 @@ namespace MDSound
                 */
             _out[0] = l << 3;
             _out[1] = r << 3;
+            //e4 = sw.ElapsedTicks;
         }
 
         /*void
@@ -2337,6 +2350,7 @@ namespace MDSound
           out[1] = (e_int16) (((double) opll->snext[1] * (opll->opllstep - opll->oplltime)
                                + (double) opll->sprev[1] * opll->oplltime) / opll->opllstep);
         }*/
+
         private void OPLL_calc_stereo(OPLL opll, int[][] _out, int samples)
         {
             int[] bufMO = _out[0];
@@ -2344,6 +2358,8 @@ namespace MDSound
             int[] buffers = new int[2];
 
             int i;
+
+            //sw.Reset(); sw.Start();
 
             for (i = 0; i < samples; i++)
             {
@@ -2374,6 +2390,8 @@ namespace MDSound
 
                 //Console.WriteLine("OPLL_calc_stereo:out[0][{0}]:{1}:out[1][{0}]:{2}:samples:{3}", i, _out[0][i], _out[1][i], samples);
             }
+
+            //Console.WriteLine("elapsed:{0}:{1}:{2}:{3}:{4}:{5}", e0,e1,e2,e3,e4,e5);
 
         }
         //#endif /* EMU2413_COMPACTION */
@@ -2447,6 +2465,7 @@ namespace MDSound
         }
 
         System.Diagnostics.Stopwatch sw = System.Diagnostics.Stopwatch.StartNew();
+        long e0 = 0, e1 = 0, e2 = 0, e3 = 0, e4 = 0, e5 = 0;
 
         public override void Update(byte ChipID, int[][] outputs, int samples)
         {

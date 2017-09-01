@@ -39,7 +39,7 @@ namespace MDSound
         private int[][] buffer = null;
         private int[][] buff = new int[2][] { new int[1], new int[1] };
 
-        private int[] sn76489Mask =new int[] { 15, 15 };// psgはmuteを基準にしているのでビットが逆です
+        private int[] sn76489Mask = new int[] { 15, 15 };// psgはmuteを基準にしているのでビットが逆です
         private int[] ym2612Mask = new int[] { 0, 0 };
         private int[] ym2203Mask = new int[] { 0, 0 };
         private uint[] segapcmMask = new uint[] { 0, 0 };
@@ -52,16 +52,16 @@ namespace MDSound
             ,new int[8][] { new int[2], new int[2], new int[2], new int[2], new int[2], new int[2], new int[2], new int[2] }
         };
 
-        private int[][] ym2612Key =new int[][] { new int[6], new int[6] };
+        private int[][] ym2612Key = new int[][] { new int[6], new int[6] };
         private int[][] ym2151Key = new int[][] { new int[8], new int[8] };
         private int[][] ym2203Key = new int[][] { new int[6], new int[6] };
         private int[][] ym2608Key = new int[][] { new int[11], new int[11] };
-        private int[][] ym2609Key = new int[][] { new int[12+12+3+1], new int[28] };
+        private int[][] ym2609Key = new int[][] { new int[12 + 12 + 3 + 1], new int[28] };
         private int[][] ym2610Key = new int[][] { new int[11], new int[11] };
 
         private bool incFlag = false;
         private object lockobj = new object();
-        private byte ResampleMode=0;
+        private byte ResampleMode = 0;
 
         private const uint FIXPNT_BITS = 11;
         private const uint FIXPNT_FACT = (1 << (int)FIXPNT_BITS);
@@ -77,7 +77,7 @@ namespace MDSound
 
         public enum enmInstrumentType : int
         {
-            None=0,
+            None = 0,
             YM2612,
             SN76489,
             RF5C164,
@@ -104,12 +104,14 @@ namespace MDSound
             public delegate uint dlgStart(byte ChipID, uint SamplingRate, uint FMClockValue, params object[] Option);
             public delegate void dlgStop(byte ChipID);
             public delegate void dlgReset(byte ChipID);
+            public delegate void dlgAdditionalUpdate(Chip sender, byte ChipID, int[][] Buffer, int Length);
 
             public Instrument Instrument = null;
             public dlgUpdate Update = null;
             public dlgStart Start = null;
             public dlgStop Stop = null;
             public dlgReset Reset = null;
+            public dlgAdditionalUpdate AdditionalUpdate = null;
 
             public enmInstrumentType type = enmInstrumentType.None;
             public byte ID = 0;
@@ -355,9 +357,15 @@ namespace MDSound
             return v > max ? max : (v < min ? min : v);
         }
 
+        private int[][] tempSample = new int[2][] { new int[1], new int[1] };
+
         private void ResampleChipStream(Chip[] insts, int[][] RetSample, uint Length)
         {
             if (insts == null || insts.Length < 1) return;
+            if (Length > tempSample[0].Length)
+            {
+                tempSample = new int[2][] { new int[Length], new int[Length] };
+            }
 
             Chip inst;
             int[] CurBufL;
@@ -403,8 +411,8 @@ namespace MDSound
                         inst.SmpNext = (uint)((ulong)inst.SmpP * inst.SamplingRate / SamplingRate);
                         if (inst.SmpLast >= inst.SmpNext)
                         {
-                            RetSample[0][0] += (short)((Limit(inst.LSmpl[0], 0x7fff, -0x8000) * mul) >> 14);
-                            RetSample[1][0] += (short)((Limit(inst.LSmpl[1], 0x7fff, -0x8000) * mul) >> 14);
+                            tempSample[0][0] = (short)((Limit(inst.LSmpl[0], 0x7fff, -0x8000) * mul) >> 14);
+                            tempSample[1][0] = (short)((Limit(inst.LSmpl[1], 0x7fff, -0x8000) * mul) >> 14);
 
                             //RetSample[0][0] += (int)(inst.LSmpl[0] * volume);
                             //RetSample[1][0] += (int)(inst.LSmpl[1] * volume);
@@ -429,8 +437,8 @@ namespace MDSound
 
                             if (SmpCnt == 1)
                             {
-                                RetSample[0][0] += (short)((Limit(CurBufL[0x00], 0x7fff, -0x8000) * mul) >> 14);
-                                RetSample[1][0] += (short)((Limit(CurBufR[0x00], 0x7fff, -0x8000) * mul) >> 14);
+                                tempSample[0][0] = (short)((Limit(CurBufL[0x00], 0x7fff, -0x8000) * mul) >> 14);
+                                tempSample[1][0] = (short)((Limit(CurBufR[0x00], 0x7fff, -0x8000) * mul) >> 14);
 
                                 //RetSample[0][0] += (int)(CurBufL[0x00] * volume);
                                 //RetSample[1][0] += (int)(CurBufR[0x00] * volume);
@@ -439,8 +447,8 @@ namespace MDSound
                             }
                             else if (SmpCnt == 2)
                             {
-                                RetSample[0][0] += (short)(((Limit((CurBufL[0x00] + CurBufL[0x01]), 0x7fff, -0x8000) * mul) >> 14) >> 1);
-                                RetSample[1][0] += (short)(((Limit((CurBufR[0x00] + CurBufR[0x01]), 0x7fff, -0x8000) * mul) >> 14) >> 1);
+                                tempSample[0][0] = (short)(((Limit((CurBufL[0x00] + CurBufL[0x01]), 0x7fff, -0x8000) * mul) >> 14) >> 1);
+                                tempSample[1][0] = (short)(((Limit((CurBufR[0x00] + CurBufR[0x01]), 0x7fff, -0x8000) * mul) >> 14) >> 1);
 
                                 //RetSample[0][0] += (int)((int)((CurBufL[0x00] + CurBufL[0x01]) * volume) >> 1);
                                 //RetSample[1][0] += (int)((int)((CurBufR[0x00] + CurBufR[0x01]) * volume) >> 1);
@@ -456,8 +464,8 @@ namespace MDSound
                                     TempS32L += CurBufL[CurSmpl];
                                     TempS32R += CurBufR[CurSmpl];
                                 }
-                                RetSample[0][0] += (short)(((Limit(TempS32L, 0x7fff, -0x8000) * mul) >> 14) / SmpCnt);
-                                RetSample[1][0] += (short)(((Limit(TempS32R, 0x7fff, -0x8000) * mul) >> 14) / SmpCnt);
+                                tempSample[0][0] = (short)(((Limit(TempS32L, 0x7fff, -0x8000) * mul) >> 14) / SmpCnt);
+                                tempSample[1][0] = (short)(((Limit(TempS32R, 0x7fff, -0x8000) * mul) >> 14) / SmpCnt);
 
                                 //RetSample[0][0] += (int)(TempS32L * volume / SmpCnt);
                                 //RetSample[1][0] += (int)(TempS32R * volume / SmpCnt);
@@ -523,8 +531,8 @@ namespace MDSound
                                         ((long)CurBufR[InNow] * SmpFrc);
                             //RetSample[0][OutPos] += (int)(TempSmpL * volume / SmpCnt);
                             //RetSample[1][OutPos] += (int)(TempSmpR * volume / SmpCnt);
-                            RetSample[0][OutPos] += (int)(TempSmpL / SmpCnt);
-                            RetSample[1][OutPos] += (int)(TempSmpR / SmpCnt);
+                            tempSample[0][OutPos] += (int)(TempSmpL / SmpCnt);
+                            tempSample[1][OutPos] += (int)(TempSmpR / SmpCnt);
                         }
                         inst.LSmpl[0] = CurBufL[InPre];
                         inst.LSmpl[1] = CurBufR[InPre];
@@ -549,8 +557,8 @@ namespace MDSound
                         }
                         for (OutPos = 0x00; OutPos < Length; OutPos++)
                         {
-                            RetSample[0][OutPos] += (int)(CurBufL[OutPos]);
-                            RetSample[1][OutPos] += (int)(CurBufR[OutPos]);
+                            tempSample[0][OutPos] = (int)(CurBufL[OutPos]);
+                            tempSample[1][OutPos] = (int)(CurBufR[OutPos]);
                         }
                         inst.SmpP += Length;
                         inst.SmpLast = inst.SmpNext;
@@ -634,8 +642,8 @@ namespace MDSound
 
                             //RetSample[0][OutPos] += (int)(TempSmpL * volume / SmpCnt);
                             //RetSample[1][OutPos] += (int)(TempSmpR * volume / SmpCnt);
-                            RetSample[0][OutPos] += (int)(TempSmpL / SmpCnt);
-                            RetSample[1][OutPos] += (int)(TempSmpR / SmpCnt);
+                            tempSample[0][OutPos] = (int)(TempSmpL / SmpCnt);
+                            tempSample[1][OutPos] = (int)(TempSmpR / SmpCnt);
                         }
 
                         inst.LSmpl[0] = CurBufL[InPre];
@@ -653,6 +661,17 @@ namespace MDSound
                     inst.SmpLast -= inst.SamplingRate;
                     inst.SmpNext -= inst.SamplingRate;
                     inst.SmpP -= SamplingRate;
+                }
+
+                if (inst.AdditionalUpdate != null)
+                {
+                    inst.AdditionalUpdate(inst, inst.ID, tempSample, (int)Length);
+                }
+
+                for (int j = 0; j < Length; j++)
+                {
+                    RetSample[0][j] += tempSample[0][j];
+                    RetSample[1][j] += tempSample[1][j];
                 }
 
             }
