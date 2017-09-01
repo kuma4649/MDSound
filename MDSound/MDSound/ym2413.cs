@@ -2464,8 +2464,8 @@ namespace MDSound
             opll_[ChipID] = null;
         }
 
-        System.Diagnostics.Stopwatch sw = System.Diagnostics.Stopwatch.StartNew();
-        long e0 = 0, e1 = 0, e2 = 0, e3 = 0, e4 = 0, e5 = 0;
+        //System.Diagnostics.Stopwatch sw = System.Diagnostics.Stopwatch.StartNew();
+        //long e0 = 0, e1 = 0, e2 = 0, e3 = 0, e4 = 0, e5 = 0;
 
         public override void Update(byte ChipID, int[][] outputs, int samples)
         {
