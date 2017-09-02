@@ -239,6 +239,7 @@ namespace MDSound
                     //System.Console.WriteLine("chip.pan={0} sample={1} ", chip.pan, sample);
                     bufL[ind] = ((chip.pan & 0x02)!=0) ? 0x00 : sample;
                     bufR[ind] = ((chip.pan & 0x01)!=0) ? 0x00 : sample;
+                    //Console.WriteLine("001  bufL[{0}]={1}  bufR[{2}]={3}", ind, bufL[ind], ind, bufR[ind]);
                     samples--;
                     ind++;
                 }
@@ -321,7 +322,8 @@ namespace MDSound
             info.clock_buffer[0x01] = (byte)((clock & 0x0000FF00) >> 8);
             info.clock_buffer[0x02] = (byte)((clock & 0x00FF0000) >> 16);
             info.clock_buffer[0x03] = (byte)((clock & 0xFF000000) >> 24);
-            info.SmpRateFunc = null;
+            //ここでnullは不要
+            //info.SmpRateFunc = null;
 
             /* D/A precision is 10-bits but 12-bit data can be output serially to an external DAC */
             info.output_bits = /*intf->*/(byte)((output_12bits != 0) ? 12 : 10);
@@ -338,6 +340,7 @@ namespace MDSound
 
             //okim6258_state_save_register(info, device);
 
+            //System.Console.WriteLine("get_vclk(info)={0} ", get_vclk(info));
             return get_vclk(info);// (int)(info.master_clock / info.divider);
         }
 
@@ -365,7 +368,10 @@ namespace MDSound
             info.clock_buffer[0x03] = (byte)((info.initial_clock & 0xFF000000) >> 24);
             info.divider = (uint)dividers[info.initial_div];
             if (info.SmpRateFunc != null)
+            {
                 info.SmpRateFunc(info.SmpRateData, get_vclk(info));
+                //Console.WriteLine("passed");
+            }
 
 
             info.signal = -2;
@@ -506,6 +512,7 @@ namespace MDSound
 
             if ((data & COMMAND_STOP)!=0)
             {
+                //Console.WriteLine("COMMAND:STOP");
                 //info.status &= (byte)(~((byte)STATUS_PLAYING | (byte)STATUS_RECORDING)));
                 info.status &= (byte)(0x2+0x4);
                 return;
@@ -513,6 +520,7 @@ namespace MDSound
 
             if ((data & COMMAND_PLAY)!=0)
             {
+                //Console.WriteLine("COMMAND:PLAY");
                 if ((info.status & STATUS_PLAYING)==0)
                 {
                     info.status |= STATUS_PLAYING;

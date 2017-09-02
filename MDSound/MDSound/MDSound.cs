@@ -531,8 +531,8 @@ namespace MDSound
                                         ((long)CurBufR[InNow] * SmpFrc);
                             //RetSample[0][OutPos] += (int)(TempSmpL * volume / SmpCnt);
                             //RetSample[1][OutPos] += (int)(TempSmpR * volume / SmpCnt);
-                            tempSample[0][OutPos] += (int)(TempSmpL / SmpCnt);
-                            tempSample[1][OutPos] += (int)(TempSmpR / SmpCnt);
+                            tempSample[0][OutPos] = (int)(TempSmpL / SmpCnt);
+                            tempSample[1][OutPos] = (int)(TempSmpR / SmpCnt);
                         }
                         inst.LSmpl[0] = CurBufL[InPre];
                         inst.LSmpl[1] = CurBufR[InPre];
@@ -672,9 +672,11 @@ namespace MDSound
                 {
                     RetSample[0][j] += tempSample[0][j];
                     RetSample[1][j] += tempSample[1][j];
+                    //Console.WriteLine("MDSound:{0}:{1}:{2}", RetSample[0][j], RetSample[1][j], inst.Resampler);
                 }
 
             }
+            //Console.WriteLine(":::::::::::::::::");
 
             return;
         }

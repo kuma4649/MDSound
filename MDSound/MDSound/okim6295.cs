@@ -694,8 +694,8 @@ namespace MDSound
 				int iBase;
 
 				/* the manual explicitly says that it's not possible to start multiple voices at the same time */
-				if (temp != 0 && temp != 1 && temp != 2 && temp != 4 && temp != 8)
-					System.Console.Write("OKI6295 start %x contact MAMEDEV\n", temp);
+//				if (temp != 0 && temp != 1 && temp != 2 && temp != 4 && temp != 8)
+//					System.Console.Write("OKI6295 start %x contact MAMEDEV\n", temp);
 
 				/* update the stream */
 				//stream_update(info->stream);
@@ -746,7 +746,7 @@ namespace MDSound
 						else
 						{
 							//logerror("OKIM6295:'%s' requested to play invalid sample %02x\n",device->tag(),info->command);
-							System.Console.Write("OKIM6295: Voice {0}  requested to play invalid sample {1:X2} StartAddr {2:X} StopAdr {3:X} \n", i, info.command, start, stop);
+							//System.Console.Write("OKIM6295: Voice {0}  requested to play invalid sample {1:X2} StartAddr {2:X} StopAdr {3:X} \n", i, info.command, start, stop);
 							voice.playing = 0;
 						}
 					}
