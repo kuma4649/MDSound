@@ -357,6 +357,24 @@ namespace test
             if (version >= 0x0161)
             {
 
+                if (getLE32(0x9c) != 0)
+                {
+                    chip = new MDSound.MDSound.Chip();
+                    chip.type = MDSound.MDSound.enmInstrumentType.K051649;
+                    chip.ID = 0;
+                    MDSound.K051649 k051649 = new MDSound.K051649();
+                    chip.Instrument = k051649;
+                    chip.Update = k051649.Update;
+                    chip.Start = k051649.Start;
+                    chip.Stop = k051649.Stop;
+                    chip.Reset = k051649.Reset;
+                    chip.SamplingRate = SamplingRate;
+                    chip.Clock = getLE32(0x9c);
+                    chip.Volume = 0;
+                    chip.Option = null;
+                    lstChip.Add(chip);
+                }
+
                 if (getLE32(0xa4) != 0)
                 {
                     chip = new MDSound.MDSound.Chip();
@@ -854,6 +872,15 @@ namespace test
                         vgmAdr += 3;
                         mds.WriteHuC6280(0, rAdr, rDat);
 
+                        break;
+                    case 0xd2: //SCC1(K051649?)
+                        int scc1_port = vgmBuf[vgmAdr + 1] & 0x7f;
+                        byte scc1_offset = vgmBuf[vgmAdr + 2];
+                        rDat = vgmBuf[vgmAdr + 3];
+                        byte scc1_chipid = (byte)((vgmBuf[vgmAdr + 1] & 0x80) != 0 ? 1 : 0);
+                        vgmAdr += 4;
+                        mds.WriteK051649(scc1_chipid, (scc1_port << 1) | 0x00, scc1_offset);
+                        mds.WriteK051649(scc1_chipid, (scc1_port << 1) | 0x01, rDat);
                         break;
                     case 0xd3: //K054539
                         int k054539_adr = (vgmBuf[vgmAdr + 1] & 0x7f) * 0x100 + vgmBuf[vgmAdr + 2];

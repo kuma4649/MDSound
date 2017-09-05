@@ -25,6 +25,7 @@ namespace MDSound
         private Instrument iPWM = null;
         private Instrument iC140 = null;
         private Instrument iC352 = null;
+        private Instrument iK051649 = null;
         private Instrument iK054539 = null;
         private Instrument iOKIM6258 = null;
         private Instrument iOKIM6295 = null;
@@ -95,7 +96,8 @@ namespace MDSound
             HuC6280,
             C352,
             K054539,
-            YM2609
+            YM2609,
+            K051649
         }
 
         public class Chip
@@ -222,6 +224,9 @@ namespace MDSound
                             break;
                         case enmInstrumentType.C352:
                             iC352 = inst.Instrument;
+                            break;
+                        case enmInstrumentType.K051649:
+                            iK051649 = inst.Instrument;
                             break;
                         case enmInstrumentType.K054539:
                             iK054539 = inst.Instrument;
@@ -930,6 +935,16 @@ namespace MDSound
             }
         }
 
+        public void WriteK051649(byte ChipID, int Adr, byte Data)
+        {
+            lock (lockobj)
+            {
+                if (iK051649 == null) return;
+
+                ((K051649)(iK051649)).k051649_w(ChipID, Adr, Data);
+            }
+        }
+
         public void WriteK054539(byte ChipID, int Adr, byte Data)
         {
             lock (lockobj)
@@ -1292,6 +1307,17 @@ namespace MDSound
             {
                 if (c.type != enmInstrumentType.C352) continue;
                 ((c352)iC352).c352_set_options(flag);
+            }
+        }
+
+        public void SetVolumeK051649(int vol)
+        {
+            if (iK051649 == null) return;
+
+            foreach (Chip c in insts)
+            {
+                if (c.type != enmInstrumentType.K051649) continue;
+                c.Volume = Math.Max(Math.Min(vol, 20), -192);
             }
         }
 
@@ -1701,6 +1727,11 @@ namespace MDSound
         public int[][][] getC352VisVolume()
         {
             return (iC352 != null) ? ((c352)iC352).visVolume : null;
+        }
+
+        public int[][][] getK051649VisVolume()
+        {
+            return (iK051649 != null) ? ((K051649)iK051649).visVolume : null;
         }
 
         public int[][][] getK054539VisVolume()
