@@ -2,9 +2,32 @@
 メガドライブ サウンドチップエミュレーション.DLL
   
 [概要]  
- このDLLは、VGM Playerのソースからメガドライブに搭載されている以下の音源チップの動作をC#向けコードに移植したものです。  
-    YM2612 , SN76489 , RF5C164 , PWM , C140 , OKIM6258 , OKIM6295  
-    , SEGAPCM , YM2151 , YM2203 , YM2608 , YM2610/B , HuC6280 , C352 , K054539  
+ このDLLは、VGM Playerのソースなどからメガドライブに搭載されている以下の音源チップの動作をC#向けコードに移植したものです。  
+  FM音源  
+    YM2612   OPN2  
+    YM2151   OPM  
+    YM2203   OPN  
+    YM2608   OPNA  
+    YM2610/B OPNB  
+    YM2413   OPLL  
+  PCM音源  
+    RF5C164  RF5C  
+    PWM      PWM  
+    C140     C140  
+    OKIM6258 OKI65  
+    OKIM6295 OKI69  
+    SEGAPCM  SEGAPCM  
+    C352     C352  
+    K054539  K054  
+  波形メモリ音源  
+    HuC6280  HuC6  
+    K051649  K051  
+  PSG音源  
+    SN76489  
+    AY8910  
+  その他(仮想音源)  
+    YM2609   OPNA2  
+    AY8910-2 PSG2  
   
 [機能、特徴]  
  ・割と.NETの文化に沿った記述が可能です。  
@@ -17,13 +40,14 @@
   ライセンスに関しては、GPLライセンスに準ずるものとします。  
   
   MDSoundは、以下のソフトウェアのソースコードをC#向けに改変し使用しています。  
-  このソースは各著作者が著作権を持ちます。  
+  これらのソースは各著作者が著作権を持ちます。  
   ライセンスに関しては、各ドキュメントを参照してください。  
   
  ・VGMPlay  
  ・MAME  
  ・Ootake  
  ・fmgen  
+ ・NSFPlay  
   
 [SpecialThanks]  
  本ツールは以下の方々にお世話になっております。また以下のソフトウェア、ウェブページを参考、使用しています。  
@@ -33,6 +57,7 @@
  ・SGDK  
  ・VGM Player  
  ・Git  
+ ・SDL/SDLNET  
  ・SourceTree  
  ・さくらエディター  
  ・QUASI88のドキュメント  
