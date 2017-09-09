@@ -36,6 +36,7 @@ namespace MDSound
         private Instrument iYM2608 = null;
         private Instrument iYM2609 = null;
         private Instrument iYM2610 = null;
+        private Instrument iNES = null;
 
         private int[][] buffer = null;
         private int[][] buff = new int[2][] { new int[1], new int[1] };
@@ -97,7 +98,8 @@ namespace MDSound
             C352,
             K054539,
             YM2609,
-            K051649
+            K051649,
+            Nes
         }
 
         public class Chip
@@ -233,6 +235,9 @@ namespace MDSound
                             break;
                         case enmInstrumentType.YM2609:
                             iYM2609 = inst.Instrument;
+                            break;
+                        case enmInstrumentType.Nes:
+                            iNES = inst.Instrument;
                             break;
                     }
 
@@ -677,11 +682,9 @@ namespace MDSound
                 {
                     RetSample[0][j] += tempSample[0][j];
                     RetSample[1][j] += tempSample[1][j];
-                    //Console.WriteLine("MDSound:{0}:{1}:{2}", RetSample[0][j], RetSample[1][j], inst.Resampler);
                 }
 
             }
-            //Console.WriteLine(":::::::::::::::::");
 
             return;
         }
@@ -962,6 +965,26 @@ namespace MDSound
                 if (iK054539 == null) return;
 
                 ((K054539)(iK054539)).k054539_write_rom2(ChipID, (int)ROMSize, (int)DataStart, (int)DataLength, ROMData, (int)SrcStartAdr);
+            }
+        }
+
+        public void WriteNES(byte ChipID, byte Adr, byte Data)
+        {
+            lock (lockobj)
+            {
+                if (iNES == null) return;
+
+                ((nes_intf)(iNES)).nes_w(ChipID, Adr, Data);
+            }
+        }
+
+        public void WriteNESRam(byte ChipID, Int32 DataStart, Int32 DataLength,byte[] RAMData,Int32 RAMDataStartAdr)
+        {
+            lock (lockobj)
+            {
+                if (iNES == null) return;
+
+                ((nes_intf)(iNES)).nes_write_ram(ChipID, DataStart, DataLength, RAMData, RAMDataStartAdr);
             }
         }
 

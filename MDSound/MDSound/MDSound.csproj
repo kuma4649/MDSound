@@ -59,7 +59,10 @@
     <Compile Include="K051649.cs" />
     <Compile Include="K054539.cs" />
     <Compile Include="MDSound.cs" />
-    <Compile Include="nes.cs" />
+    <Compile Include="nes_intf.cs" />
+    <Compile Include="np_nes_apu.cs" />
+    <Compile Include="np_nes_dmc.cs" />
+    <Compile Include="np_nes_fds.cs" />
     <Compile Include="okim6258.cs" />
     <Compile Include="okim6295.cs" />
     <Compile Include="Ootake_PSG.cs" />

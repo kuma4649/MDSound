@@ -357,6 +357,24 @@ namespace test
             if (version >= 0x0161)
             {
 
+                if (getLE32(0x84) != 0)
+                {
+                    chip = new MDSound.MDSound.Chip();
+                    chip.type = MDSound.MDSound.enmInstrumentType.Nes;
+                    chip.ID = 0;
+                    MDSound.nes_intf nes_intf = new MDSound.nes_intf();
+                    chip.Instrument = nes_intf;
+                    chip.Update = nes_intf.Update;
+                    chip.Start = nes_intf.Start;
+                    chip.Stop = nes_intf.Stop;
+                    chip.Reset = nes_intf.Reset;
+                    chip.SamplingRate = SamplingRate;
+                    chip.Clock = getLE32(0x84);// & 0x7fffffff;
+                    chip.Volume = 0;
+                    chip.Option = null;
+                    lstChip.Add(chip);
+                }
+
                 if (getLE32(0x9c) != 0)
                 {
                     chip = new MDSound.MDSound.Chip();
@@ -373,6 +391,29 @@ namespace test
                     chip.Volume = 0;
                     chip.Option = null;
                     lstChip.Add(chip);
+                }
+
+                if (getLE32(0xa0) != 0)
+                {
+                    MDSound.K054539 k054539 = new MDSound.K054539();
+                    int max = (getLE32(0xa0) & 0x40000000) != 0 ? 2 : 1;
+                    for (int i = 0; i < max; i++)
+                    {
+                        chip = new MDSound.MDSound.Chip();
+                        chip.type = MDSound.MDSound.enmInstrumentType.K054539;
+                        chip.ID = (byte)i;
+                        chip.Instrument = k054539;
+                        chip.Update = k054539.Update;
+                        chip.Start = k054539.Start;
+                        chip.Stop = k054539.Stop;
+                        chip.Reset = k054539.Reset;
+                        chip.SamplingRate = SamplingRate;
+                        chip.Clock = getLE32(0xa0) & 0x3fffffff;
+                        chip.Volume = 0;
+                        chip.Option = new object[] { vgmBuf[0x95] };
+
+                        lstChip.Add(chip);
+                    }
                 }
 
                 if (getLE32(0xa4) != 0)
@@ -412,28 +453,6 @@ namespace test
                     lstChip.Add(chip);
                 }
 
-                if (getLE32(0xa0) != 0)
-                {
-                    MDSound.K054539 k054539 = new MDSound.K054539();
-                    int max = (getLE32(0xa0) & 0x40000000) != 0 ? 2 : 1;
-                    for (int i = 0; i < max; i++)
-                    {
-                        chip = new MDSound.MDSound.Chip();
-                        chip.type = MDSound.MDSound.enmInstrumentType.K054539;
-                        chip.ID = (byte)i;
-                        chip.Instrument = k054539;
-                        chip.Update = k054539.Update;
-                        chip.Start = k054539.Start;
-                        chip.Stop = k054539.Stop;
-                        chip.Reset = k054539.Reset;
-                        chip.SamplingRate = SamplingRate;
-                        chip.Clock = getLE32(0xa0) & 0x3fffffff;
-                        chip.Volume = 0;
-                        chip.Option = new object[] { vgmBuf[0x95] };
-
-                        lstChip.Add(chip);
-                    }
-                }
             }
 
             //chips[2] = new MDSound.MDSound.Chip();
@@ -862,6 +881,12 @@ namespace test
                         vgmAdr += 3;
                         mds.WriteAY8910(0, rAdr, rDat);
 
+                        break;
+                    case 0xb4: //NES
+                        rAdr = vgmBuf[vgmAdr + 1];
+                        rDat = vgmBuf[vgmAdr + 2];
+                        vgmAdr += 3;
+                        mds.WriteNES(0, rAdr, rDat);
                         break;
                     case 0xb7:
                         vgmAdr += 3;
