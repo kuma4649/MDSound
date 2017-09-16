@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace MDSound
+namespace MDSound.np
 {
     public class np_nes_fds
     {
@@ -174,7 +174,7 @@ namespace MDSound
             fds.mask = m & 1;
         }
 
-        private void NES_FDS_SetStereoMix(NES_FDS chip, int trk, Int16 mixl, Int16 mixr)
+        public void NES_FDS_SetStereoMix(NES_FDS chip, int trk, Int16 mixl, Int16 mixr)
         {
             NES_FDS fds = chip;
 
@@ -184,14 +184,14 @@ namespace MDSound
             fds.sm[1] = mixr;
         }
 
-        private void NES_FDS_SetClock(NES_FDS chip, double c)
+        public void NES_FDS_SetClock(NES_FDS chip, double c)
         {
             NES_FDS fds = chip;
 
             fds.clock = c;
         }
 
-        private void NES_FDS_SetRate(NES_FDS chip, double r)
+        public void NES_FDS_SetRate(NES_FDS chip, double r)
         {
             NES_FDS fds = chip;
             double cutoff, leak;
@@ -275,7 +275,7 @@ namespace MDSound
             NES_FDS_Write(fds, 0x4089, 0x00);   // wav write disable, max global volume}
         }
 
-        private void Tick(NES_FDS fds, UInt32 clocks)
+        public void Tick(NES_FDS fds, UInt32 clocks)
         {
             Int32 vol_out;
 
@@ -436,6 +436,36 @@ namespace MDSound
             return 2;
         }
 
+        public UInt32 NES_FDS_org_Render(NES_FDS chip, Int32[] b)//b[2])
+        {
+            NES_FDS fds = chip;
+
+            /*	// 8 bit approximation of master volume
+                static const double MASTER_VOL = 2.4 * 1223.0;	// max FDS vol vs max APU square (arbitrarily 1223)
+                static const double MAX_OUT = 32.0f * 63.0f;	// value that should map to master vol
+                static const INT32 MASTER[4] = {
+                    (INT32)((MASTER_VOL / MAX_OUT) * 256.0 * 2.0f / 2.0f),
+                    (INT32)((MASTER_VOL / MAX_OUT) * 256.0 * 2.0f / 3.0f),
+                    (INT32)((MASTER_VOL / MAX_OUT) * 256.0 * 2.0f / 4.0f),
+                    (INT32)((MASTER_VOL / MAX_OUT) * 256.0 * 2.0f / 5.0f) };*/
+
+            UInt32 clocks;
+            Int32 v, rc_out, m;
+
+            v = fds.fout * MASTER[fds.master_vol] >> 8;
+
+            // lowpass RC filter
+            rc_out = ((fds.rc_accum * fds.rc_k) + (v * fds.rc_l)) >> RC_BITS;
+            fds.rc_accum = rc_out;
+            v = rc_out;
+
+            // output mix
+            m = fds.mask != 0 ? 0 : v;
+            b[0] = (m * fds.sm[0]) >> (7 - 3);
+            b[1] = (m * fds.sm[1]) >> (7 - 3);
+            return 2;
+        }
+
         public bool NES_FDS_Write(NES_FDS chip, UInt32 adr, UInt32 val)
         {
             NES_FDS fds = chip;
@@ -540,7 +570,7 @@ namespace MDSound
             //return false;
         }
 
-        private bool NES_FDS_Read(NES_FDS chip, UInt32 adr, ref UInt32 val)
+        public bool NES_FDS_Read(NES_FDS chip, UInt32 adr, ref UInt32 val)
         {
             NES_FDS fds = chip;
 

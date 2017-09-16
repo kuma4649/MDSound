@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace MDSound
+namespace MDSound.np
 {
     public class np_nes_apu
     {
@@ -244,7 +244,7 @@ namespace MDSound
             return ret;
         }
 
-        private bool NES_APU_np_Read(NES_APU chip, UInt32 adr, ref UInt32 val)
+        public bool NES_APU_np_Read(NES_APU chip, UInt32 adr, ref UInt32 val)
         {
             NES_APU apu = (NES_APU)chip;
 
@@ -262,7 +262,7 @@ namespace MDSound
                 return false;
         }
 
-        private void Tick(NES_APU apu, UInt32 clocks)
+        public void Tick(NES_APU apu, UInt32 clocks)
         {
             apu._out[0] = calc_sqr(apu, 0, clocks);
             apu._out[1] = calc_sqr(apu, 1, clocks);
@@ -316,6 +316,51 @@ namespace MDSound
             b[1] = m[0] * apu.sm[1][0];
             b[1] += m[1] * apu.sm[1][1];
             b[1] >>= 7 - 2; // see above
+
+            return 2;
+        }
+
+        public UInt32 NES_APU_org_Render(NES_APU chip, Int32[] b) //b[2])
+        {
+            NES_APU apu = (NES_APU)chip;
+
+            apu._out[0] = (apu.mask & 1) != 0 ? 0 : apu._out[0];
+            apu._out[1] = (apu.mask & 2) != 0 ? 0 : apu._out[1];
+
+            if (apu.option[(int)OPT.OPT_NONLINEAR_MIXER] != 0)
+            {
+                Int32 voltage;
+                Int32 _ref;
+
+                voltage = apu.square_table[apu._out[0] + apu._out[1]];
+                m[0] = apu._out[0] << 6;
+                m[1] = apu._out[1] << 6;
+                _ref = m[0] + m[1];
+                if (_ref > 0)
+                {
+                    m[0] = (m[0] * voltage) / _ref;
+                    m[1] = (m[1] * voltage) / _ref;
+                }
+                else
+                {
+                    m[0] = voltage;
+                    m[1] = voltage;
+                }
+            }
+            else
+            {
+                m[0] = apu._out[0] << 6;
+                m[1] = apu._out[1] << 6;
+            }
+
+            // Shifting is (x-2) to match the volume of MAME's NES APU sound core
+            b[0] = m[0] * apu.sm[0][0];
+            b[0] += m[1] * apu.sm[0][1];
+            b[0] >>= 7-3; // was 7, but is now 8 for bipolar square
+
+            b[1] = m[0] * apu.sm[1][0];
+            b[1] += m[1] * apu.sm[1][1];
+            b[1] >>= 7-3; // see above
 
             return 2;
         }

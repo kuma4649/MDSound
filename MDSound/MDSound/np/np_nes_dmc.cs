@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace MDSound
+namespace MDSound.np
 {
     public class np_nes_dmc
     {
@@ -94,7 +94,7 @@ namespace MDSound
             public byte[] reg = new byte[0x10];
             public UInt32 len_reg;
             public UInt32 adr_reg;
-            //IDevice *memory;
+            public IDevice org_memory;
             public byte[] memory;
             public Int32 ptrMemory;
             public UInt32[] _out = new UInt32[3];
@@ -249,7 +249,7 @@ namespace MDSound
             dmc.mask = m;
         }
 
-        private void NES_DMC_np_SetStereoMix(NES_DMC chip, Int32 trk, Int16 mixl, Int16 mixr)
+        public void NES_DMC_np_SetStereoMix(NES_DMC chip, Int32 trk, Int16 mixl, Int16 mixr)
         {
             NES_DMC dmc = chip;
 
@@ -475,7 +475,57 @@ namespace MDSound
             return (UInt32)((dmc.damp << 1) + dmc.dac_lsb);
         }
 
-        private void TickFrameSequence(NES_DMC dmc, UInt32 clocks)
+        // DMCチャンネルの計算 戻り値は0-127
+        private UInt32 org_calc_dmc(NES_DMC dmc, UInt32 clocks)
+        {
+            dmc.counter[2] += clocks;
+            //	assert(dmc->dfreq > 0);	// prevent infinite loop
+            if (dmc.dfreq <= 0)    // prevent infinite loop -VB
+                return (UInt32)((dmc.damp << 1) + dmc.dac_lsb);
+            while (dmc.counter[2] >= dmc.dfreq)
+            {
+                if (dmc.data != 0x100) // data = 0x100 は EMPTY を意味する。
+                {
+                    if (((dmc.data & 1) != 0) && (dmc.damp < 63))
+                        dmc.damp++;
+                    else if (((dmc.data & 1) == 0) && (0 < dmc.damp))
+                        dmc.damp--;
+                    dmc.data >>= 1;
+                }
+
+                if (dmc.data == 0x100 && dmc.active)
+                {
+                    dmc.org_memory.Read(dmc.daddress, ref dmc.data);
+                    //dmc.data = dmc.memory[dmc.daddress + dmc.ptrMemory];
+                    dmc.data |= (dmc.data & 0xFF) | 0x10000;  // 8bitシフトで 0x100 になる
+                    if (dmc.length > 0)
+                    {
+                        dmc.daddress = ((dmc.daddress + 1) & 0xFFFF) | 0x8000;
+                        dmc.length--;
+                    }
+                }
+
+                if (dmc.length == 0)   // 最後のフェッチが終了したら(再生完了より前に)即座に終端処理
+                {
+                    if ((dmc.mode & 1) != 0)
+                    {
+                        dmc.daddress = ((dmc.adr_reg << 6) | 0xC000);
+                        dmc.length = (dmc.len_reg << 4) + 1;
+                    }
+                    else
+                    {
+                        dmc.irq = (dmc.mode == 2 && dmc.active) ? true : false; // 直前がactiveだったときはIRQ発行
+                        dmc.active = false;
+                    }
+                }
+
+                dmc.counter[2] -= dmc.dfreq;
+            }
+
+            return (UInt32)((dmc.damp << 1) + dmc.dac_lsb);
+        }
+
+        public void TickFrameSequence(NES_DMC dmc, UInt32 clocks)
         {
             dmc.frame_sequence_count += (Int32)clocks;
             while (dmc.frame_sequence_count > dmc.frame_sequence_length)
@@ -488,11 +538,18 @@ namespace MDSound
             }
         }
 
-        private void Tick(NES_DMC dmc, UInt32 clocks)
+        public void Tick(NES_DMC dmc, UInt32 clocks)
         {
             dmc._out[0] = calc_tri(dmc, clocks);
             dmc._out[1] = calc_noise(dmc, clocks);
             dmc._out[2] = calc_dmc(dmc, clocks);
+        }
+
+        public void org_Tick(NES_DMC dmc, UInt32 clocks)
+        {
+            dmc._out[0] = calc_tri(dmc, clocks);
+            dmc._out[1] = calc_noise(dmc, clocks);
+            dmc._out[2] = org_calc_dmc(dmc, clocks);
         }
 
         public UInt32 NES_DMC_np_Render(NES_DMC chip, Int32[] b)//b[2])
@@ -570,8 +627,76 @@ namespace MDSound
             return 2;
         }
 
+        public UInt32 NES_DMC_org_Render(NES_DMC chip, Int32[] b)//b[2])
+        {
+            NES_DMC dmc = chip;
+            UInt32 clocks;
+            Int32[] m = new Int32[3];
 
-        private void NES_DMC_np_SetClock(NES_DMC chip, double c)
+            dmc._out[0] = (dmc.mask & 1) != 0 ? 0 : dmc._out[0];
+            dmc._out[1] = (dmc.mask & 2) != 0 ? 0 : dmc._out[1];
+            dmc._out[2] = (dmc.mask & 4) != 0 ? 0 : dmc._out[2];
+
+            m[0] = (Int32)dmc.tnd_table[0][dmc._out[0]][0][0];
+            m[1] = (Int32)dmc.tnd_table[0][0][dmc._out[1]][0];
+            m[2] = (Int32)dmc.tnd_table[0][0][0][dmc._out[2]];
+
+            if (dmc.option[(Int32)OPT.OPT_NONLINEAR_MIXER] != 0)
+            {
+                Int32 _ref = m[0] + m[1] + m[2];
+                Int32 voltage = (Int32)dmc.tnd_table[1][dmc._out[0]][dmc._out[1]][dmc._out[2]];
+                int i;
+                if (_ref != 0)
+                {
+                    for (i = 0; i < 3; ++i)
+                        m[i] = (m[i] * voltage) / _ref;
+                }
+                else
+                {
+                    for (i = 0; i < 3; ++i)
+                        m[i] = voltage;
+                }
+            }
+
+            // anti-click nullifies any 4011 write but preserves nonlinearity
+            if (dmc.option[(Int32)OPT.OPT_DPCM_ANTI_CLICK] != 0)
+            {
+                if (dmc.dmc_pop) // $4011 will cause pop this frame
+                {
+                    // adjust offset to counteract pop
+                    dmc.dmc_pop_offset += dmc.dmc_pop_follow - m[2];
+                    dmc.dmc_pop = false;
+
+                    // prevent overflow, keep headspace at edges
+                    //const INT32 OFFSET_MAX = (1 << 30) - (4 << 16);
+                    Int32 OFFSET_MAX = ((1 << 30) - (4 << 16));
+                    if (dmc.dmc_pop_offset > OFFSET_MAX) dmc.dmc_pop_offset = OFFSET_MAX;
+                    if (dmc.dmc_pop_offset < -OFFSET_MAX) dmc.dmc_pop_offset = -OFFSET_MAX;
+                }
+                dmc.dmc_pop_follow = m[2]; // remember previous position
+
+                m[2] += dmc.dmc_pop_offset; // apply offset
+
+                // TODO implement this in a better way
+                // roll off offset (not ideal, but prevents overflow)
+                if (dmc.dmc_pop_offset > 0) --dmc.dmc_pop_offset;
+                else if (dmc.dmc_pop_offset < 0) ++dmc.dmc_pop_offset;
+            }
+
+            b[0] = m[0] * dmc.sm[0][0];
+            b[0] += m[1] * dmc.sm[0][1];
+            b[0] += -m[2] * dmc.sm[0][2];
+            b[0] >>= 7-3;
+
+            b[1] = m[0] * dmc.sm[1][0];
+            b[1] += m[1] * dmc.sm[1][1];
+            b[1] += -m[2] * dmc.sm[1][2];
+            b[1] >>= 7-3;
+
+            return 2;
+        }
+
+        public void NES_DMC_np_SetClock(NES_DMC chip, double c)
         {
             NES_DMC dmc = chip;
 
@@ -583,7 +708,7 @@ namespace MDSound
                 NES_DMC_np_SetPal(dmc, false);
         }
 
-        private void NES_DMC_np_SetRate(NES_DMC chip, double r)
+        public void NES_DMC_np_SetRate(NES_DMC chip, double r)
         {
             NES_DMC dmc = chip;
 
@@ -713,6 +838,13 @@ namespace MDSound
 
             dmc.memory = r;
             dmc.ptrMemory = ptr;
+        }
+
+        public void NES_DMC_org_SetMemory(NES_DMC chip, IDevice r)
+        {
+            NES_DMC dmc = chip;
+
+            dmc.org_memory = r;
         }
 
         public void NES_DMC_np_SetOption(NES_DMC chip, int id, int val)
@@ -898,7 +1030,7 @@ namespace MDSound
             return true;
         }
 
-        private bool NES_DMC_np_Read(NES_DMC chip, UInt32 adr, ref UInt32 val)
+        public bool NES_DMC_np_Read(NES_DMC chip, UInt32 adr, ref UInt32 val)
         {
             NES_DMC dmc = chip;
 

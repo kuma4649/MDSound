@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using MDSound.np;
 
 namespace MDSound
 {
@@ -80,14 +81,14 @@ namespace MDSound
         };
 
         //extern
-        private byte CHIP_SAMPLING_MODE;
+        //private byte CHIP_SAMPLING_MODE;
         //extern
-        private Int32 CHIP_SAMPLE_RATE;
+        //private Int32 CHIP_SAMPLE_RATE;
         //static
         //byte EMU_CORE = 0x00;
 
         //extern
-        private UInt32 SampleRate;
+        //private UInt32 SampleRate;
         private const byte MAX_CHIPS = 0x02;
         private static nes_state[] NESAPUData = new nes_state[2] { new nes_state(), new nes_state() };// MAX_CHIPS];
         private static UInt16 NesOptions = 0x8000;
@@ -112,8 +113,8 @@ namespace MDSound
             //                case EC_NSFPLAY:
             for (CurSmpl = 0x00; CurSmpl < samples; CurSmpl++)
             {
-                nes_apu.NES_APU_np_Render(info.chip_apu, BufferA); //配列のサイズが違う？
-                nes_dmc.NES_DMC_np_Render(info.chip_dmc, BufferD); //配列のサイズが違う？
+                nes_apu.NES_APU_np_Render(info.chip_apu, BufferA);
+                nes_dmc.NES_DMC_np_Render(info.chip_dmc, BufferD);
                 outputs[0][CurSmpl] = BufferA[0] + BufferD[0];
                 outputs[1][CurSmpl] = BufferA[1] + BufferD[1];
             }
