@@ -19,12 +19,15 @@
     SEGAPCM  SEGAPCM  
     C352     C352  
     K054539  K054  
+    NES_DMC  
   波形メモリ音源  
-    HuC6280  HuC6  
+    HuC6280(FM的個所有)  HuC6  
     K051649  K051  
+    NES_FDS(FM的個所有)  
   PSG音源  
     SN76489  
     AY8910  
+    NES_APU  
   その他(仮想音源)  
     YM2609   OPNA2  
     AY8910-2 PSG2  
