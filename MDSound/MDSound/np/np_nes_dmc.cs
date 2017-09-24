@@ -630,7 +630,7 @@ namespace MDSound.np
         public UInt32 NES_DMC_org_Render(NES_DMC chip, Int32[] b)//b[2])
         {
             NES_DMC dmc = chip;
-            UInt32 clocks;
+            //UInt32 clocks;
             Int32[] m = new Int32[3];
 
             dmc._out[0] = (dmc.mask & 1) != 0 ? 0 : dmc._out[0];

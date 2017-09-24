@@ -37,6 +37,13 @@ namespace MDSound
         private Instrument iYM2609 = null;
         private Instrument iYM2610 = null;
         private Instrument iNES = null;
+        private Instrument iDMC = null;
+        private Instrument iFDS = null;
+        private Instrument iMMC5 = null;
+        private Instrument iN160 = null;
+        private Instrument iVRC6 = null;
+        private Instrument iVRC7 = null;
+        private Instrument iFME7 = null;
 
         private int[][] buffer = null;
         private int[][] buff = new int[2][] { new int[1], new int[1] };
@@ -99,7 +106,14 @@ namespace MDSound
             K054539,
             YM2609,
             K051649,
-            Nes
+            Nes,
+            DMC,
+            FDS,
+            MMC5,
+            N160,
+            VRC6,
+            VRC7,
+            FME7
         }
 
         public class Chip
@@ -122,6 +136,7 @@ namespace MDSound
             public uint SamplingRate = 0;
             public uint Clock = 0;
             public int Volume = 0;
+            public int VisVolume = 0;
 
             public byte Resampler;
             public uint SmpP;
@@ -238,6 +253,27 @@ namespace MDSound
                             break;
                         case enmInstrumentType.Nes:
                             iNES = inst.Instrument;
+                            break;
+                        case enmInstrumentType.DMC:
+                            iDMC = inst.Instrument;
+                            break;
+                        case enmInstrumentType.FDS:
+                            iFDS = inst.Instrument;
+                            break;
+                        case enmInstrumentType.MMC5:
+                            iMMC5 = inst.Instrument;
+                            break;
+                        case enmInstrumentType.N160:
+                            iN160 = inst.Instrument;
+                            break;
+                        case enmInstrumentType.VRC6:
+                            iVRC6 = inst.Instrument;
+                            break;
+                        case enmInstrumentType.VRC7:
+                            iVRC7 = inst.Instrument;
+                            break;
+                        case enmInstrumentType.FME7:
+                            iFME7 = inst.Instrument;
                             break;
                     }
 
@@ -690,6 +726,8 @@ namespace MDSound
         }
 
 
+
+
         public void WriteSN76489(byte ChipID, byte Data)
         {
             lock (lockobj)
@@ -987,6 +1025,8 @@ namespace MDSound
                 ((nes_intf)(iNES)).nes_write_ram(ChipID, DataStart, DataLength, RAMData, RAMDataStartAdr);
             }
         }
+
+
 
 
         public void SetVolumeYM2151(int vol)
@@ -1366,6 +1406,95 @@ namespace MDSound
             }
         }
 
+        public void SetVolumeNES(int vol)
+        {
+            if (iNES == null) return;
+
+            foreach (Chip c in insts)
+            {
+                if (c.type != enmInstrumentType.Nes) continue;
+                c.Volume = Math.Max(Math.Min(vol, 20), -192);
+            }
+        }
+
+        public void SetVolumeDMC(int vol)
+        {
+            if (iDMC == null) return;
+
+            foreach (Chip c in insts)
+            {
+                if (c.type != enmInstrumentType.DMC) continue;
+                c.Volume = Math.Max(Math.Min(vol, 20), -192);
+            }
+        }
+
+        public void SetVolumeFDS(int vol)
+        {
+            if (iFDS == null) return;
+
+            foreach (Chip c in insts)
+            {
+                if (c.type != enmInstrumentType.FDS) continue;
+                c.Volume = Math.Max(Math.Min(vol, 20), -192);
+            }
+        }
+
+        public void SetVolumeMMC5(int vol)
+        {
+            if (iMMC5 == null) return;
+
+            foreach (Chip c in insts)
+            {
+                if (c.type != enmInstrumentType.MMC5) continue;
+                c.Volume = Math.Max(Math.Min(vol, 20), -192);
+            }
+        }
+
+        public void SetVolumeN160(int vol)
+        {
+            if (iN160 == null) return;
+
+            foreach (Chip c in insts)
+            {
+                if (c.type != enmInstrumentType.N160) continue;
+                c.Volume = Math.Max(Math.Min(vol, 20), -192);
+            }
+        }
+
+        public void SetVolumeVRC6(int vol)
+        {
+            if (iVRC6 == null) return;
+
+            foreach (Chip c in insts)
+            {
+                if (c.type != enmInstrumentType.VRC6) continue;
+                c.Volume = Math.Max(Math.Min(vol, 20), -192);
+            }
+        }
+
+        public void SetVolumeVRC7(int vol)
+        {
+            if (iVRC7 == null) return;
+
+            foreach (Chip c in insts)
+            {
+                if (c.type != enmInstrumentType.VRC7) continue;
+                c.Volume = Math.Max(Math.Min(vol, 20), -192);
+            }
+        }
+
+        public void SetVolumeFME7(int vol)
+        {
+            if (iFME7 == null) return;
+
+            foreach (Chip c in insts)
+            {
+                if (c.type != enmInstrumentType.FME7) continue;
+                c.Volume = Math.Max(Math.Min(vol, 20), -192);
+            }
+        }
+
+
 
         public int[] ReadSN76489Register()
         {
@@ -1524,6 +1653,8 @@ namespace MDSound
         }
 
 
+
+
         public void setSN76489Mask(int chipID,int ch)
         {
             lock (lockobj)
@@ -1667,6 +1798,8 @@ namespace MDSound
             }
         }
 
+
+
         public int[][][] getYM2151VisVolume()
         {
             return (iYM2151 != null) ? ((ym2151)iYM2151).visVolume : null;
@@ -1762,6 +1895,46 @@ namespace MDSound
             return (iK054539 != null) ? ((K054539)iK054539).visVolume : null;
         }
 
+        public int[][][] getNESVisVolume()
+        {
+            return null;
+        }
+
+        public int[][][] getDMCVisVolume()
+        {
+            return null;
+        }
+
+        public int[][][] getFDSVisVolume()
+        {
+            return null;
+        }
+
+        public int[][][] getMMC5VisVolume()
+        {
+            return null;
+        }
+
+        public int[][][] getN160VisVolume()
+        {
+            return null;
+        }
+
+        public int[][][] getVRC6VisVolume()
+        {
+            return null;
+        }
+
+        public int[][][] getVRC7VisVolume()
+        {
+            return null;
+        }
+
+        public int[][][] getFME7VisVolume()
+        {
+            return null;
+        }
+
         /// <summary>
         /// Left全体ボリュームの取得(視覚効果向け)
         /// </summary>
@@ -1793,6 +1966,8 @@ namespace MDSound
                 return v;
             }
         }
+
+
 
         public void setIncFlag()
         {

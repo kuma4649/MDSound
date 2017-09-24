@@ -44,6 +44,7 @@
     <Compile Include="ay8910.cs" />
     <Compile Include="c140.cs" />
     <Compile Include="c352.cs" />
+    <Compile Include="common.cs" />
     <Compile Include="fmgen\file.cs" />
     <Compile Include="fmgen\fmgen.cs" />
     <Compile Include="fmgen\opm.cs" />
@@ -60,7 +61,22 @@
     <Compile Include="K054539.cs" />
     <Compile Include="MDSound.cs" />
     <Compile Include="nes_intf.cs" />
+    <Compile Include="np\chip\emu2149.cs" />
+    <Compile Include="np\chip\emu2413.cs" />
+    <Compile Include="np\chip\IDeviceInfo.cs" />
+    <Compile Include="np\chip\nes_apu.cs" />
+    <Compile Include="np\chip\nes_dmc.cs" />
+    <Compile Include="np\chip\nes_fds.cs" />
+    <Compile Include="np\chip\nes_fme7.cs" />
+    <Compile Include="np\chip\nes_mmc5.cs" />
+    <Compile Include="np\chip\nes_n106.cs" />
+    <Compile Include="np\chip\nes_vrc6.cs" />
+    <Compile Include="np\chip\nes_vrc7.cs" />
+    <Compile Include="np\cpu\km6502.cs" />
+    <Compile Include="np\detect.cs" />
     <Compile Include="np\IDevice.cs" />
+    <Compile Include="np\memory\nes_bank.cs" />
+    <Compile Include="np\memory\nes_mem.cs" />
     <Compile Include="np\np_nes_apu.cs" />
     <Compile Include="np\np_nes_dmc.cs" />
     <Compile Include="np\np_nes_fds.cs" />
@@ -83,6 +99,7 @@
   <ItemGroup>
     <Content Include="fmgen\readme.txt" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

@@ -449,7 +449,7 @@ namespace MDSound.np
                     (INT32)((MASTER_VOL / MAX_OUT) * 256.0 * 2.0f / 4.0f),
                     (INT32)((MASTER_VOL / MAX_OUT) * 256.0 * 2.0f / 5.0f) };*/
 
-            UInt32 clocks;
+            //UInt32 clocks;
             Int32 v, rc_out, m;
 
             v = fds.fout * MASTER[fds.master_vol] >> 8;
