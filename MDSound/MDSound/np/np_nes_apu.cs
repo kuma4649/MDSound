@@ -311,11 +311,11 @@ namespace MDSound.np
             // Shifting is (x-2) to match the volume of MAME's NES APU sound core
             b[0] = m[0] * apu.sm[0][0];
             b[0] += m[1] * apu.sm[0][1];
-            b[0] >>= 7 - 2; // was 7, but is now 8 for bipolar square
+            b[0] >>= 5 ; // was 7, but is now 8 for bipolar square
 
             b[1] = m[0] * apu.sm[1][0];
             b[1] += m[1] * apu.sm[1][1];
-            b[1] >>= 7 - 2; // see above
+            b[1] >>= 5 ; // see above
 
             return 2;
         }

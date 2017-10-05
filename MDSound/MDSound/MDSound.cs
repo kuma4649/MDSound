@@ -1026,6 +1026,16 @@ namespace MDSound
             }
         }
 
+        public byte[] ReadNES(byte ChipID)
+        {
+            lock (lockobj)
+            {
+                if (iNES == null) return null;
+
+                return ((nes_intf)(iNES)).nes_r(ChipID);
+            }
+        }
+
 
 
 

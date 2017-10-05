@@ -431,8 +431,8 @@ namespace MDSound.np
 
             // output mix
             m = fds.mask != 0 ? 0 : v;
-            b[0] = (m * fds.sm[0]) >> (7 - 2);
-            b[1] = (m * fds.sm[1]) >> (7 - 2);
+            b[0] = (m * fds.sm[0]) >> 5;
+            b[1] = (m * fds.sm[1]) >> 5;
             return 2;
         }
 

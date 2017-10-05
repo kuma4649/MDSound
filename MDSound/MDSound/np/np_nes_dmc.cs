@@ -293,6 +293,13 @@ namespace MDSound.np
                     dmc.linear_counter_halt = false;
                 }
 
+                //$4009 unuse address
+                dmc.reg[1] = (byte)(
+                    (dmc.linear_counter != 0 ? 4 : 0) //triangle
+                    | (dmc.length_counter[1]!=0 ? 8:0) //noise
+                    | (dmc.active ? 0x10 : 0) //dmc
+                    );
+
                 // noise envelope
                 //bool divider = false;
                 if (dmc.envelope_write)
@@ -329,6 +336,7 @@ namespace MDSound.np
                 // noise length counter
                 if (!dmc.envelope_loop && (dmc.length_counter[1] > 0))
                     --dmc.length_counter[1];
+
             }
 
         }
@@ -617,12 +625,12 @@ namespace MDSound.np
             b[0] = m[0] * dmc.sm[0][0];
             b[0] += m[1] * dmc.sm[0][1];
             b[0] += -m[2] * dmc.sm[0][2];
-            b[0] >>= 7 - 2;
+            b[0] >>= 5;
 
             b[1] = m[0] * dmc.sm[1][0];
             b[1] += m[1] * dmc.sm[1][1];
             b[1] += -m[2] * dmc.sm[1][2];
-            b[1] >>= 7 - 2;
+            b[1] >>= 5;
 
             return 2;
         }

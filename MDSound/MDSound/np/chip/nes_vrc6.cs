@@ -199,8 +199,8 @@ namespace MDSound.np.chip
 
             // master volume adjustment
             const Int32 MASTER = (Int32)(256.0 * 1223.0 / 1920.0);
-            b[0] = (b[0] * MASTER) >> 5;
-            b[1] = (b[1] * MASTER) >> 5;
+            b[0] = (b[0] * MASTER) >> 8;
+            b[1] = (b[1] * MASTER) >> 8;
 
             return 2;
         }

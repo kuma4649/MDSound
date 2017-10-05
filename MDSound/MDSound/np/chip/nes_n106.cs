@@ -282,8 +282,8 @@ namespace MDSound.np.chip
             const double MASTER_VOL = 6.0 * 1223.0;
             const double MAX_OUT = 15.0 * 15.0 * 256.0; // max digital value
             const Int32 GAIN = (Int32)((MASTER_VOL / MAX_OUT) * 256.0f);
-            b[0] = (b[0] * GAIN) >> 5;
-            b[1] = (b[1] * GAIN) >> 5;
+            b[0] = (b[0] * GAIN) >> 8;
+            b[1] = (b[1] * GAIN) >> 8;
 
             return 2;
         }

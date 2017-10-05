@@ -345,6 +345,12 @@ namespace MDSound
             return;
         }
 
+        public byte[] nes_r(byte ChipID)
+        {
+            for (int i = 8; i < 0x18; i++)
+                NESAPUData[ChipID].chip_apu.reg[i] = NESAPUData[ChipID].chip_dmc.reg[i-8];
+            return NESAPUData[ChipID].chip_apu.reg;
+        }
 
         private void nes_set_emu_core(byte Emulator)
         {
