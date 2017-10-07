@@ -347,8 +347,15 @@ namespace MDSound
 
         public byte[] nes_r(byte ChipID)
         {
-            for (int i = 8; i < 0x18; i++)
-                NESAPUData[ChipID].chip_apu.reg[i] = NESAPUData[ChipID].chip_dmc.reg[i-8];
+            if (NESAPUData[ChipID] == null) return null;
+            if (NESAPUData[ChipID].chip_apu == null) return null;
+
+            if (NESAPUData[ChipID].chip_dmc != null)
+            {
+                for (int i = 8; i < 0x18; i++)
+                    NESAPUData[ChipID].chip_apu.reg[i] = NESAPUData[ChipID].chip_dmc.reg[i - 8];
+            }
+
             return NESAPUData[ChipID].chip_apu.reg;
         }
 
@@ -411,8 +418,10 @@ namespace MDSound
             return;
         }
 
-        private void nes_set_mute_mask(byte ChipID, UInt32 MuteMask)
+        public void nes_set_mute_mask(byte ChipID, UInt32 MuteMask)
         {
+            if (NESAPUData[ChipID] == null) return;
+
             nes_state info = NESAPUData[ChipID];
             //    switch (EMU_CORE)
             //    {
@@ -422,12 +431,12 @@ namespace MDSound
             //            break;
             //#endif
             //        case EC_NSFPLAY:
-            nes_apu.NES_APU_np_SetMask(info.chip_apu, (Int32)((MuteMask & 0x03) >> 0));
-            nes_dmc.NES_DMC_np_SetMask(info.chip_dmc, (Int32)((MuteMask & 0x1C) >> 2));
+            if (nes_apu != null && info.chip_apu != null) nes_apu.NES_APU_np_SetMask(info.chip_apu, (Int32)((MuteMask & 0x03) >> 0));
+            if (nes_dmc != null && info.chip_dmc != null) nes_dmc.NES_DMC_np_SetMask(info.chip_dmc, (Int32)((MuteMask & 0x1C) >> 2));
             //        break;
             //}
             if (info.chip_fds != null)
-                nes_fds.NES_FDS_SetMask(info.chip_fds, (Int32)((MuteMask & 0x20) >> 6));
+                if (nes_fds != null && info.chip_fds != null) nes_fds.NES_FDS_SetMask(info.chip_fds, (Int32)((MuteMask & 0x20) >> 6));
 
             return;
         }

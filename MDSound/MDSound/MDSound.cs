@@ -55,6 +55,7 @@ namespace MDSound
         private uint[] c140Mask = new uint[] { 0, 0 };
         private int[] ay8910Mask = new int[] { 0, 0 };
         private int[] huc6280Mask = new int[] { 0, 0 };
+        private uint[] nesMask = new uint[] { 0, 0 };
 
         private int[][][] rf5c164Vol = new int[][][] {
             new int[8][] { new int[2], new int[2], new int[2], new int[2], new int[2], new int[2], new int[2], new int[2] }
@@ -1736,6 +1737,15 @@ namespace MDSound
             }
         }
 
+        public void setNESMask(int chipID, int ch)
+        {
+            lock (lockobj)
+            {
+                nesMask[chipID] |= (uint)(0x1 << ch);
+                if (iNES != null) ((nes_intf)(iNES)).nes_set_mute_mask((byte)chipID, nesMask[chipID]);
+            }
+        }
+
 
         public void resetSN76489Mask(int chipID, int ch)
         {
@@ -1805,6 +1815,15 @@ namespace MDSound
             {
                 huc6280Mask[chipID] &= ~ch;
                 if (iHuC6280 != null) ((Ootake_PSG)(iHuC6280)).HuC6280_SetMute((byte)chipID, huc6280Mask[chipID]);
+            }
+        }
+
+        public void resetNESMask(int chipID, int ch)
+        {
+            lock (lockobj)
+            {
+                nesMask[chipID] &= (uint)~(0x1 << ch);
+                if (iNES != null) ((nes_intf)(iNES)).nes_set_mute_mask((byte)chipID, nesMask[chipID]);
             }
         }
 
