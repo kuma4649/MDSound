@@ -102,9 +102,12 @@ namespace MDSound
             chip.SRWidth = sr_width;
         }
 
-        private void SN76489_GGStereoWrite(SN76489_Context chip, int data)
+        public void SN76489_GGStereoWrite(byte ChipID, int data)
         {
+            SN76489_Context chip = SN76489_Chip[ChipID];
             chip.PSGStereo = data;
+            //Console.WriteLine("WrPSGStereo:0:{0}", SN76489_Chip[0].PSGStereo);
+            //Console.WriteLine("WrPSGStereo:1:{0}", SN76489_Chip[1].PSGStereo);
         }
 
         /*void SN76489_UpdateOne(SN76489_Context* chip, int *l, int *r)
@@ -253,6 +256,8 @@ namespace MDSound
         public override void Update(byte ChipID, int[][] buffer, int length)
         {
             SN76489_Context chip = SN76489_Chip[ChipID];
+            //Console.WriteLine("PSGStereo:0:{0}", SN76489_Chip[0].PSGStereo);
+            //Console.WriteLine("PSGStereo:1:{0}", SN76489_Chip[1].PSGStereo);
 
             int i, j;
             int NGPMode;
@@ -322,6 +327,7 @@ namespace MDSound
                     {
                         if (((chip.PSGStereo >> i) & 0x11) == 0x11)
                         {
+                            //Console.WriteLine("ggpan1");
                             // no GG stereo for this channel
                             if (chip.panning[i][0] == 1.0f)
                             {
@@ -338,9 +344,11 @@ namespace MDSound
                         }
                         else
                         {
+                            //Console.WriteLine("ggpan2");
                             // GG stereo overrides panning
-                            bl = (chip.PSGStereo >> (i + 4) & 0x1) * chip.Channels[i]; // left
-                            br = (chip.PSGStereo >> i & 0x1) * chip.Channels[i]; // right
+                            bl = ((chip.PSGStereo >> (i + 4)) & 0x1) * chip.Channels[i]; // left
+                            br = ((chip.PSGStereo >> i) & 0x1) * chip.Channels[i]; // right
+                            //Console.WriteLine("Ch:bl:br:{0}:{1}:{2}:{3}",i,bl,br, chip.Channels[i]);
                         }
 
                         buffer[0][j] += bl;

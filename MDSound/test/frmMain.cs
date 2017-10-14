@@ -375,6 +375,24 @@ namespace test
                     lstChip.Add(chip);
                 }
 
+                if (getLE32(0x88) != 0)
+                {
+                    chip = new MDSound.MDSound.Chip();
+                    chip.type = MDSound.MDSound.enmInstrumentType.MultiPCM;
+                    chip.ID = 0;
+                    MDSound.multipcm multipcm = new MDSound.multipcm();
+                    chip.Instrument = multipcm;
+                    chip.Update = multipcm.Update;
+                    chip.Start = multipcm.Start;
+                    chip.Stop = multipcm.Stop;
+                    chip.Reset = multipcm.Reset;
+                    chip.SamplingRate = SamplingRate;
+                    chip.Clock = getLE32(0x88) & 0x7fffffff;
+                    chip.Volume = 0;
+                    chip.Option = null;
+                    lstChip.Add(chip);
+                }
+
                 if (getLE32(0x9c) != 0)
                 {
                     chip = new MDSound.MDSound.Chip();
@@ -755,6 +773,10 @@ namespace test
                                         mds.WriteYM2610_SetAdpcmB(0, bufYM2610AdpcmB);
                                         break;
 
+                                    case 0x89:
+                                        mds.WriteMultiPCMPCMData(chipID, romSize, startAddress, bLen - 8, vgmBuf, vgmAdr + 15);
+                                        break;
+
                                     case 0x8b:
                                         break;
 
@@ -888,6 +910,12 @@ namespace test
                         vgmAdr += 3;
                         mds.WriteNES(0, rAdr, rDat);
                         break;
+                    case 0xb5: //MultiPCM
+                        rAdr = (byte)(vgmBuf[vgmAdr + 1] & 0x7f);
+                        rDat = vgmBuf[vgmAdr + 2];
+                        vgmAdr += 3;
+                        mds.WriteMultiPCM(0, rAdr, rDat);
+                        break;
                     case 0xb7:
                         vgmAdr += 3;
                         break;
@@ -897,6 +925,12 @@ namespace test
                         vgmAdr += 3;
                         mds.WriteHuC6280(0, rAdr, rDat);
 
+                        break;
+                    case 0xc3://MultiPCM
+                        byte multiPCM_ch =(byte)( vgmBuf[vgmAdr + 1] & 0x7f);
+                        int multiPCM_adr = vgmBuf[vgmAdr + 2] + vgmBuf[vgmAdr + 3] * 0x100;
+                        vgmAdr += 4;
+                        mds.WriteMultiPCMSetBank(0, multiPCM_ch, multiPCM_adr);
                         break;
                     case 0xd2: //SCC1(K051649?)
                         int scc1_port = vgmBuf[vgmAdr + 1] & 0x7f;

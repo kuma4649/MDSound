@@ -359,6 +359,14 @@ namespace MDSound
             return NESAPUData[ChipID].chip_apu.reg;
         }
 
+        public np_nes_fds.NES_FDS nes_r_fds(byte ChipID)
+        {
+            if (NESAPUData[ChipID] == null) return null;
+            if (NESAPUData[ChipID].chip_fds == null) return null;
+
+            return NESAPUData[ChipID].chip_fds;
+        }
+
         private void nes_set_emu_core(byte Emulator)
         {
             //# ifdef ENABLE_ALL_CORES
@@ -435,8 +443,7 @@ namespace MDSound
             if (nes_dmc != null && info.chip_dmc != null) nes_dmc.NES_DMC_np_SetMask(info.chip_dmc, (Int32)((MuteMask & 0x1C) >> 2));
             //        break;
             //}
-            if (info.chip_fds != null)
-                if (nes_fds != null && info.chip_fds != null) nes_fds.NES_FDS_SetMask(info.chip_fds, (Int32)((MuteMask & 0x20) >> 6));
+            if (nes_fds != null && info.chip_fds != null) nes_fds.NES_FDS_SetMask(info.chip_fds, (Int32)((MuteMask & 0x20) >> 5));
 
             return;
         }

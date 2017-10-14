@@ -44,6 +44,7 @@ namespace MDSound
         private Instrument iVRC6 = null;
         private Instrument iVRC7 = null;
         private Instrument iFME7 = null;
+        private Instrument iMultiPCM = null;
 
         private int[][] buffer = null;
         private int[][] buff = new int[2][] { new int[1], new int[1] };
@@ -114,7 +115,8 @@ namespace MDSound
             N160,
             VRC6,
             VRC7,
-            FME7
+            FME7,
+            MultiPCM
         }
 
         public class Chip
@@ -275,6 +277,9 @@ namespace MDSound
                             break;
                         case enmInstrumentType.FME7:
                             iFME7 = inst.Instrument;
+                            break;
+                        case enmInstrumentType.MultiPCM:
+                            iMultiPCM = inst.Instrument;
                             break;
                     }
 
@@ -739,6 +744,16 @@ namespace MDSound
             }
         }
 
+        public void WriteSN76489GGPanning(byte ChipID, byte Data)
+        {
+            lock (lockobj)
+            {
+                if (iSN76489 == null) return;
+
+                ((sn76489)(iSN76489)).SN76489_GGStereoWrite(ChipID, Data);
+            }
+        }
+
         public void WriteYM2612(byte ChipID,byte Port, byte Adr, byte Data)
         {
             lock (lockobj)
@@ -1007,6 +1022,16 @@ namespace MDSound
             }
         }
 
+        public void WriteMultiPCMPCMData(byte ChipID, uint ROMSize, uint DataStart, uint DataLength, byte[] ROMData, uint SrcStartAdr)
+        {
+            lock (lockobj)
+            {
+                if (iMultiPCM == null) return;
+
+                ((multipcm)(iMultiPCM)).multipcm_write_rom2(ChipID, (int)ROMSize, (int)DataStart, (int)DataLength, ROMData, (int)SrcStartAdr);
+            }
+        }
+
         public void WriteNES(byte ChipID, byte Adr, byte Data)
         {
             lock (lockobj)
@@ -1014,6 +1039,26 @@ namespace MDSound
                 if (iNES == null) return;
 
                 ((nes_intf)(iNES)).nes_w(ChipID, Adr, Data);
+            }
+        }
+
+        public void WriteMultiPCM(byte ChipID, byte Adr, byte Data)
+        {
+            lock (lockobj)
+            {
+                if (iMultiPCM == null) return;
+
+                ((multipcm)(iMultiPCM)).multipcm_w(ChipID, Adr, Data);
+            }
+        }
+
+        public void WriteMultiPCMSetBank(byte ChipID, byte Ch, int Adr)
+        {
+            lock (lockobj)
+            {
+                if (iMultiPCM == null) return;
+
+                ((multipcm)(iMultiPCM)).multipcm_bank_write(ChipID, Ch, (UInt16)Adr);
             }
         }
 
@@ -1034,6 +1079,16 @@ namespace MDSound
                 if (iNES == null) return null;
 
                 return ((nes_intf)(iNES)).nes_r(ChipID);
+            }
+        }
+
+        public np.np_nes_fds.NES_FDS ReadFDS(byte ChipID)
+        {
+            lock (lockobj)
+            {
+                if (iNES == null) return null;
+
+                return ((nes_intf)(iNES)).nes_r_fds(ChipID);
             }
         }
 
@@ -1746,6 +1801,16 @@ namespace MDSound
             }
         }
 
+        public void setFDSMask(int chipID)
+        {
+            lock (lockobj)
+            {
+                nesMask[chipID] |= 0x20;
+                if (iNES != null) ((nes_intf)(iNES)).nes_set_mute_mask((byte)chipID, nesMask[chipID]);
+            }
+        }
+
+
 
         public void resetSN76489Mask(int chipID, int ch)
         {
@@ -1823,6 +1888,15 @@ namespace MDSound
             lock (lockobj)
             {
                 nesMask[chipID] &= (uint)~(0x1 << ch);
+                if (iNES != null) ((nes_intf)(iNES)).nes_set_mute_mask((byte)chipID, nesMask[chipID]);
+            }
+        }
+
+        public void resetFDSMask(int chipID)
+        {
+            lock (lockobj)
+            {
+                nesMask[chipID] &= ~(uint)0x20;
                 if (iNES != null) ((nes_intf)(iNES)).nes_set_mute_mask((byte)chipID, nesMask[chipID]);
             }
         }

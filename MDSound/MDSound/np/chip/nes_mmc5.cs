@@ -21,8 +21,8 @@ namespace MDSound.np.chip
     protected byte[] ram=new byte[0x6000 - 0x5c00];
         protected byte[] reg=new byte[8];
         protected byte[] mreg=new byte[2];
-        protected byte pcm; // PCM channel
-        protected bool pcm_mode; // PCM channel
+        public byte pcm; // PCM channel
+        public bool pcm_mode; // PCM channel
         protected km6502 cpu; // PCM channel reads need CPU access
 
         protected UInt32[] scounter=new UInt32[2];            // frequency divider
@@ -468,7 +468,7 @@ namespace MDSound.np.chip
 
         public override void SetMask(int mask)
         {
-            throw new NotImplementedException();
+            this.mask = mask;
         }
 
     }

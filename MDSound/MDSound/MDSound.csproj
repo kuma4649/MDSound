@@ -60,6 +60,7 @@
     <Compile Include="K051649.cs" />
     <Compile Include="K054539.cs" />
     <Compile Include="MDSound.cs" />
+    <Compile Include="multipcm.cs" />
     <Compile Include="nes_intf.cs" />
     <Compile Include="np\chip\emu2149.cs" />
     <Compile Include="np\chip\emu2413.cs" />
