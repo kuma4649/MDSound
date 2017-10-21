@@ -36,6 +36,8 @@ namespace MDSound
         private Instrument iYM2608 = null;
         private Instrument iYM2609 = null;
         private Instrument iYM2610 = null;
+        private Instrument iYMF262 = null;
+        private Instrument iYMF278B = null;
         private Instrument iNES = null;
         private Instrument iDMC = null;
         private Instrument iFDS = null;
@@ -116,7 +118,9 @@ namespace MDSound
             VRC6,
             VRC7,
             FME7,
-            MultiPCM
+            MultiPCM,
+            YMF262,
+            YMF278B
         }
 
         public class Chip
@@ -232,6 +236,12 @@ namespace MDSound
                             break;
                         case enmInstrumentType.YM2610:
                             iYM2610 = inst.Instrument;
+                            break;
+                        case enmInstrumentType.YMF262:
+                            iYMF262 = inst.Instrument;
+                            break;
+                        case enmInstrumentType.YMF278B:
+                            iYMF278B = inst.Instrument;
                             break;
                         case enmInstrumentType.AY8910:
                             iAY8910 = inst.Instrument;
@@ -845,6 +855,16 @@ namespace MDSound
             }
         }
 
+        public void WriteYMF278BPCMData(byte ChipID, uint ROMSize, uint DataStart, uint DataLength, byte[] ROMData, uint SrcStartAdr)
+        {
+            lock (lockobj)
+            {
+                if (iYMF278B == null) return;
+
+                ((ymf278b)(iYMF278B)).ymf278b_write_rom(ChipID, (int)ROMSize, (int)DataStart, (int)DataLength, ROMData, (int)SrcStartAdr);
+            }
+        }
+
         public void WriteOKIM6258(byte ChipID, byte Port, byte Data)
         {
             lock (lockobj)
@@ -959,6 +979,26 @@ namespace MDSound
                 if (iYM2610 == null) return;
 
                 ((ym2610)(iYM2610)).YM2610_setAdpcmB(ChipID, Buf, Buf.Length);
+            }
+        }
+
+        public void WriteYMF262(byte ChipID, byte Port, byte Adr, byte Data)
+        {
+            lock (lockobj)
+            {
+                if (iYMF262 == null) return;
+
+                ((ymf262)(iYMF262)).YMF262_Write(ChipID, (uint)(Port * 0x100 + Adr), Data);
+            }
+        }
+
+        public void WriteYMF278B(byte ChipID, byte Port, byte Adr, byte Data)
+        {
+            lock (lockobj)
+            {
+                if (iYMF278B == null) return;
+
+                ((ymf278b)(iYMF278B)).YMF278B_Write(ChipID,Port,Adr, Data);
             }
         }
 

@@ -96,6 +96,8 @@
     <Compile Include="ym2609.cs" />
     <Compile Include="ym2610.cs" />
     <Compile Include="ym2612.cs" />
+    <Compile Include="ymf262.cs" />
+    <Compile Include="ymf278b.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="fmgen\readme.txt" />

@@ -333,6 +333,42 @@ namespace test
                 lstChip.Add(chip);
             }
 
+            if (getLE32(0x5c) != 0)
+            {
+                chip = new MDSound.MDSound.Chip();
+                chip.type = MDSound.MDSound.enmInstrumentType.YMF262;
+                chip.ID = 0;
+                MDSound.ymf262 ymf262 = new MDSound.ymf262();
+                chip.Instrument = ymf262;
+                chip.Update = ymf262.Update;
+                chip.Start = ymf262.Start;
+                chip.Stop = ymf262.Stop;
+                chip.Reset = ymf262.Reset;
+                chip.SamplingRate = SamplingRate;
+                chip.Clock = getLE32(0x5c) & 0x7fffffff;
+                chip.Volume = 0;
+                chip.Option = null;
+                lstChip.Add(chip);
+            }
+
+            if (getLE32(0x60) != 0)
+            {
+                chip = new MDSound.MDSound.Chip();
+                chip.type = MDSound.MDSound.enmInstrumentType.YMF278B;
+                chip.ID = 0;
+                MDSound.ymf278b ymf278b = new MDSound.ymf278b();
+                chip.Instrument = ymf278b;
+                chip.Update = ymf278b.Update;
+                chip.Start = ymf278b.Start;
+                chip.Stop = ymf278b.Stop;
+                chip.Reset = ymf278b.Reset;
+                chip.SamplingRate = SamplingRate;
+                chip.Clock = getLE32(0x60) & 0x7fffffff;
+                chip.Volume = 0;
+                chip.Option = null;
+                lstChip.Add(chip);
+            }
+
             if (getLE32(0x74) != 0)
             {
                 chip = new MDSound.MDSound.Chip();
@@ -651,6 +687,20 @@ namespace test
                         mds.WriteYM2610(0, 1, rAdr, rDat);
 
                         break;
+                    case 0x5e: //YMF262 Port0
+                        rAdr = vgmBuf[vgmAdr + 1];
+                        rDat = vgmBuf[vgmAdr + 2];
+                        vgmAdr += 3;
+                        mds.WriteYMF262(0, 0, rAdr, rDat);
+
+                        break;
+                    case 0x5f: //YMF262 Port1
+                        rAdr = vgmBuf[vgmAdr + 1];
+                        rDat = vgmBuf[vgmAdr + 2];
+                        vgmAdr += 3;
+                        mds.WriteYMF262(0, 1, rAdr, rDat);
+
+                        break;
                     case 0x61: //Wait n samples
                         vgmAdr++;
                         vgmWait += (int)getLE16(vgmAdr);
@@ -771,6 +821,10 @@ namespace test
                                             bufYM2610AdpcmB[startAddress + cnt] = vgmBuf[vgmAdr + 15 + cnt];
                                         }
                                         mds.WriteYM2610_SetAdpcmB(0, bufYM2610AdpcmB);
+                                        break;
+
+                                    case 0x84:
+                                        mds.WriteYMF278BPCMData(chipID, romSize, startAddress, bLen - 8, vgmBuf, vgmAdr + 15);
                                         break;
 
                                     case 0x89:
@@ -931,6 +985,14 @@ namespace test
                         int multiPCM_adr = vgmBuf[vgmAdr + 2] + vgmBuf[vgmAdr + 3] * 0x100;
                         vgmAdr += 4;
                         mds.WriteMultiPCMSetBank(0, multiPCM_ch, multiPCM_adr);
+                        break;
+                    case 0xd0: //YMF278B
+                        byte ymf278b_port = (byte)(vgmBuf[vgmAdr + 1] & 0x7f);
+                        byte ymf278b_offset = vgmBuf[vgmAdr + 2];
+                        rDat = vgmBuf[vgmAdr + 3];
+                        byte ymf278b_chipid = (byte)((vgmBuf[vgmAdr + 1] & 0x80) != 0 ? 1 : 0);
+                        vgmAdr += 4;
+                        mds.WriteYMF278B(ymf278b_chipid, ymf278b_port, ymf278b_offset, rDat);
                         break;
                     case 0xd2: //SCC1(K051649?)
                         int scc1_port = vgmBuf[vgmAdr + 1] & 0x7f;
