@@ -369,6 +369,24 @@ namespace test
                 lstChip.Add(chip);
             }
 
+            if (getLE32(0x64) != 0)
+            {
+                chip = new MDSound.MDSound.Chip();
+                chip.type = MDSound.MDSound.enmInstrumentType.YMF271;
+                chip.ID = 0;
+                MDSound.ymf271 ymf271 = new MDSound.ymf271();
+                chip.Instrument = ymf271;
+                chip.Update = ymf271.Update;
+                chip.Start = ymf271.Start;
+                chip.Stop = ymf271.Stop;
+                chip.Reset = ymf271.Reset;
+                chip.SamplingRate = SamplingRate;
+                chip.Clock = getLE32(0x64) & 0x7fffffff;
+                chip.Volume = 0;
+                chip.Option = null;
+                lstChip.Add(chip);
+            }
+
             if (getLE32(0x74) != 0)
             {
                 chip = new MDSound.MDSound.Chip();
@@ -827,6 +845,10 @@ namespace test
                                         mds.WriteYMF278BPCMData(chipID, romSize, startAddress, bLen - 8, vgmBuf, vgmAdr + 15);
                                         break;
 
+                                    case 0x85:
+                                        mds.WriteYMF271PCMData(chipID, romSize, startAddress, bLen - 8, vgmBuf, vgmAdr + 15);
+                                        break;
+
                                     case 0x89:
                                         mds.WriteMultiPCMPCMData(chipID, romSize, startAddress, bLen - 8, vgmBuf, vgmAdr + 15);
                                         break;
@@ -993,6 +1015,14 @@ namespace test
                         byte ymf278b_chipid = (byte)((vgmBuf[vgmAdr + 1] & 0x80) != 0 ? 1 : 0);
                         vgmAdr += 4;
                         mds.WriteYMF278B(ymf278b_chipid, ymf278b_port, ymf278b_offset, rDat);
+                        break;
+                    case 0xd1: //YMF271
+                        byte ymf271_port = (byte)(vgmBuf[vgmAdr + 1] & 0x7f);
+                        byte ymf271_offset = vgmBuf[vgmAdr + 2];
+                        rDat = vgmBuf[vgmAdr + 3];
+                        byte ymf271_chipid = (byte)((vgmBuf[vgmAdr + 1] & 0x80) != 0 ? 1 : 0);
+                        vgmAdr += 4;
+                        mds.WriteYMF271(ymf271_chipid, ymf271_port, ymf271_offset, rDat);
                         break;
                     case 0xd2: //SCC1(K051649?)
                         int scc1_port = vgmBuf[vgmAdr + 1] & 0x7f;

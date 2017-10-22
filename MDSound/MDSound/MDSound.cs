@@ -37,6 +37,7 @@ namespace MDSound
         private Instrument iYM2609 = null;
         private Instrument iYM2610 = null;
         private Instrument iYMF262 = null;
+        private Instrument iYMF271 = null;
         private Instrument iYMF278B = null;
         private Instrument iNES = null;
         private Instrument iDMC = null;
@@ -120,6 +121,7 @@ namespace MDSound
             FME7,
             MultiPCM,
             YMF262,
+            YMF271,
             YMF278B
         }
 
@@ -239,6 +241,9 @@ namespace MDSound
                             break;
                         case enmInstrumentType.YMF262:
                             iYMF262 = inst.Instrument;
+                            break;
+                        case enmInstrumentType.YMF271:
+                            iYMF271 = inst.Instrument;
                             break;
                         case enmInstrumentType.YMF278B:
                             iYMF278B = inst.Instrument;
@@ -855,6 +860,16 @@ namespace MDSound
             }
         }
 
+        public void WriteYMF271PCMData(byte ChipID, uint ROMSize, uint DataStart, uint DataLength, byte[] ROMData, uint SrcStartAdr)
+        {
+            lock (lockobj)
+            {
+                if (iYMF271 == null) return;
+
+                ((ymf271)(iYMF271)).ymf271_write_rom(ChipID, ROMSize, DataStart, DataLength, ROMData, (int)SrcStartAdr);
+            }
+        }
+
         public void WriteYMF278BPCMData(byte ChipID, uint ROMSize, uint DataStart, uint DataLength, byte[] ROMData, uint SrcStartAdr)
         {
             lock (lockobj)
@@ -992,13 +1007,23 @@ namespace MDSound
             }
         }
 
+        public void WriteYMF271(byte ChipID, byte Port, byte Adr, byte Data)
+        {
+            lock (lockobj)
+            {
+                if (iYMF271 == null) return;
+
+                ((ymf271)(iYMF271)).YMF271_Write(ChipID, Port, Adr, Data);
+            }
+        }
+
         public void WriteYMF278B(byte ChipID, byte Port, byte Adr, byte Data)
         {
             lock (lockobj)
             {
                 if (iYMF278B == null) return;
 
-                ((ymf278b)(iYMF278B)).YMF278B_Write(ChipID,Port,Adr, Data);
+                ((ymf278b)(iYMF278B)).YMF278B_Write(ChipID, Port, Adr, Data);
             }
         }
 
