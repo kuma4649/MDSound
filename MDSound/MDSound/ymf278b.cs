@@ -17,7 +17,7 @@ namespace MDSound
             return (UInt32)device_start_ymf278b(ChipID, 33868800);
         }
 
-        public uint Start(byte ChipID, uint clock, uint FMClockValue, params object[] option)
+        public override uint Start(byte ChipID, uint clock, uint FMClockValue, params object[] option)
         {
             return (UInt32)device_start_ymf278b(ChipID, (Int32)FMClockValue);
         }
@@ -32,7 +32,7 @@ namespace MDSound
             ymf278b_pcm_update(ChipID, outputs, samples);
         }
 
-        public int YMF278B_Write(byte ChipID,int Port, byte Offset, byte Data)
+        private int YMF278B_Write(byte ChipID,int Port, byte Offset, byte Data)
         {
             ymf278b_w(ChipID, (Port << 1) | 0x00, Offset);
             ymf278b_w(ChipID, (Port << 1) | 0x01, Data);
@@ -375,6 +375,10 @@ namespace MDSound
             SC2(0),     SC2(1.781), SC2(2.906), SC2(3.656),
             SC2(4.406), SC2(5.906), SC2(7.406), SC2(11.91)
         };
+
+        public override string Name { get { return "YMF278B"; } set { } }
+        public override string ShortName { get { return "OPL4"; } set { } }
+
         //#undef SC
 
         private void ymf278b_slot_reset(YMF278BSlot slot)
@@ -872,6 +876,7 @@ namespace MDSound
                     //			logerror("YMF278B:  Port A write %02x, %02x\n", reg, data);
                     //#endif
                     chip.ymf262.ymf262_write(chip.fmchip, 1, data);
+                    //chip.ymf262.Write(0, 0, reg, data);
                     if ((reg & 0xF0) == 0xB0 && (data & 0x20) != 0)  // Key On set
                         chip.FMEnabled = 0x01;
                     else if (reg == 0xBD && (data & 0x1F) != 0)  // one of the Rhythm bits set
@@ -1398,5 +1403,9 @@ namespace MDSound
             return;
         }
 
+        public override int Write(byte ChipID, int port, int adr, int data)
+        {
+            return YMF278B_Write(ChipID, port, (byte)adr, (byte)data);
+        }
     }
 }

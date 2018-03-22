@@ -29,7 +29,6 @@ namespace MDSound
 {
 	public class okim6295 : Instrument
 	{
-		public new const string Name = "OKIM6295";
 
         public okim6295()
         {
@@ -45,7 +44,7 @@ namespace MDSound
 			return (uint)device_start_okim6295(ChipID, (int)clock);
 		}
 
-		public uint Start(byte ChipID, uint samplingrate, uint clock, params object[] option)
+		public override uint Start(byte ChipID, uint samplingrate, uint clock, params object[] option)
 		{
 			return (uint)device_start_okim6295(ChipID, (int)clock);
 		}
@@ -278,10 +277,12 @@ namespace MDSound
 		private const uint NMK_BANKBITS = 16;
 		private const uint NMK_BANKSIZE = 0x10000;//(1 << NMK_BANKBITS);      // 0x10000
 		private const uint NMK_BANKMASK = (NMK_BANKSIZE - 1);       // 0xFFFF
-		private const uint NMK_ROMBASE = (4 * NMK_BANKSIZE);		// 0x40000
+		private const uint NMK_ROMBASE = (4 * NMK_BANKSIZE);        // 0x40000
 
+        public override string Name { get { return "OKIM6295"; } set { } }
+        public override string ShortName { get { return "OKI9"; } set { } }
 
-		private static byte memory_raw_read_byte(okim6295_state chip, int offset)
+        private static byte memory_raw_read_byte(okim6295_state chip, int offset)
 		{
 			int CurOfs;
 
@@ -423,23 +424,26 @@ namespace MDSound
 						for (samp = 0; samp < Samples; samp++)
 						{
 							buffer[0][ptrBuffer++] += sample_data[samp];
-							//                            if (sample_data[samp] != 0)
-							//                            {
-							//                                System.Console.Write("voice{0} sample_data[{1}]:{2}\n", i, samp, sample_data[samp]);
-							//                            }
-						}
+                            //if (sample_data[samp] != 0)
+                            //{
+                            //    System.Console.WriteLine("ch:{0} sampledata[{1}]={2} count:{3} sample:{4}"
+                            //    , i, samp, sample_data[samp]
+                            //    , voice.count, voice.sample);
+                            //}
+                        }
 
-						remaining -= samples;
+                        remaining -= samples;
 					}
-				}
-			}
+                }
+            }
 
 			//memcpy(outputs[1], outputs[0], samples * sizeof(*outputs[0]));
 			for (i = 0; i < samples; i++)
 			{
 				outputs[1][i] = outputs[0][i];
-			}
-		}
+            }
+
+        }
 
 
 
@@ -783,7 +787,7 @@ namespace MDSound
 			}
 		}
 
-		public void okim6295_w(byte ChipID, int offset, byte data)
+		private void okim6295_w(byte ChipID, int offset, byte data)
 		{
 			okim6295_state chip = OKIM6295Data[ChipID];
 
@@ -913,6 +917,12 @@ namespace MDSound
             info.SmpRateData = DataPtr;
 
             return;
+        }
+
+        public override int Write(byte ChipID, int port, int adr, int data)
+        {
+            okim6295_w(ChipID, adr, (byte)data);
+            return 0;
         }
 
 

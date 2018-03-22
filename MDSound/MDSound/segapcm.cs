@@ -7,7 +7,6 @@ namespace MDSound
 {
     public class segapcm : Instrument
     {
-        public new const string Name = "SEGAPCM";
 
         public segapcm()
         {
@@ -24,7 +23,7 @@ namespace MDSound
             return (uint)device_start_segapcm(ChipID, (int)clock, intf_bank);
         }
 
-        public uint Start(byte ChipID, uint samplingrate, uint clock, params object[] option)
+        public override uint Start(byte ChipID, uint samplingrate, uint clock, params object[] option)
         {
             return (uint)device_start_segapcm(ChipID, (int)clock, (int)option[0]);
         }
@@ -100,6 +99,9 @@ namespace MDSound
         //#define MAX_CHIPS	0x02
         public segapcm_state[] SPCMData = new segapcm_state[2] { new segapcm_state(), new segapcm_state() };// [MAX_CHIPS];
 
+        public override string Name { get { return "SEGA PCM"; } set { } }
+        public override string ShortName { get { return "SPCM"; } set { } }
+
         //# ifndef _DEBUG
         //byte SegaPCM_NewCore = 0x00;
         //#else
@@ -127,7 +129,8 @@ namespace MDSound
             /* clear the buffers */
             //memset(outputs[0], 0, samples * sizeof(stream_sample_t));
             //memset(outputs[1], 0, samples * sizeof(stream_sample_t));
-            for (int i = 0; i < outputs[0].Length; i++)
+            //for (int i = 0; i < outputs[0].Length; i++)
+            for (int i = 0; i < samples; i++)
             {
                 outputs[0][i] = 0;
                 outputs[1][i] = 0;
@@ -271,6 +274,7 @@ namespace MDSound
                         outputs[0][i] += v * (spcm.ram[ptrRegs + 2] & 0x7F);
                         outputs[1][i] += v * (spcm.ram[ptrRegs + 3] & 0x7F);
                         addr = (addr + spcm.ram[ptrRegs + 7]) & 0xffffff;
+
                     }
 
                     /* store back the updated address */
@@ -383,7 +387,7 @@ namespace MDSound
 
 
         //WRITE8_DEVICE_HANDLER( sega_pcm_w )
-        public void sega_pcm_w(byte ChipID, int offset, byte data)
+        private void sega_pcm_w(byte ChipID, int offset, byte data)
         {
             //segapcm_state *spcm = get_safe_token(device);
             segapcm_state spcm = SPCMData[ChipID];
@@ -544,6 +548,12 @@ namespace MDSound
                 spcm.Muted[CurChn] = (byte)((MuteMask >> CurChn) & 0x01);
 
             return;
+        }
+
+        public override int Write(byte ChipID, int port, int adr, int data)
+        {
+            sega_pcm_w(ChipID, adr, (byte)data);
+            return 0;
         }
 
 

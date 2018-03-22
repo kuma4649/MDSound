@@ -17,7 +17,7 @@ namespace MDSound
             return (UInt32)device_start_ymf271(ChipID, 16934400);
         }
 
-        public uint Start(byte ChipID, uint clock, uint FMClockValue, params object[] option)
+        public override uint Start(byte ChipID, uint clock, uint FMClockValue, params object[] option)
         {
             return (UInt32)device_start_ymf271(ChipID, (Int32)FMClockValue);
         }
@@ -32,7 +32,7 @@ namespace MDSound
             ymf271_update(ChipID, outputs, samples);
         }
 
-        public int YMF271_Write(byte ChipID, int Port, byte Offset, byte Data)
+        private int YMF271_Write(byte ChipID, int Port, byte Offset, byte Data)
         {
             ymf271_w(ChipID, (UInt32)((Port << 1) | 0x00), Offset);
             ymf271_w(ChipID, (UInt32)((Port << 1) | 0x01), Data);
@@ -401,6 +401,9 @@ namespace MDSound
 
         private const Int32 MAX_CHIPS = 0x10;
         private YMF271Chip[] YMF271Data = new YMF271Chip[2] { new YMF271Chip(), new YMF271Chip(), };// MAX_CHIPS];
+
+        public override string Name { get { return "YMF271"; } set { } }
+        public override string ShortName { get { return "OPX"; } set { } }
 
         /*INLINE YMF271Chip *get_safe_token(const device_config *device)
         {
@@ -2057,6 +2060,12 @@ namespace MDSound
                 chip.groups[CurChn].Muted = (byte)((MuteMask >> CurChn) & 0x01);
 
             return;
+        }
+
+        public override int Write(byte ChipID, int port, int adr, int data)
+        {
+            YMF271_Write(ChipID, port, (byte)adr, (byte)data);
+            return 0;
         }
 
         /**************************************************************************

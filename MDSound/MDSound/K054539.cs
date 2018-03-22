@@ -7,7 +7,6 @@ namespace MDSound
 {
     public class K054539 : Instrument
     {
-        public new const string Name = "K054539";
 
         public K054539()
         {
@@ -41,7 +40,7 @@ namespace MDSound
             visVolume[ChipID][0][1] = outputs[1][0];
         }
 
-        public uint Start(byte ChipID, uint SamplingRate, uint clock, params object[] Option)
+        public override uint Start(byte ChipID, uint SamplingRate, uint clock, params object[] Option)
         {
             uint sampRate= (uint)device_start_k054539(ChipID, (int)clock);
             int flags = 1;
@@ -173,6 +172,9 @@ namespace MDSound
 
         private const int MAX_CHIPS = 0x02;
         private static k054539_state[] K054539Data = new k054539_state[MAX_CHIPS] { new k054539_state(), new k054539_state() };
+
+        public override string Name { get { return "K054539"; } set { } }
+        public override string ShortName { get { return "K054"; } set { } }
 
         /*INLINE k054539_state *get_safe_token(device_t *device)
         {
@@ -545,7 +547,7 @@ namespace MDSound
         }
 
         //WRITE8_DEVICE_HANDLER( k054539_w )
-        public void k054539_w(byte ChipID, int offset, byte data)
+        private void k054539_w(byte ChipID, int offset, byte data)
         {
             //k054539_state *info = get_safe_token(device);
             k054539_state info = K054539Data[ChipID];
@@ -903,6 +905,12 @@ namespace MDSound
                 info.Muted[CurChn] = (byte)((MuteMask >> CurChn) & 0x01);
 
             return;
+        }
+
+        public override int Write(byte ChipID, int port, int adr, int data)
+        {
+            k054539_w(ChipID, adr, (byte)data);
+            return 0;
         }
 
 

@@ -1,9 +1,14 @@
-﻿namespace MDSound
+﻿using System;
+
+namespace MDSound
 {
     public class ym2203 : Instrument
     {
         private fmgen.OPN[] chip = new fmgen.OPN[2];
         private const uint DefaultYM2203ClockValue = 3000000;
+
+        public override string Name { get { return "YM2203"; } set { } }
+        public override string ShortName { get { return "OPN"; } set { } }
 
         public ym2203()
         {
@@ -28,7 +33,7 @@
             return clock;
         }
 
-        public uint Start(byte ChipID, uint clock, uint FMClockValue, params object[] option)
+        public override uint Start(byte ChipID, uint clock, uint FMClockValue, params object[] option)
         {
             chip[ChipID] = new fmgen.OPN();
             chip[ChipID].Init(FMClockValue, clock);
@@ -62,7 +67,7 @@
             visVolume[ChipID][2][1] = chip[ChipID].psg.visVolume;
         }
 
-        public int YM2203_Write(byte ChipID, byte adr, byte data)
+        private int YM2203_Write(byte ChipID, byte adr, byte data)
         {
             if (chip[ChipID] == null) return 0;
             chip[ChipID].SetReg(adr, data);
@@ -93,6 +98,9 @@
             chip[ChipID].SetVolumePSG(db);
         }
 
-
+        public override int Write(byte ChipID, int port, int adr, int data)
+        {
+            return YM2203_Write(ChipID, (byte)adr, (byte)data);
+        }
     }
 }

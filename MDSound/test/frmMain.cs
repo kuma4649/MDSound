@@ -349,6 +349,39 @@ namespace test
                 chip.Volume = 0;
                 chip.Option = null;
                 lstChip.Add(chip);
+
+                //chip = new MDSound.MDSound.Chip();
+                //chip.type = MDSound.MDSound.enmInstrumentType.YMF278B;
+                //chip.ID = 0;
+                //MDSound.ymf278b ymf278b = new MDSound.ymf278b();
+                //chip.Instrument = ymf278b;
+                //chip.Update = ymf278b.Update;
+                //chip.Start = ymf278b.Start;
+                //chip.Stop = ymf278b.Stop;
+                //chip.Reset = ymf278b.Reset;
+                //chip.SamplingRate = SamplingRate;
+                //chip.Clock = getLE32(0x5c) & 0x7fffffff;
+                //chip.Volume = 0;
+                //chip.Option = null;
+                //lstChip.Add(chip);
+            }
+
+            if (getLE32(0x58) != 0)
+            {
+                chip = new MDSound.MDSound.Chip();
+                chip.type = MDSound.MDSound.enmInstrumentType.Y8950;
+                chip.ID = 0;
+                MDSound.y8950 y8950 = new MDSound.y8950();
+                chip.Instrument = y8950;
+                chip.Update = y8950.Update;
+                chip.Start = y8950.Start;
+                chip.Stop = y8950.Stop;
+                chip.Reset = y8950.Reset;
+                chip.SamplingRate = SamplingRate;
+                chip.Clock = getLE32(0x58) & 0x7fffffff;
+                chip.Volume = 0;
+                chip.Option = null;
+                lstChip.Add(chip);
             }
 
             if (getLE32(0x60) != 0)
@@ -387,6 +420,24 @@ namespace test
                 lstChip.Add(chip);
             }
 
+            if (getLE32(0x68) != 0)
+            {
+                chip = new MDSound.MDSound.Chip();
+                chip.type = MDSound.MDSound.enmInstrumentType.YMZ280B;
+                chip.ID = 0;
+                MDSound.ymz280b ymz280b = new MDSound.ymz280b();
+                chip.Instrument = ymz280b;
+                chip.Update = ymz280b.Update;
+                chip.Start = ymz280b.Start;
+                chip.Stop = ymz280b.Stop;
+                chip.Reset = ymz280b.Reset;
+                chip.SamplingRate = SamplingRate;
+                chip.Clock = getLE32(0x68) & 0x7fffffff;
+                chip.Volume = 0;
+                chip.Option = null;
+                lstChip.Add(chip);
+            }
+
             if (getLE32(0x74) != 0)
             {
                 chip = new MDSound.MDSound.Chip();
@@ -410,6 +461,24 @@ namespace test
 
             if (version >= 0x0161)
             {
+
+                if (getLE32(0x80) != 0)
+                {
+                    chip = new MDSound.MDSound.Chip();
+                    chip.type = MDSound.MDSound.enmInstrumentType.DMG;
+                    chip.ID = 0;
+                    MDSound.gb gb = new MDSound.gb();
+                    chip.Instrument = gb;
+                    chip.Update = gb.Update;
+                    chip.Start = gb.Start;
+                    chip.Stop = gb.Stop;
+                    chip.Reset = gb.Reset;
+                    chip.SamplingRate = SamplingRate;
+                    chip.Clock = getLE32(0x80);// & 0x7fffffff;
+                    chip.Volume = 0;
+                    chip.Option = null;
+                    lstChip.Add(chip);
+                }
 
                 if (getLE32(0x84) != 0)
                 {
@@ -444,6 +513,25 @@ namespace test
                     chip.Clock = getLE32(0x88) & 0x7fffffff;
                     chip.Volume = 0;
                     chip.Option = null;
+                    lstChip.Add(chip);
+                }
+
+                if (getLE32(0x98) != 0)
+                {
+                    chip = new MDSound.MDSound.Chip();
+                    chip.type = MDSound.MDSound.enmInstrumentType.OKIM6295;
+                    chip.ID = 0;
+                    MDSound.okim6295 okim6295 = new MDSound.okim6295();
+                    chip.Instrument = okim6295;
+                    chip.Update = okim6295.Update;
+                    chip.Start = okim6295.Start;
+                    chip.Stop = okim6295.Stop;
+                    chip.Reset = okim6295.Reset;
+                    chip.SamplingRate = SamplingRate;
+                    chip.Clock = getLE32(0x98) & 0xbfffffff;
+                    chip.Volume = 0;
+                    chip.Option = null;
+                    okim6295.okim6295_set_srchg_cb(0, ChangeChipSampleRate, chip);
                     lstChip.Add(chip);
                 }
 
@@ -506,25 +594,86 @@ namespace test
                     lstChip.Add(chip);
                 }
 
-                if (getLE32(0xdc) != 0)
+                if (getLE32(0xac) != 0)
                 {
                     chip = new MDSound.MDSound.Chip();
-                    chip.type = MDSound.MDSound.enmInstrumentType.C352;
+                    chip.type = MDSound.MDSound.enmInstrumentType.K053260;
                     chip.ID = 0;
-                    MDSound.c352 c352 = new MDSound.c352();
-                    chip.Instrument = c352;
-                    chip.Update = c352.Update;
-                    chip.Start = c352.Start;
-                    chip.Stop = c352.Stop;
-                    chip.Reset = c352.Reset;
+                    MDSound.K053260 k053260 = new MDSound.K053260();
+                    chip.Instrument = k053260;
+                    chip.Update = k053260.Update;
+                    chip.Start = k053260.Start;
+                    chip.Stop = k053260.Stop;
+                    chip.Reset = k053260.Reset;
                     chip.SamplingRate = SamplingRate;
-                    chip.Clock = getLE32(0xdc);
+                    chip.Clock = getLE32(0xac);
                     chip.Volume = 0;
-                    chip.Option = new object[] { vgmBuf[0xd6] };
-
+                    chip.Option = null;
                     lstChip.Add(chip);
                 }
 
+                if (getLE32(0xb4) != 0)
+                {
+                    chip = new MDSound.MDSound.Chip();
+                    chip.type = MDSound.MDSound.enmInstrumentType.QSound;
+                    chip.ID = 0;
+                    MDSound.qsound qsound = new MDSound.qsound();
+                    chip.Instrument = qsound;
+                    chip.Update = qsound.Update;
+                    chip.Start = qsound.Start;
+                    chip.Stop = qsound.Stop;
+                    chip.Reset = qsound.Reset;
+                    chip.SamplingRate = SamplingRate;
+                    chip.Clock = getLE32(0xb4);
+                    chip.Volume = 0;
+                    chip.Option = null;
+                    lstChip.Add(chip);
+                }
+
+                if (version >= 0x170)
+                {
+                    if (version >= 0x171)
+                    {
+                        if (getLE32(0xdc) != 0)
+                        {
+                            chip = new MDSound.MDSound.Chip();
+                            chip.type = MDSound.MDSound.enmInstrumentType.C352;
+                            chip.ID = 0;
+                            MDSound.c352 c352 = new MDSound.c352();
+                            chip.Instrument = c352;
+                            chip.Update = c352.Update;
+                            chip.Start = c352.Start;
+                            chip.Stop = c352.Stop;
+                            chip.Reset = c352.Reset;
+                            chip.SamplingRate = SamplingRate;
+                            chip.Clock = getLE32(0xdc);
+                            chip.Volume = 0;
+                            chip.Option = new object[] { vgmBuf[0xd6] };
+
+                            lstChip.Add(chip);
+                        }
+
+                        if (getLE32(0xe0) != 0)
+                        {
+                            chip = new MDSound.MDSound.Chip();
+                            chip.type = MDSound.MDSound.enmInstrumentType.GA20;
+                            chip.ID = 0;
+                            MDSound.iremga20 ga20 = new MDSound.iremga20();
+                            chip.Instrument = ga20;
+                            chip.Update = ga20.Update;
+                            chip.Start = ga20.Start;
+                            chip.Stop = ga20.Stop;
+                            chip.Reset = ga20.Reset;
+                            chip.SamplingRate = SamplingRate;
+                            chip.Clock = getLE32(0xe0);
+                            chip.Volume = 0;
+                            chip.Option = null;
+
+                            lstChip.Add(chip);
+                        }
+
+                    }
+                }
             }
 
             //chips[2] = new MDSound.MDSound.Chip();
@@ -579,6 +728,27 @@ namespace test
 
         }
 
+        public static void ChangeChipSampleRate(MDSound.MDSound.Chip chip, int NewSmplRate)
+        {
+            MDSound.MDSound.Chip CAA = chip;
+
+            if (CAA.SamplingRate == NewSmplRate)
+                return;
+
+            // quick and dirty hack to make sample rate changes work
+            CAA.SamplingRate = (uint)NewSmplRate;
+            if (CAA.SamplingRate < 44100)//SampleRate)
+                CAA.Resampler = 0x01;
+            else if (CAA.SamplingRate == 44100)//SampleRate)
+                CAA.Resampler = 0x02;
+            else if (CAA.SamplingRate > 44100)//SampleRate)
+                CAA.Resampler = 0x03;
+            CAA.SmpP = 1;
+            CAA.SmpNext -= CAA.SmpLast;
+            CAA.SmpLast = 0x00;
+
+            return;
+        }
 
         private static void callback(IntPtr userData, IntPtr stream, int len)
         {
@@ -705,18 +875,35 @@ namespace test
                         mds.WriteYM2610(0, 1, rAdr, rDat);
 
                         break;
+                    case 0x5c: //Y8950
+                        rAdr = vgmBuf[vgmAdr + 1];
+                        rDat = vgmBuf[vgmAdr + 2];
+                        vgmAdr += 3;
+                        mds.WriteY8950(0, rAdr, rDat);
+
+                        break;
+                    case 0x5D: //YMZ280B
+                        rAdr = vgmBuf[vgmAdr + 1];
+                        rDat = vgmBuf[vgmAdr + 2];
+                        vgmAdr += 3;
+                        mds.WriteYMZ280B(0, rAdr, rDat);
+
+                        break;
                     case 0x5e: //YMF262 Port0
                         rAdr = vgmBuf[vgmAdr + 1];
                         rDat = vgmBuf[vgmAdr + 2];
                         vgmAdr += 3;
                         mds.WriteYMF262(0, 0, rAdr, rDat);
-
+                        //mds.WriteYMF278B(0, 0, rAdr, rDat);
+                        //Console.WriteLine("P0:adr{0:x2}:dat{1:x2}", rAdr, rDat);
                         break;
                     case 0x5f: //YMF262 Port1
                         rAdr = vgmBuf[vgmAdr + 1];
                         rDat = vgmBuf[vgmAdr + 2];
                         vgmAdr += 3;
                         mds.WriteYMF262(0, 1, rAdr, rDat);
+                        //mds.WriteYMF278B(0, 1, rAdr, rDat);
+                        //Console.WriteLine("P1:adr{0:x2}:dat{1:x2}", rAdr, rDat);
 
                         break;
                     case 0x61: //Wait n samples
@@ -849,11 +1036,20 @@ namespace test
                                         mds.WriteYMF271PCMData(chipID, romSize, startAddress, bLen - 8, vgmBuf, vgmAdr + 15);
                                         break;
 
+                                    case 0x86:
+                                        mds.WriteYMZ280BPCMData(chipID, romSize, startAddress, bLen - 8, vgmBuf, vgmAdr + 15);
+                                        break;
+
+                                    case 0x88:
+                                        mds.WriteY8950PCMData(chipID, romSize, startAddress, bLen - 8, vgmBuf, vgmAdr + 15);
+                                        break;
+
                                     case 0x89:
                                         mds.WriteMultiPCMPCMData(chipID, romSize, startAddress, bLen - 8, vgmBuf, vgmAdr + 15);
                                         break;
 
                                     case 0x8b:
+                                        mds.WriteOKIM6295PCMData(chipID, romSize, startAddress, bLen - 8, vgmBuf, vgmAdr + 15);
                                         break;
 
                                     case 0x8c:
@@ -862,8 +1058,21 @@ namespace test
 
                                     case 0x8d:
                                         break;
+
+                                    case 0x8e:
+                                        mds.WriteK053260PCMData(chipID, romSize, startAddress, bLen - 8, vgmBuf, vgmAdr + 15);
+                                        break;
+
+                                    case 0x8f:
+                                        mds.WriteQSoundPCMData(chipID, romSize, startAddress, bLen - 8, vgmBuf, vgmAdr + 15);
+                                        break;
+
                                     case 0x92:
                                         mds.WriteC352PCMData(0, romSize, startAddress, bLen - 8, vgmBuf, vgmAdr + 15);
+                                        break;
+
+                                    case 0x93:
+                                        mds.WriteGA20PCMData(0, romSize, startAddress, bLen - 8, vgmBuf, vgmAdr + 15);
                                         break;
                                 }
                                 vgmAdr += (uint)bLen + 7;
@@ -980,6 +1189,12 @@ namespace test
                         mds.WriteAY8910(0, rAdr, rDat);
 
                         break;
+                    case 0xb3: //GB DMG
+                        rAdr = vgmBuf[vgmAdr + 1];
+                        rDat = vgmBuf[vgmAdr + 2];
+                        vgmAdr += 3;
+                        mds.WriteDMG(0, rAdr, rDat);
+                        break;
                     case 0xb4: //NES
                         rAdr = vgmBuf[vgmAdr + 1];
                         rDat = vgmBuf[vgmAdr + 2];
@@ -995,18 +1210,43 @@ namespace test
                     case 0xb7:
                         vgmAdr += 3;
                         break;
+                    case 0xb8:
+                        rAdr = vgmBuf[vgmAdr + 1];
+                        rDat = vgmBuf[vgmAdr + 2];
+                        vgmAdr += 3;
+                        mds.WriteOKIM6295(0, rAdr, rDat);
+                        break;
                     case 0xb9: //HuC6280
                         rAdr = vgmBuf[vgmAdr + 1];
                         rDat = vgmBuf[vgmAdr + 2];
                         vgmAdr += 3;
                         mds.WriteHuC6280(0, rAdr, rDat);
+                        break;
+                    case 0xba: //K053260
+                        rAdr = vgmBuf[vgmAdr + 1];
+                        rDat = vgmBuf[vgmAdr + 2];
+                        vgmAdr += 3;
+                        mds.WriteK053260(0, rAdr, rDat);
+
+                        break;
+                    case 0xbf: //GA20
+                        rAdr = vgmBuf[vgmAdr + 1];
+                        rDat = vgmBuf[vgmAdr + 2];
+                        vgmAdr += 3;
+                        mds.WriteGA20(0, rAdr, rDat);
 
                         break;
                     case 0xc3://MultiPCM
-                        byte multiPCM_ch =(byte)( vgmBuf[vgmAdr + 1] & 0x7f);
+                        byte multiPCM_ch = (byte)(vgmBuf[vgmAdr + 1] & 0x7f);
                         int multiPCM_adr = vgmBuf[vgmAdr + 2] + vgmBuf[vgmAdr + 3] * 0x100;
                         vgmAdr += 4;
                         mds.WriteMultiPCMSetBank(0, multiPCM_ch, multiPCM_adr);
+                        break;
+                    case 0xc4://QSound
+                        mds.WriteQSound(0, 0x00, vgmBuf[vgmAdr + 1]);
+                        mds.WriteQSound(0, 0x01, vgmBuf[vgmAdr + 2]);
+                        mds.WriteQSound(0, 0x02, vgmBuf[vgmAdr + 3]);
+                        vgmAdr += 4;
                         break;
                     case 0xd0: //YMF278B
                         byte ymf278b_port = (byte)(vgmBuf[vgmAdr + 1] & 0x7f);

@@ -618,14 +618,15 @@ namespace MDSound
             return Start(ChipID, 44100, clock, 0);
         }
 
-        public uint Start(byte ChipID,uint samplingrate, uint clock,params object[] option) {
+        public override uint Start(byte ChipID,uint samplingrate, uint clock,params object[] option) {
             int divider = ((int)option[0] & 0x03) >> 0;
             int adpcm_type = ((int)option[0] & 0x04) >> 2;
             int output_12bits = ((int)option[0] & 0x08) >> 3;
             return (uint)device_start_okim6258(ChipID, clock, divider, adpcm_type, output_12bits);
         }
 
-        public new const string Name = "OKIM6258";
+        public override string Name { get { return "OKIM6258"; } set { } }
+        public override string ShortName { get { return "OKI5"; } set { } }
 
         override public void Stop(byte ChipID)
         {
@@ -637,7 +638,7 @@ namespace MDSound
             device_reset_okim6258(ChipID);
         }
 
-        public void okim6258_write(byte ChipID, byte Port, byte Data)
+        private void okim6258_write(byte ChipID, byte Port, byte Data)
         {
             //System.Console.Write("port={0:X2} data={1:X2} \n", Port, Data);
             switch (Port)
@@ -686,7 +687,10 @@ namespace MDSound
             return;
         }
 
-
-
+        public override int Write(byte ChipID, int port, int adr, int data)
+        {
+            okim6258_write(ChipID, (byte)adr, (byte)data);
+            return 0;
+        }
     }
 }

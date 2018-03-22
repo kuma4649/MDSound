@@ -1005,6 +1005,9 @@ Copyright(C)2006-2012 Kitao Nakamura.
         private huc6280_state[] chip = new huc6280_state[2];
         private const uint DefaultHuC6280ClockValue = 3579545;
 
+        public override string Name { get { return "HuC6280"; } set { } }
+        public override string ShortName { get { return "HuC8"; } set { } }
+
         public Ootake_PSG()
         {
             visVolume = new int[2][][] {
@@ -1021,7 +1024,7 @@ Copyright(C)2006-2012 Kitao Nakamura.
             return clock;
         }
 
-        public uint Start(byte ChipID, uint SamplingRate, uint FMClockValue, params object[] Option)
+        public override uint Start(byte ChipID, uint SamplingRate, uint FMClockValue, params object[] Option)
         {
             chip[ChipID] = PSG_Init((int)FMClockValue, (int)SamplingRate);
             
@@ -1049,7 +1052,7 @@ Copyright(C)2006-2012 Kitao Nakamura.
             visVolume[ChipID][0][1] = outputs[1][0];
         }
 
-        public int HuC6280_Write(byte ChipID, byte adr, byte data)
+        private int HuC6280_Write(byte ChipID, byte adr, byte data)
         {
             if (chip[ChipID] == null) return 0;
             write_reg(chip[ChipID], adr, data);
@@ -1074,6 +1077,11 @@ Copyright(C)2006-2012 Kitao Nakamura.
         public huc6280_state GetState(byte ChipID)
         {
             return chip[ChipID];
+        }
+
+        public override int Write(byte ChipID, int port, int adr, int data)
+        {
+            return HuC6280_Write(ChipID, (byte)adr, (byte)data);
         }
 
         /*// save variable

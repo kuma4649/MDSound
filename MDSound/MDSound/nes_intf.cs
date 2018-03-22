@@ -18,7 +18,7 @@ namespace MDSound
             return (UInt32)device_start_nes(ChipID, (Int32)clock);
         }
 
-        public uint Start(byte ChipID, uint SamplingRate, uint clock, params object[] Option)
+        public override uint Start(byte ChipID, uint SamplingRate, uint clock, params object[] Option)
         {
             return (UInt32)device_start_nes(ChipID, (Int32)clock);
         }
@@ -92,6 +92,9 @@ namespace MDSound
         private const byte MAX_CHIPS = 0x02;
         private static nes_state[] NESAPUData = new nes_state[2] { new nes_state(), new nes_state() };// MAX_CHIPS];
         private static UInt16 NesOptions = 0x8000;
+
+        public override string Name { get { return "NES"; } set { } }
+        public override string ShortName { get { return "NES"; } set { } }
 
         //static void nes_set_chip_option(UINT8 ChipID);
 
@@ -253,7 +256,7 @@ namespace MDSound
         }
 
 
-        public void nes_w(byte ChipID, Int32 offset, byte data)
+        private void nes_w(byte ChipID, Int32 offset, byte data)
         {
             nes_state info = NESAPUData[ChipID];
 
@@ -448,5 +451,10 @@ namespace MDSound
             return;
         }
 
+        public override int Write(byte ChipID, int port, int adr, int data)
+        {
+            nes_w(ChipID, adr, (byte)data);
+            return 0;
+        }
     }
 }

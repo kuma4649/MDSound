@@ -56,8 +56,11 @@
     <Compile Include="fmgen\psg.cs" />
     <Compile Include="fmvgen\psg2.cs" />
     <Compile Include="fmgen\Timer.cs" />
+    <Compile Include="gb.cs" />
     <Compile Include="Instrument.cs" />
+    <Compile Include="iremga20.cs" />
     <Compile Include="K051649.cs" />
+    <Compile Include="K053260.cs" />
     <Compile Include="K054539.cs" />
     <Compile Include="MDSound.cs" />
     <Compile Include="multipcm.cs" />
@@ -86,9 +89,11 @@
     <Compile Include="Ootake_PSG.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="pwm.cs" />
+    <Compile Include="qsound.cs" />
     <Compile Include="scd_pcm.cs" />
     <Compile Include="segapcm.cs" />
     <Compile Include="sn76489.cs" />
+    <Compile Include="y8950.cs" />
     <Compile Include="ym2151.cs" />
     <Compile Include="ym2203.cs" />
     <Compile Include="ym2413.cs" />
@@ -99,6 +104,7 @@
     <Compile Include="ymf262.cs" />
     <Compile Include="ymf271.cs" />
     <Compile Include="ymf278b.cs" />
+    <Compile Include="ymz280b.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="fmgen\readme.txt" />

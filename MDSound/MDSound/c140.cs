@@ -422,7 +422,7 @@ namespace MDSound
             return (newadr);
         }
 
-        public void c140_w(byte ChipID, uint offset, byte data)
+        private void c140_w(byte ChipID, uint offset, byte data)
         {
             //c140_state *info = get_safe_token(device);
             c140_state info = C140Data[ChipID];
@@ -567,7 +567,8 @@ namespace MDSound
         //DECLARE_LEGACY_SOUND_DEVICE(C140, c140);
 
 
-        public new const string Name = "C140";
+        public override string Name { get { return "C140"; } set { } }
+        public override string ShortName { get { return "C140"; } set { } }
 
         public override void Update(byte ChipID, int[][] outputs, int samples)
         {
@@ -812,7 +813,7 @@ namespace MDSound
             return Start(ChipID, 44100, clock, C140_TYPE.SYSTEM2);
         }
 
-        public uint Start(byte ChipID,uint Samplingrate, uint clock,params object[] option)
+        public override uint Start(byte ChipID,uint Samplingrate, uint clock,params object[] option)
         {
             //const c140_interface *intf = (const c140_interface *)device->static_config();
             //c140_state *info = get_safe_token(device);
@@ -895,5 +896,10 @@ namespace MDSound
             //return;
         }
 
+        public override int Write(byte ChipID, int port, int adr, int data)
+        {
+            c140_w(ChipID, (uint)adr, (byte)data);
+            return 0;
+        }
     }
 }

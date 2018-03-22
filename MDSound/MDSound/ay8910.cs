@@ -10,6 +10,9 @@ namespace MDSound
         private fmgen.PSG[] chip = new fmgen.PSG[2];
         private const uint DefaultAY8910ClockValue = 1789750;
 
+        public override string Name { get { return "AY8910"; } set { } }
+        public override string ShortName { get { return "AY10"; } set { } }
+
         public ay8910()
         {
             visVolume = new int[2][][] {
@@ -33,7 +36,7 @@ namespace MDSound
             return clock;
         }
 
-        public uint Start(byte ChipID, uint clock, uint PSGClockValue, params object[] option)
+        public override uint Start(byte ChipID, uint clock, uint PSGClockValue, params object[] option)
         {
             chip[ChipID] = new fmgen.PSG();
             chip[ChipID].SetClock((int)PSGClockValue, (int)clock);
@@ -64,7 +67,7 @@ namespace MDSound
             visVolume[ChipID][0][1] = outputs[1][0];
         }
 
-        public int AY8910_Write(byte ChipID, byte adr, byte data)
+        private int AY8910_Write(byte ChipID, byte adr, byte data)
         {
             if (chip[ChipID] == null) return 0;
             chip[ChipID].SetReg(adr, data);
@@ -88,6 +91,11 @@ namespace MDSound
             chip[ChipID].SetVolume(db);
         }
 
-
+        public override int Write(byte ChipID, int port, int adr, int data)
+        {
+            if (chip[ChipID] == null) return 0;
+            chip[ChipID].SetReg((uint)adr, (byte)data);
+            return 0;
+        }
     }
 }

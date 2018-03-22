@@ -10,6 +10,9 @@ namespace MDSound
         private fmgen.OPNB[] chip = new fmgen.OPNB[2];
         private const uint DefaultYM2610ClockValue = 8000000;
 
+        public override string Name { get { return "YM2610"; } set { } }
+        public override string ShortName { get { return "OPNB"; } set { } }
+
         public ym2610()
         {
             visVolume = new int[2][][] {
@@ -33,7 +36,7 @@ namespace MDSound
             return clock;
         }
 
-        public uint Start(byte ChipID, uint clock, uint FMClockValue, params object[] option)
+        public override uint Start(byte ChipID, uint clock, uint FMClockValue, params object[] option)
         {
             chip[ChipID] = new fmgen.OPNB();
             chip[ChipID].Init(FMClockValue, clock,false, new byte[0x20ffff], 0x20ffff, new byte[0xffff], 0xffff);
@@ -72,7 +75,7 @@ namespace MDSound
             visVolume[ChipID][4][1] = chip[ChipID].visAPCMVolume[1];
         }
 
-        public int YM2610_Write(byte ChipID, uint adr, byte data)
+        private int YM2610_Write(byte ChipID, uint adr, byte data)
         {
             if (chip[ChipID] == null) return 0;
             chip[ChipID].SetReg(adr, data);
@@ -119,6 +122,9 @@ namespace MDSound
             chip[ChipID].SetVolumeADPCMB(db);
         }
 
-
+        public override int Write(byte ChipID, int port, int adr, int data)
+        {
+            return YM2610_Write(ChipID, (uint)adr, (byte)data);
+        }
     }
 }

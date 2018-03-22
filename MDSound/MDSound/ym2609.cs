@@ -10,6 +10,9 @@ namespace MDSound
         private fmvgen.OPNA2[] chip = new fmvgen.OPNA2[2];
         private const uint DefaultYM2609ClockValue = 8000000;
 
+        public override string Name { get { return "YM2609"; } set { } }
+        public override string ShortName { get { return "OPNA2"; } set { } }
+
         public ym2609()
         {
             visVolume = new int[2][][] {
@@ -32,7 +35,7 @@ namespace MDSound
             return clock;
         }
 
-        public uint Start(byte ChipID, uint clock, uint FMClockValue, params object[] option)
+        public override uint Start(byte ChipID, uint clock, uint FMClockValue, params object[] option)
         {
             chip[ChipID] = new fmvgen.OPNA2();
             chip[ChipID].Init(FMClockValue, clock);
@@ -105,5 +108,9 @@ namespace MDSound
             chip[ChipID].SetVolumeADPCM(db);
         }
 
+        public override int Write(byte ChipID, int port, int adr, int data)
+        {
+            return YM2609_Write(ChipID, (uint)adr, (byte)data);
+        }
     }
 }

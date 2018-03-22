@@ -159,7 +159,9 @@ namespace MDSound
         }
 
 
-        public new const string Name = "SN76489";
+
+        public override string Name { get { return "SN76489"; } set { } }
+        public override string ShortName { get { return "DCSG"; } set { } }
 
         public sn76489()
         {
@@ -175,7 +177,7 @@ namespace MDSound
             return Start(ChipID, DefaultPSGClockValue, clock);
         }
 
-        public uint Start(byte ChipID, uint SamplingRate, uint PSGClockValue,params object[] option)
+        public override uint Start(byte ChipID, uint SamplingRate, uint PSGClockValue,params object[] option)
         {
             int i;
             SN76489_Chip[ChipID] = new SN76489_Context();
@@ -479,7 +481,7 @@ namespace MDSound
 
         }
 
-        public void SN76489_Write(byte ChipID, int data)
+        private void SN76489_Write(byte ChipID, int data)
         {
             SN76489_Context chip = SN76489_Chip[ChipID];
 
@@ -525,6 +527,11 @@ namespace MDSound
             chip.Mute = val;
         }
 
+        public override int Write(byte ChipID, int port, int adr, int data)
+        {
+            SN76489_Write(ChipID, data);
+            return 0;
+        }
     }
 
 }

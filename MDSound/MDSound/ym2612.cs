@@ -2243,7 +2243,9 @@ namespace MDSound
         private const uint DefaultFMClockValue = 7670454;
 
         public ym2612_[] YM2612_Chip = new ym2612_[MAX_CHIPS] { null, null };
-        public new const string Name = "YM2612";
+
+        public override string Name { get { return "YM2612"; } set { } }
+        public override string ShortName { get { return "OPN2"; } set { } }
 
         public ym2612()
         {
@@ -2264,7 +2266,7 @@ namespace MDSound
             return clock;
         }
 
-        public uint Start(byte ChipID, uint clock,uint FMClockValue,params object[] option)
+        public override uint Start(byte ChipID, uint clock,uint FMClockValue,params object[] option)
         {
             ym2612_ ym2612 = YM2612_Init(FMClockValue, clock, (int)FMClockValue);
             YM2612_Chip[ChipID] = ym2612;
@@ -2382,7 +2384,7 @@ namespace MDSound
             visVolume[ChipID][0][1] = outputs[1][0];
         }
 
-        public int YM2612_Write(byte ChipID, byte adr, byte data)
+        private int YM2612_Write(byte ChipID, byte adr, byte data)
         {
             ym2612_ YM2612 = YM2612_Chip[ChipID];
             if (YM2612 == null) return 0;
@@ -2480,7 +2482,11 @@ namespace MDSound
             YM2612.DAC_Mute = val & 32;
         }
 
-
+        public override int Write(byte ChipID, int port, int adr, int data)
+        {
+            return YM2612_Write(ChipID, (byte)adr, (byte)data);
+            throw new NotImplementedException();
+        }
     }
 
     public class slot_

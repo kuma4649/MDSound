@@ -17,7 +17,7 @@ namespace MDSound
             return (UInt32)device_start_ymf262(ChipID, (Int32)14318180);
         }
 
-        public uint Start(byte ChipID, uint clock, uint FMClockValue, params object[] option)
+        public override uint Start(byte ChipID, uint clock, uint FMClockValue, params object[] option)
         {
 
             return (UInt32)device_start_ymf262(ChipID, (Int32)FMClockValue);
@@ -33,7 +33,7 @@ namespace MDSound
             ymf262_stream_update(ChipID, outputs, samples);   
         }
 
-        public int YMF262_Write(byte ChipID, uint adr, byte data)
+        private int YMF262_Write(byte ChipID, uint adr, byte data)
         {
             ymf262_w(ChipID, (adr & 0x100) != 0 ? 0x02 : 0x00, (byte)(adr & 0xff));
             ymf262_w(ChipID, (adr & 0x100) != 0 ? 0x03 : 0x01, data);
@@ -116,8 +116,9 @@ namespace MDSound
         {
             //sound_stream *	stream;
             //emu_timer *		timer[2];
-            //public object chip;
-            public OPL_DATA chip;
+            public object chip;
+            //public OPL_DATA chip;
+            //public OPL3 chip;
             //const ymf262_interface *intf;
             //const device_config *device;
         }
@@ -181,11 +182,11 @@ namespace MDSound
             {
                 //# ifdef ENABLE_ALL_CORES
                 case EC_MAME:
-                    //ymf262_update_one(info.chip, outputs, samples);
+                    ymf262_update_one((OPL3)info.chip, outputs, samples);
                     break;
                 //#endif
                 case EC_DBOPL:
-                    adlib_OPL3_getsample(info.chip, outputs, samples);
+                    adlib_OPL3_getsample((OPL_DATA)info.chip, outputs, samples);
                     break;
             }
         }
@@ -199,11 +200,11 @@ namespace MDSound
             {
                 //# ifdef ENABLE_ALL_CORES
                 case EC_MAME:
-                    //ymf262_update_one(info.chip, DUMMYBUF, 0);
+                    ymf262_update_one((OPL3)info.chip, DUMMYBUF, 0);
                     break;
                 //#endif
                 case EC_DBOPL:
-                    adlib_OPL3_getsample(info.chip, DUMMYBUF, 0);
+                    adlib_OPL3_getsample((OPL_DATA)info.chip, DUMMYBUF, 0);
                     break;
             }
         }
@@ -241,9 +242,9 @@ namespace MDSound
                     //info->stream = stream_create(device,0,4,rate,info,ymf262_stream_update);
 
                     /* YMF262 setup */
-                    ymf262_set_timer_handler(info.chip, timer_handler_262, info);
-                    ymf262_set_irq_handler(info.chip, IRQHandler_262, info);
-                    ymf262_set_update_handler(info.chip, _stream_update, info);
+                    //ymf262_set_timer_handler(info.chip, timer_handler_262, info);
+                    //ymf262_set_irq_handler(info.chip, IRQHandler_262, info);
+                    //ymf262_set_update_handler(info.chip, _stream_update, info);
 
                     //info->timer[0] = timer_alloc(device->machine, timer_callback_262_0, info);
                     //info->timer[1] = timer_alloc(device->machine, timer_callback_262_1, info);
@@ -266,11 +267,11 @@ namespace MDSound
             {
                 //# ifdef ENABLE_ALL_CORES
                 case EC_MAME:
-                    ymf262_shutdown(info.chip);
+                    ymf262_shutdown((OPL3)info.chip);
                     break;
                 //#endif
                 case EC_DBOPL:
-                    adlib_OPL3_stop(info.chip);
+                    adlib_OPL3_stop((OPL_DATA)info.chip);
                     break;
             }
         }
@@ -285,11 +286,11 @@ namespace MDSound
             {
                 //# ifdef ENABLE_ALL_CORES
                 case EC_MAME:
-                    ymf262_reset_chip(info.chip);
+                    ymf262_reset_chip((OPL3)info.chip);
                     break;
                 //#endif
                 case EC_DBOPL:
-                    adlib_OPL3_reset(info.chip);
+                    adlib_OPL3_reset((OPL_DATA)info.chip);
                     break;
             }
         }
@@ -304,10 +305,10 @@ namespace MDSound
             {
                 //# ifdef ENABLE_ALL_CORES
                 case EC_MAME:
-                    return ymf262_read(info.chip, offset & 3);
+                    return ymf262_read((OPL3)info.chip, offset & 3);
                 //#endif
                 case EC_DBOPL:
-                    return (byte)adlib_OPL3_reg_read(info.chip, (UInt32)(offset & 0x03));
+                    return (byte)adlib_OPL3_reg_read((OPL_DATA)info.chip, (UInt32)(offset & 0x03));
                 default:
                     return 0x00;
             }
@@ -323,11 +324,11 @@ namespace MDSound
             {
                 //# ifdef ENABLE_ALL_CORES
                 case EC_MAME:
-                    ymf262_write(info.chip, offset & 3, data);
+                    ymf262_write((OPL3)info.chip, offset & 3, data);
                     break;
                 //#endif
                 case EC_DBOPL:
-                    adlib_OPL3_writeIO(info.chip, (UInt32)(offset & 3), data);
+                    adlib_OPL3_writeIO((OPL_DATA)info.chip, (UInt32)(offset & 3), data);
                     break;
             }
         }
@@ -378,11 +379,11 @@ namespace MDSound
             {
                 //# ifdef ENABLE_ALL_CORES
                 case EC_MAME:
-                    ymf262_set_mutemask(info.chip, MuteMask);
+                    ymf262_set_mutemask((OPL3)info.chip, MuteMask);
                     break;
                 //#endif
                 case EC_DBOPL:
-                    adlib_OPL3_set_mute_mask(info.chip, MuteMask);
+                    adlib_OPL3_set_mute_mask((OPL_DATA)info.chip, MuteMask);
                     break;
             }
 
@@ -457,19 +458,19 @@ namespace MDSound
 
 
         //public void ymf262_init(Int32 clock, Int32 rate) { }
-        public void ymf262_shutdown(object chip) { }
-        public void ymf262_reset_chip(object chip) { }
-        public Int32 ymf262_write(object chip, Int32 a, Int32 v) { return 0; }
-        public byte ymf262_read(object chip, Int32 a) { return 0; }
-        public Int32 ymf262_timer_over(object chip, Int32 c) { return 0; }
+        //public void ymf262_shutdown(object chip) { }
+        //public void ymf262_reset_chip(object chip) { }
+        //public Int32 ymf262_write(object chip, Int32 a, Int32 v) { return 0; }
+        //public byte ymf262_read(object chip, Int32 a) { return 0; }
+        //public Int32 ymf262_timer_over(object chip, Int32 c) { return 0; }
         //public void ymf262_update_one(object chip, Int32[][] buffers, Int32 length) { }
 
-        public void ymf262_set_timer_handler(object chip, OPL3_TIMERHANDLER TimerHandler, object param) { }
-        public void ymf262_set_irq_handler(object chip, OPL3_IRQHANDLER IRQHandler, object param) { }
-        public void ymf262_set_update_handler(object chip, OPL3_UPDATEHANDLER UpdateHandler, object param) { }
+        //public void ymf262_set_timer_handler(object chip, OPL3_TIMERHANDLER TimerHandler, object param) { }
+        //public void ymf262_set_irq_handler(object chip, OPL3_IRQHANDLER IRQHandler, object param) { }
+        //public void ymf262_set_update_handler(object chip, OPL3_UPDATEHANDLER UpdateHandler, object param) { }
 
         //public void ymf262_set_emu_core(byte Emulator) { }
-        public void ymf262_set_mutemask(object chip, UInt32 MuteMask) { }
+        //public void ymf262_set_mutemask(object chip, UInt32 MuteMask) { }
 
 
 
@@ -634,7 +635,44 @@ differences between OPL2 and OPL3 shown in datasheets:
             public UInt32 Cnt;     /* frequency counter            */
             public UInt32 Incr;        /* frequency counter step       */
             public byte FB;           /* feedback shift value         */
-            public Int32 connect; /* slot output pointer          */
+            //public Int32 connect; /* slot output pointer          */
+            public class Connect
+            {
+                public OPL3 opl3=null;
+                public int index=0;
+
+                public void setValue(Int32 value)
+                {
+                    if (index < 18)
+                    {
+                        opl3.chanout[index] = value;
+                    }
+                    else if (index == 18)
+                    {
+                        opl3.phase_modulation = value;
+                    }
+                    else
+                    {
+                        opl3.phase_modulation2 = value;
+                    }
+                }
+                public Int32 getValue()
+                {
+                    if (index < 18)
+                    {
+                        return opl3.chanout[index];
+                    }
+                    else if (index == 18)
+                    {
+                        return opl3.phase_modulation;
+                    }
+                    else
+                    {
+                        return opl3.phase_modulation2;
+                    }
+                }
+            }
+            public Connect connect = new Connect();
             public Int32[] op1_out = new Int32[2];   /* slot1 output for feedback    */
             public byte CON;      /* connection (algorithm) type  */
 
@@ -765,6 +803,17 @@ differences between OPL2 and OPL3 shown in datasheets:
             public Int32 rate;                       /* sampling rate (Hz)           */
             public double freqbase;             /* frequency base               */
                                                 //attotime TimerBase;			/* Timer base time (==sampling time)*/
+
+            public OPL3()
+            {
+                foreach(OPL3_CH ch in P_CH)
+                {
+                    ch.SLOT[0].connect.opl3 = this;
+                    ch.SLOT[0].connect.index = 0;
+                    ch.SLOT[1].connect.opl3 = this;
+                    ch.SLOT[1].connect.index = 0;
+                }
+            }
         }
 
 
@@ -1332,7 +1381,9 @@ differences between OPL2 and OPL3 shown in datasheets:
         }
 
 
-        private UInt32 volume_calc(OPL3 chip, OPL3_SLOT OP) { return (UInt32)(OP.TLL + ((UInt32)OP.volume) + (chip.LFO_AM & OP.AMmask)); }
+        private UInt32 volume_calc(OPL3 chip, OPL3_SLOT OP) {
+            return (UInt32)(OP.TLL + ((UInt32)OP.volume) + (chip.LFO_AM & OP.AMmask));
+        }
 
         /* calculate output of a standard 2 operator channel
          (or 1st part of a 4-op channel) */
@@ -1359,7 +1410,8 @@ differences between OPL2 and OPL3 shown in datasheets:
                     _out = 0;
                 SLOT.op1_out[1] = op_calc1(SLOT.Cnt, env, (_out << SLOT.FB), SLOT.wavetable);
             }
-            SLOT.connect += SLOT.op1_out[1];
+            //SLOT.connect += SLOT.op1_out[1];
+            SLOT.connect.setValue(SLOT.connect.getValue() + SLOT.op1_out[1]);
             //logerror("out0=%5i vol0=%4i ", SLOT->op1_out[1], env );
 
             /* SLOT 2 */
@@ -1367,8 +1419,10 @@ differences between OPL2 and OPL3 shown in datasheets:
             SLOT = CH.SLOT[SLOT2];
             env = volume_calc(chip, SLOT);
             if (env < ENV_QUIET)
-                SLOT.connect += op_calc(SLOT.Cnt, env, chip.phase_modulation, SLOT.wavetable);
-
+            {
+                //SLOT.connect += op_calc(SLOT.Cnt, env, chip.phase_modulation, SLOT.wavetable);
+                SLOT.connect.setValue(SLOT.connect.getValue() + op_calc(SLOT.Cnt, env, chip.phase_modulation, SLOT.wavetable));
+            }
             //logerror("out1=%5i vol1=%4i\n", op_calc(SLOT->Cnt, env, chip->phase_modulation, SLOT->wavetable), env );
 
         }
@@ -1388,15 +1442,19 @@ differences between OPL2 and OPL3 shown in datasheets:
             SLOT = CH.SLOT[SLOT1];
             env = volume_calc(chip, SLOT);
             if (env < ENV_QUIET)
-                SLOT.connect += op_calc(SLOT.Cnt, env, chip.phase_modulation2, SLOT.wavetable);
-
+            {
+                //SLOT.connect += op_calc(SLOT.Cnt, env, chip.phase_modulation2, SLOT.wavetable);
+                SLOT.connect.setValue(SLOT.connect.getValue() + op_calc(SLOT.Cnt, env, chip.phase_modulation2, SLOT.wavetable));
+            }
             /* SLOT 2 */
             //SLOT++;
             SLOT = CH.SLOT[SLOT2];
             env = volume_calc(chip, SLOT);
             if (env < ENV_QUIET)
-                SLOT.connect += op_calc(SLOT.Cnt, env, chip.phase_modulation, SLOT.wavetable);
-
+            {
+                //SLOT.connect += op_calc(SLOT.Cnt, env, chip.phase_modulation, SLOT.wavetable);
+                SLOT.connect.setValue(SLOT.connect.getValue() + op_calc(SLOT.Cnt, env, chip.phase_modulation, SLOT.wavetable));
+            }
         }
 
         /*
@@ -2628,45 +2686,63 @@ differences between OPL2 and OPL3 shown in datasheets:
                                         case 0:
                                             /* 1 -> 2 -> 3 -> 4 - out */
 
-                                            CH.SLOT[SLOT1].connect = chip.phase_modulation;
-                                            CH.SLOT[SLOT2].connect = chip.phase_modulation2;
-                                            CH_P3.SLOT[SLOT1].connect = chip.phase_modulation;
-                                            CH_P3.SLOT[SLOT2].connect = chanout[chan_no + 3];
+                                            //CH.SLOT[SLOT1].connect = chip.phase_modulation;
+                                            //CH.SLOT[SLOT2].connect = chip.phase_modulation2;
+                                            //CH_P3.SLOT[SLOT1].connect = chip.phase_modulation;
+                                            //CH_P3.SLOT[SLOT2].connect = chanout[chan_no + 3];
+                                            CH.SLOT[SLOT1].connect.index = 18;
+                                            CH.SLOT[SLOT2].connect.index = 19;
+                                            CH_P3.SLOT[SLOT1].connect.index = 18;
+                                            CH_P3.SLOT[SLOT2].connect.index = chan_no + 3;
                                             break;
                                         case 1:
                                             /* 1 -> 2 -\
                                                3 -> 4 -+- out */
 
-                                            CH.SLOT[SLOT1].connect = chip.phase_modulation;
-                                            CH.SLOT[SLOT2].connect = chanout[chan_no];
-                                            CH_P3.SLOT[SLOT1].connect = chip.phase_modulation;
-                                            CH_P3.SLOT[SLOT2].connect = chanout[chan_no + 3];
+                                            //CH.SLOT[SLOT1].connect = chip.phase_modulation;
+                                            //CH.SLOT[SLOT2].connect = chanout[chan_no];
+                                            //CH_P3.SLOT[SLOT1].connect = chip.phase_modulation;
+                                            //CH_P3.SLOT[SLOT2].connect = chanout[chan_no + 3];
+                                            CH.SLOT[SLOT1].connect.index = 18;
+                                            CH.SLOT[SLOT2].connect.index = chan_no;
+                                            CH_P3.SLOT[SLOT1].connect.index = 18;
+                                            CH_P3.SLOT[SLOT2].connect.index = chan_no + 3;
                                             break;
                                         case 2:
                                             /* 1 -----------\
                                                2 -> 3 -> 4 -+- out */
 
-                                            CH.SLOT[SLOT1].connect = chanout[chan_no];
-                                            CH.SLOT[SLOT2].connect = chip.phase_modulation2;
-                                            CH_P3.SLOT[SLOT1].connect = chip.phase_modulation;
-                                            CH_P3.SLOT[SLOT2].connect = chanout[chan_no + 3];
+                                            //CH.SLOT[SLOT1].connect = chanout[chan_no];
+                                            //CH.SLOT[SLOT2].connect = chip.phase_modulation2;
+                                            //CH_P3.SLOT[SLOT1].connect = chip.phase_modulation;
+                                            //CH_P3.SLOT[SLOT2].connect = chanout[chan_no + 3];
+                                            CH.SLOT[SLOT1].connect.index = chan_no;
+                                            CH.SLOT[SLOT2].connect.index = 19;
+                                            CH_P3.SLOT[SLOT1].connect.index = 18;
+                                            CH_P3.SLOT[SLOT2].connect.index = chan_no + 3;
                                             break;
                                         case 3:
                                             /* 1 ------\
                                                2 -> 3 -+- out
                                                4 ------/     */
-                                            CH.SLOT[SLOT1].connect = chanout[chan_no];
-                                            CH.SLOT[SLOT2].connect = chip.phase_modulation2;
-                                            CH_P3.SLOT[SLOT1].connect = chanout[chan_no + 3];
-                                            CH_P3.SLOT[SLOT2].connect = chanout[chan_no + 3];
+                                            //CH.SLOT[SLOT1].connect = chanout[chan_no];
+                                            //CH.SLOT[SLOT2].connect = chip.phase_modulation2;
+                                            //CH_P3.SLOT[SLOT1].connect = chanout[chan_no + 3];
+                                            //CH_P3.SLOT[SLOT2].connect = chanout[chan_no + 3];
+                                            CH.SLOT[SLOT1].connect.index =chan_no;
+                                            CH.SLOT[SLOT2].connect.index = 19;
+                                            CH_P3.SLOT[SLOT1].connect.index = chan_no + 3;
+                                            CH_P3.SLOT[SLOT2].connect.index = chan_no + 3;
                                             break;
                                     }
                                 }
                                 else
                                 {
                                     /* 2 operators mode */
-                                    CH.SLOT[SLOT1].connect = CH.SLOT[SLOT1].CON != 0 ? chanout[(r & 0xf) + ch_offset] : chip.phase_modulation;
-                                    CH.SLOT[SLOT2].connect = chanout[(r & 0xf) + ch_offset];
+                                    //CH.SLOT[SLOT1].connect = CH.SLOT[SLOT1].CON != 0 ? chanout[(r & 0xf) + ch_offset] : chip.phase_modulation;
+                                    //CH.SLOT[SLOT2].connect = chanout[(r & 0xf) + ch_offset];
+                                    CH.SLOT[SLOT1].connect.index = CH.SLOT[SLOT1].CON != 0 ? (int)((r & 0xf) + ch_offset) : 18;
+                                    CH.SLOT[SLOT2].connect.index = (int)((r & 0xf) + ch_offset);
                                 }
                                 break;
 
@@ -2684,60 +2760,82 @@ differences between OPL2 and OPL3 shown in datasheets:
                                         case 0:
                                             /* 1 -> 2 -> 3 -> 4 - out */
 
-                                            CH_M3.SLOT[SLOT1].connect = chip.phase_modulation;
-                                            CH_M3.SLOT[SLOT2].connect = chip.phase_modulation2;
-                                            CH.SLOT[SLOT1].connect = chip.phase_modulation;
-                                            CH.SLOT[SLOT2].connect = chanout[chan_no];
+                                            //CH_M3.SLOT[SLOT1].connect = chip.phase_modulation;
+                                            //CH_M3.SLOT[SLOT2].connect = chip.phase_modulation2;
+                                            //CH.SLOT[SLOT1].connect = chip.phase_modulation;
+                                            //CH.SLOT[SLOT2].connect = chanout[chan_no];
+                                            CH_M3.SLOT[SLOT1].connect.index = 18;
+                                            CH_M3.SLOT[SLOT2].connect.index = 19;
+                                            CH.SLOT[SLOT1].connect.index = 18;
+                                            CH.SLOT[SLOT2].connect.index = chan_no;
                                             break;
                                         case 1:
                                             /* 1 -> 2 -\
                                                3 -> 4 -+- out */
 
-                                            CH_M3.SLOT[SLOT1].connect = chip.phase_modulation;
-                                            CH_M3.SLOT[SLOT2].connect = chanout[chan_no - 3];
-                                            CH.SLOT[SLOT1].connect = chip.phase_modulation;
-                                            CH.SLOT[SLOT2].connect = chanout[chan_no];
+                                            //CH_M3.SLOT[SLOT1].connect = chip.phase_modulation;
+                                            //CH_M3.SLOT[SLOT2].connect = chanout[chan_no - 3];
+                                            //CH.SLOT[SLOT1].connect = chip.phase_modulation;
+                                            //CH.SLOT[SLOT2].connect = chanout[chan_no];
+                                            CH_M3.SLOT[SLOT1].connect.index = 18;
+                                            CH_M3.SLOT[SLOT2].connect.index = chan_no - 3;
+                                            CH.SLOT[SLOT1].connect.index = 18;
+                                            CH.SLOT[SLOT2].connect.index = chan_no;
                                             break;
                                         case 2:
                                             /* 1 -----------\
                                                2 -> 3 -> 4 -+- out */
 
-                                            CH_M3.SLOT[SLOT1].connect = chanout[chan_no - 3];
-                                            CH_M3.SLOT[SLOT2].connect = chip.phase_modulation2;
-                                            CH.SLOT[SLOT1].connect = chip.phase_modulation;
-                                            CH.SLOT[SLOT2].connect = chanout[chan_no];
+                                            //CH_M3.SLOT[SLOT1].connect = chanout[chan_no - 3];
+                                            //CH_M3.SLOT[SLOT2].connect = chip.phase_modulation2;
+                                            //CH.SLOT[SLOT1].connect = chip.phase_modulation;
+                                            //CH.SLOT[SLOT2].connect = chanout[chan_no];
+                                            CH_M3.SLOT[SLOT1].connect.index = chan_no - 3;
+                                            CH_M3.SLOT[SLOT2].connect.index = 19;
+                                            CH.SLOT[SLOT1].connect.index = 18;
+                                            CH.SLOT[SLOT2].connect.index = chan_no;
                                             break;
                                         case 3:
                                             /* 1 ------\
                                                2 -> 3 -+- out
                                                4 ------/     */
-                                            CH_M3.SLOT[SLOT1].connect = chanout[chan_no - 3];
-                                            CH_M3.SLOT[SLOT2].connect = chip.phase_modulation2;
-                                            CH.SLOT[SLOT1].connect = chanout[chan_no];
-                                            CH.SLOT[SLOT2].connect = chanout[chan_no];
+                                            //CH_M3.SLOT[SLOT1].connect = chanout[chan_no - 3];
+                                            //CH_M3.SLOT[SLOT2].connect = chip.phase_modulation2;
+                                            //CH.SLOT[SLOT1].connect = chanout[chan_no];
+                                            //CH.SLOT[SLOT2].connect = chanout[chan_no];
+                                            CH_M3.SLOT[SLOT1].connect.index = chan_no - 3;
+                                            CH_M3.SLOT[SLOT2].connect.index = 19;
+                                            CH.SLOT[SLOT1].connect.index = chan_no;
+                                            CH.SLOT[SLOT2].connect.index = chan_no;
                                             break;
                                     }
                                 }
                                 else
                                 {
                                     /* 2 operators mode */
-                                    CH.SLOT[SLOT1].connect = CH.SLOT[SLOT1].CON != 0 ? chanout[(r & 0xf) + ch_offset] : chip.phase_modulation;
-                                    CH.SLOT[SLOT2].connect = chanout[(r & 0xf) + ch_offset];
+                                    //CH.SLOT[SLOT1].connect = CH.SLOT[SLOT1].CON != 0 ? chanout[(r & 0xf) + ch_offset] : chip.phase_modulation;
+                                    //CH.SLOT[SLOT2].connect = chanout[(r & 0xf) + ch_offset];
+                                    CH.SLOT[SLOT1].connect.index = CH.SLOT[SLOT1].CON != 0 ? (int)((r & 0xf) + ch_offset) : 18;
+                                    CH.SLOT[SLOT2].connect.index = (int)((r & 0xf) + ch_offset);
                                 }
                                 break;
 
                             default:
                                 /* 2 operators mode */
-                                CH.SLOT[SLOT1].connect = CH.SLOT[SLOT1].CON != 0 ? chanout[(r & 0xf) + ch_offset] : chip.phase_modulation;
-                                CH.SLOT[SLOT2].connect = chanout[(r & 0xf) + ch_offset];
+                                //CH.SLOT[SLOT1].connect = CH.SLOT[SLOT1].CON != 0 ? chanout[(r & 0xf) + ch_offset] : chip.phase_modulation;
+                                //CH.SLOT[SLOT2].connect = chanout[(r & 0xf) + ch_offset];
+                                CH.SLOT[SLOT1].connect.index = CH.SLOT[SLOT1].CON != 0 ? (int)((r & 0xf) + ch_offset) : 18;
+                                CH.SLOT[SLOT2].connect.index = (int)((r & 0xf) + ch_offset);
                                 break;
                         }
                     }
                     else
                     {
                         /* OPL2 mode - always 2 operators mode */
-                        CH.SLOT[SLOT1].connect = CH.SLOT[SLOT1].CON != 0 ? chanout[(r & 0xf) + ch_offset] : chip.phase_modulation;
-                        CH.SLOT[SLOT2].connect = chanout[(r & 0xf) + ch_offset];
+                        //CH.SLOT[SLOT1].connect = CH.SLOT[SLOT1].CON != 0 ? chanout[(r & 0xf) + ch_offset] : chip.phase_modulation;
+                        //CH.SLOT[SLOT2].connect = chanout[(r & 0xf) + ch_offset];
+                        CH.SLOT[SLOT1].connect.index = CH.SLOT[SLOT1].CON != 0 ? (int)((r & 0xf) + ch_offset) : 18;
+                        CH.SLOT[SLOT2].connect.index = (int)((r & 0xf) + ch_offset);
                     }
                     break;
 
@@ -2996,22 +3094,22 @@ differences between OPL2 and OPL3 shown in datasheets:
             return OPL3Create(clock, rate, OPL3_TYPE_YMF262);
         }
 
-        private void ymf262_shutdown(OPL3 chip)
+        public void ymf262_shutdown(OPL3 chip)
         {
             OPL3Destroy((OPL3)chip);
         }
 
-        private void ymf262_reset_chip(OPL3 chip)
+        public void ymf262_reset_chip(OPL3 chip)
         {
             OPL3ResetChip((OPL3)chip);
         }
 
-        private Int32 ymf262_write(OPL3 chip, Int32 a, Int32 v)
+        public Int32 ymf262_write(OPL3 chip, Int32 a, Int32 v)
         {
             return OPL3Write((OPL3)chip, a, v);
         }
 
-        private byte ymf262_read(OPL3 chip, Int32 a)
+        public byte ymf262_read(OPL3 chip, Int32 a)
         {
             /* Note on status register: */
 
@@ -3045,7 +3143,7 @@ differences between OPL2 and OPL3 shown in datasheets:
             OPL3SetUpdateHandler((OPL3)chip, UpdateHandler, param);
         }
 
-        private void ymf262_set_mutemask(OPL3 chip, UInt32 MuteMask)
+        public void ymf262_set_mutemask(OPL3 chip, UInt32 MuteMask)
         {
             OPL3 opl3 = (OPL3)chip;
             byte CurChn;
@@ -3259,6 +3357,8 @@ differences between OPL2 and OPL3 shown in datasheets:
                 ch_b[i] = b + d;
                 //ch_c[i] = c;
                 //ch_d[i] = d;
+
+                //Console.WriteLine("{0} {1}", ch_a[i], ch_b[i]);
 
                 advance(chip);
             }
@@ -4784,6 +4884,10 @@ differences between OPL2 and OPL3 shown in datasheets:
 
         Int32[] vib_lut = new Int32[BLOCKBUF_SIZE];
         Int32[] trem_lut = new Int32[BLOCKBUF_SIZE];
+
+        public override string Name { get { return "YMF262"; } set { } }
+        public override string ShortName { get { return "OPL3"; } set { } }
+
         //void adlib_getsample(Int16* sndptr, Int32 numsamples)
         private void adlib_OPL3_getsample(OPL_DATA chip, Int32[][] sndptr, Int32 numsamples)
         {
@@ -5808,5 +5912,9 @@ differences between OPL2 and OPL3 shown in datasheets:
             return;
         }
 
+        public override int Write(byte ChipID, int port, int adr, int data)
+        {
+            return YMF262_Write(ChipID, (uint)adr, (byte)data);
+        }
     }
 }

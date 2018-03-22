@@ -314,6 +314,9 @@ namespace MDSound
                                 bufR[j] += (int)(CH.Data * CH.MUL_R);
                             }
 
+                            bufL[j] = MDSound.Limit(bufL[j], Int16.MaxValue , Int16.MinValue );
+                            bufR[j] = MDSound.Limit(bufR[j], Int16.MaxValue , Int16.MinValue );
+
                             // update address register
                             k = Addr + 1;
                             CH.Addr = (CH.Addr + CH.Step) & 0x7FFFFFF;
@@ -342,7 +345,8 @@ namespace MDSound
 
 
 
-        public new const string Name = "RF5C164";
+        public override string Name { get { return "RF5C164"; } set { } }
+        public override string ShortName { get { return "RF5C"; } set { } }
 
         public scd_pcm()
         {
@@ -363,7 +367,7 @@ namespace MDSound
             visVolume[ChipID][0][1] = outputs[1][0];
         }
 
-        public uint Start(byte ChipID,uint Samplingrate, uint clock,params object[] option)
+        public override uint Start(byte ChipID,uint Samplingrate, uint clock,params object[] option)
         {
             //Samplingrate 未使用
             return Start(ChipID, clock);
@@ -410,7 +414,7 @@ namespace MDSound
         }
 
 
-        public void rf5c164_w(byte ChipID, uint offset, byte data)
+        private void rf5c164_w(byte ChipID, uint offset, byte data)
         {
             //struct pcm_chip_ *chip = &PCM_Chip[ChipID];
             PCM_Write_Reg(ChipID, offset, data);
@@ -469,5 +473,10 @@ namespace MDSound
             return;
         }
 
+        public override int Write(byte ChipID, int port, int adr, int data)
+        {
+            rf5c164_w(ChipID, (uint)adr, (byte)data);
+            return 0;
+        }
     }
 }

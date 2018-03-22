@@ -17,7 +17,7 @@ namespace MDSound
             return (uint)device_start_multipcm(ChipID, (int)clock);
         }
 
-        public uint Start(byte ChipID, uint samplingrate, uint clock, params object[] option)
+        public override uint Start(byte ChipID, uint samplingrate, uint clock, params object[] option)
         {
             return (uint)device_start_multipcm(ChipID, (int)clock);
         }
@@ -307,6 +307,9 @@ namespace MDSound
         private float[] ASCALE = new float[8] { 0.0f, 0.4f, 0.8f, 1.5f, 3.0f, 6.0f, 12.0f, 24.0f };                 //DB
         private Int32[][] PSCALES = new Int32[8][] { new Int32[256], new Int32[256], new Int32[256], new Int32[256], new Int32[256], new Int32[256], new Int32[256], new Int32[256] };
         private Int32[][] ASCALES = new Int32[8][] { new Int32[256], new Int32[256], new Int32[256], new Int32[256], new Int32[256], new Int32[256], new Int32[256], new Int32[256] };
+
+        public override string Name { get { return "Multi PCM"; } set { } }
+        public override string ShortName { get { return "mPCM"; } set { } }
 
         private void LFO_Init()
         {
@@ -778,7 +781,7 @@ namespace MDSound
 
 
         //WRITE8_DEVICE_HANDLER( multipcm_w )
-        public void multipcm_w(byte ChipID, Int32 offset, byte data)
+        private void multipcm_w(byte ChipID, Int32 offset, byte data)
         {
             //MultiPCM *ptChip = get_safe_token(device);
             _MultiPCM ptChip = MultiPCMData[ChipID];
@@ -937,6 +940,12 @@ namespace MDSound
                 ptChip.Slots[CurChn].Muted = (byte)((MuteMask >> CurChn) & 0x01);
 
             return;
+        }
+
+        public override int Write(byte ChipID, int port, int adr, int data)
+        {
+            multipcm_w(ChipID, adr, (byte)data);
+            return 0;
         }
 
         //#if 0	// for debugging only

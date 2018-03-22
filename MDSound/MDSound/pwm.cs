@@ -104,7 +104,7 @@ namespace MDSound
 
         //#if CHILLY_WILLY_SCALE
         // TODO: Fix Chilly Willy's new scaling algorithm.
-        private const int PWM_Loudness = 2;
+        private const int PWM_Loudness = 0;
         //#endif
 
         //void PWM_Init(pwm_chip* chip);
@@ -352,7 +352,8 @@ namespace MDSound
 
 
 
-        public new const string Name = "PWM";
+        public override string Name { get { return "PWM"; } set { } }
+        public override string ShortName { get { return "PWM"; } set { } }
 
         public pwm()
         {
@@ -373,7 +374,7 @@ namespace MDSound
             visVolume[ChipID][0][1] = outputs[1][0];
         }
 
-        public uint Start(byte ChipID, uint Samplingrate, uint clock, params object[] option)
+        public override uint Start(byte ChipID, uint Samplingrate, uint clock, params object[] option)
         {
             return Start(ChipID, clock);
         }
@@ -416,7 +417,7 @@ namespace MDSound
             PWM_Init(chip);
         }
 
-        public void pwm_chn_w(byte ChipID, byte Channel, uint data)
+        private void pwm_chn_w(byte ChipID, byte Channel, uint data)
         {
             pwm_chip chip = PWM_Chip[ChipID];
 
@@ -480,5 +481,10 @@ namespace MDSound
             return;
         }
 
+        public override int Write(byte ChipID, int port, int adr, int data)
+        {
+            pwm_chn_w(ChipID, (byte)adr, (uint)data);
+            return 0;
+        }
     }
 }

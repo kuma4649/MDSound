@@ -17,7 +17,7 @@ namespace MDSound
             return (UInt32)device_start_k051649(ChipID, (Int32)clock);
         }
 
-        public uint Start(byte ChipID, uint SamplingRate, uint clock, params object[] Option)
+        public override uint Start(byte ChipID, uint SamplingRate, uint clock, params object[] Option)
         {
             for (int j = 0; j < SCC1Data.Length; j++)
             {
@@ -115,6 +115,9 @@ namespace MDSound
 
         private const Int32 MAX_CHIPS = 0x02;
         private static k051649_state[] SCC1Data = new k051649_state[MAX_CHIPS];
+
+        public override string Name { get { return "K051649"; } set { } }
+        public override string ShortName { get { return "K051"; } set { } }
 
         /*INLINE k051649_state *get_safe_token(running_device *device)
         {
@@ -413,7 +416,7 @@ namespace MDSound
         }
 
 
-        public void k051649_w(byte ChipID, Int32 offset, byte data)
+        private void k051649_w(byte ChipID, Int32 offset, byte data)
         {
             k051649_state info = SCC1Data[ChipID];
 
@@ -459,6 +462,12 @@ namespace MDSound
                 info.channel_list[CurChn].Muted = (byte)((MuteMask >> CurChn) & 0x01);
 
             return;
+        }
+
+        public override int Write(byte ChipID, int port, int adr, int data)
+        {
+            k051649_w(ChipID, adr, (byte)data);
+            return 0;
         }
 
         /**************************************************************************

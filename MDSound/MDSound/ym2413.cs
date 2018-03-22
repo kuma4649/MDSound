@@ -2451,7 +2451,10 @@ namespace MDSound
 
         private OPLL[] opll_ = new OPLL[2];
 
-        public uint Start(byte ChipID, uint SamplingRate, uint FMClockValue, params object[] Option)
+        public override string Name { get { return "YM2413"; } set { } }
+        public override string ShortName { get { return "OPLL"; } set { } }
+
+        public override uint Start(byte ChipID, uint SamplingRate, uint FMClockValue, params object[] Option)
         {
             opll_[ChipID] = OPLL_new(FMClockValue, SamplingRate);
             //OPLL_set_quality(opll_[ChipID], 1);
@@ -2481,9 +2484,15 @@ namespace MDSound
 
         }
 
-        public void YM2413_Write(byte ChipID, byte Adr, byte Data)
+        private void YM2413_Write(byte ChipID, byte Adr, byte Data)
         {
             OPLL_writeReg(opll_[ChipID], Adr, Data);
+        }
+
+        public override int Write(byte ChipID, int port, int adr, int data)
+        {
+            YM2413_Write(ChipID, (byte)adr, (byte)data);
+            return 0;
         }
     }
 }

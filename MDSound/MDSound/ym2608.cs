@@ -1,10 +1,15 @@
-﻿namespace MDSound
+﻿using System;
+
+namespace MDSound
 {
     public class ym2608 : Instrument
     {
         private fmgen.OPNA[] chip = new fmgen.OPNA[2];
         //private fmgen.OPNA2[] chip = new fmgen.OPNA2[2];
         private const uint DefaultYM2608ClockValue = 8000000;
+
+        public override string Name { get { return "YM2608"; } set { } }
+        public override string ShortName { get { return "OPNA"; } set { } }
 
         public ym2608()
         {
@@ -29,7 +34,7 @@
             return clock;
         }
 
-        public uint Start(byte ChipID, uint clock, uint FMClockValue, params object[] option)
+        public override uint Start(byte ChipID, uint clock, uint FMClockValue, params object[] option)
         {
             chip[ChipID] = new fmgen.OPNA();
             //chip[ChipID] = new fmgen.OPNA2();
@@ -68,7 +73,7 @@
             visVolume[ChipID][4][1] = chip[ChipID].visAPCMVolume[1];
         }
 
-        public int YM2608_Write(byte ChipID, uint adr, byte data)
+        private int YM2608_Write(byte ChipID, uint adr, byte data)
         {
             if (chip[ChipID] == null) return 0;
 
@@ -104,5 +109,9 @@
             chip[ChipID].SetVolumeADPCM(db);
         }
 
+        public override int Write(byte ChipID, int port, int adr, int data)
+        {
+            return YM2608_Write(ChipID, (uint)adr, (byte)data);
+        }
     }
 }

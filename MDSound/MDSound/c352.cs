@@ -7,7 +7,6 @@ namespace MDSound
 {
     public class c352 : Instrument
     {
-        public new const string Name = "C352";
 
         public c352()
         {
@@ -41,7 +40,7 @@ namespace MDSound
             visVolume[ChipID][0][1] = outputs[1][0];
         }
 
-        public uint Start(byte ChipID, uint SamplingRate, uint clock, params object[] Option)
+        public override uint Start(byte ChipID, uint SamplingRate, uint clock, params object[] Option)
         {
             byte bytC352ClkDiv = 0;
             if (Option == null || Option.Length<1) bytC352ClkDiv = 0;
@@ -151,6 +150,8 @@ namespace MDSound
 
         private static byte MuteAllRear = 0x00;
 
+        public override string Name { get { return "C352"; } set { } }
+        public override string ShortName { get { return "C352"; } set { } }
 
         private static void C352_fetch_sample(C352 c, C352_Voice v)
         {
@@ -433,7 +434,7 @@ namespace MDSound
             return 0;
         }
 
-        public void c352_w(byte ChipID, int address, ushort val)
+        private void c352_w(byte ChipID, int address, ushort val)
         {
             //Console.WriteLine("address = {0}  val = {1}", address, val);
 
@@ -603,6 +604,10 @@ namespace MDSound
             return;
         }
 
-
+        public override int Write(byte ChipID, int port, int adr, int data)
+        {
+            c352_w(ChipID, adr, (ushort)data);
+            return 0;
+        }
     }
 }
