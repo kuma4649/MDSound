@@ -985,7 +985,6 @@ namespace MDSound
             lock (lockobj)
             {
                 if (!dicInst.ContainsKey(enmInstrumentType.YMF278B)) return;
-
                 ((ymf278b)(dicInst[enmInstrumentType.YMF278B])).Write(ChipID, Port, Adr, Data);
             }
         }

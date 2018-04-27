@@ -655,7 +655,10 @@ namespace MDSound
             if (address < chip.ROMSize)
                 return; // can't write to ROM
             else if (address < chip.ROMSize + chip.RAMSize)
+            {
+                //Console.WriteLine("adr:{0:x06} dat:{1:x02}", address, value);
                 chip.ram[address - chip.ROMSize] = value;
+            }
             else
                 return; // can't write to unmapped memory
 
@@ -725,7 +728,8 @@ namespace MDSound
                 vl = mix_level[chip.fm_l] - 8; vl = chip.volume[vl];
                 vr = mix_level[chip.fm_r] - 8; vr = chip.volume[vr];
                 // make FM softer by 3 db
-                vl = (vl * 0xB5) >> 8; vr = (vr * 0xB5) >> 8;
+                //vl = (vl * 0xB5) >> 8; vr = (vr * 0xB5) >> 8;
+                vl = (vl * 0xB5) >> 7; vr = (vr * 0xB5) >> 7;
                 for (j = 0; j < samples; j++)
                 {
                     outputs[0][j] = (outputs[0][j] * vl) >> 15;
@@ -907,6 +911,8 @@ namespace MDSound
 
         private void ymf278b_C_w(YMF278BChip chip, byte reg, byte data)
         {
+            //Console.WriteLine("ymf278b_C_w reg:{0:x02} dat:{1:x02}", reg, data);
+
             // Handle slot registers specifically
             if (reg >= 0x08 && reg <= 0xF7)
             {
@@ -1189,7 +1195,7 @@ namespace MDSound
                     // PCM regs are only accessible if NEW2 is set
                     if ((~chip.exp & 2) != 0)
                         break;
-
+                    
                     ymf278b_C_w(chip, chip.port_C, data);
                     break;
 
@@ -1224,8 +1230,15 @@ namespace MDSound
                 //FileName = FindFile(ROM_FILENAME);
                 if (System.IO.File.Exists(ROM_FILENAME))
                 {
-                    ROMFile = System.IO.File.ReadAllBytes(ROM_FILENAME);// hFile = fopen(FileName, "rb");
-                                                                        //free(FileName);
+                    try
+                    {
+                        ROMFile = System.IO.File.ReadAllBytes(ROM_FILENAME);// hFile = fopen(FileName, "rb");
+                                                                            //free(FileName);
+                    }
+                    catch
+                    {
+                        ROMFile = null;
+                    }
                 }
                 else
                 {
@@ -1245,8 +1258,20 @@ namespace MDSound
             }
 
             chip.ROMSize = ROMFileSize;
-            chip.rom = new byte[chip.ROMSize];// (byte*)malloc(chip.ROMSize);
-            for (int i = 0; i < chip.ROMSize; i++) chip.rom[i] = ROMFile[i];
+            if (ROMFile != null && ROMFile.Length > 0)
+            {
+                chip.rom = new byte[chip.ROMSize];// (byte*)malloc(chip.ROMSize);
+                for (int i = 0; i < chip.ROMSize; i++)
+                {
+                    if (i < ROMFile.Length) chip.rom[i] = ROMFile[i];
+                    else chip.rom[i] = 0;
+                }
+            }
+            else
+            {
+                chip.rom = new byte[chip.ROMSize];
+                for (int i = 0; i < chip.ROMSize; i++) chip.rom[i] = 0;
+            }
             //memcpy(chip.rom, ROMFile, chip.ROMSize);
 
             return;

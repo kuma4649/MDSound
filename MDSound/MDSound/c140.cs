@@ -384,7 +384,7 @@ namespace MDSound
                 case C140_TYPE.SYSTEM21:
                     // System 21 banking.
                     // similar to System 2's.
-                    newadr = ((adrs & 0x300000) >> 1) + (adrs & 0x7ffff);
+                    newadr = ((adrs & 0x300000) >> 1) | (adrs & 0x7ffff);
                     break;
                 /*case C140_TYPE.SYSTEM21_A:
                     // System 21 type A (simple) banking.
@@ -415,7 +415,7 @@ namespace MDSound
 
                 case C140_TYPE.ASIC219:
                     // ASIC219's banking is fairly simple
-                    newadr = ((info.REG[asic219banks[voice / 4]] & 0x3) * 0x20000) + adrs;
+                    newadr = (long)((info.REG[asic219banks[voice / 4]] & 0x3) * 0x20000) | adrs;
                     break;
             }
 
@@ -459,9 +459,9 @@ namespace MDSound
                         // on the 219 asic, addresses are in words
                         if (info.banking_type == C140_TYPE.ASIC219)
                         {
-                            v.sample_loop = (info.REG[vreg + 10] * 256 + info.REG[vreg + 11]) * 2;
-                            v.sample_start = (info.REG[vreg + 6] * 256 + info.REG[vreg + 7]) * 2;
-                            v.sample_end = (info.REG[vreg + 8] * 256 + info.REG[vreg + 9]) * 2;
+                            v.sample_loop = ((info.REG[vreg + 10] * 256) | info.REG[vreg + 11]) * 2;
+                            v.sample_start = ((info.REG[vreg + 6] * 256) | info.REG[vreg + 7]) * 2;
+                            v.sample_end = ((info.REG[vreg + 8] * 256) | info.REG[vreg + 9]) * 2;
 
                             //#if 0
                             //logerror("219: play v %d mode %02x start %x loop %x end %x\n",
@@ -473,9 +473,9 @@ namespace MDSound
                         }
                         else
                         {
-                            v.sample_loop = info.REG[vreg + 10] * 256 + info.REG[vreg + 11];
-                            v.sample_start = info.REG[vreg + 6] * 256 + info.REG[vreg + 7];
-                            v.sample_end = info.REG[vreg + 8] * 256 + info.REG[vreg + 9];
+                            v.sample_loop = (info.REG[vreg + 10] * 256) | info.REG[vreg + 11];
+                            v.sample_start = (info.REG[vreg + 6] * 256) | info.REG[vreg + 7];
+                            v.sample_end = (info.REG[vreg + 8] * 256) | info.REG[vreg + 9];
                         }
                     }
                     else
@@ -748,15 +748,20 @@ namespace MDSound
                                 if (info.banking_type == C140_TYPE.ASIC219)
                                 {
                                     //lastdt = pSampleData[BYTE_XOR_BE(pos)];
-                                    lastdt = info.pRom[pSampleData + (pos ^ 0x01)];
+                                    lastdt = (sbyte)info.pRom[pSampleData + (pos ^ 0x01)];
+                                    //System.Console.WriteLine("pos:{0} lastdt:{1}", pos, lastdt);
 
                                     // Sign + magnitude format
                                     if ((v.mode & 0x01) != 0 && ((lastdt & 0x80) != 0))
+                                    {
                                         lastdt = -(lastdt & 0x7f);
-
+                                        //lastdt *= -1;
+                                    }
                                     // Sign flip
                                     if ((v.mode & 0x40) != 0)
                                         lastdt = -lastdt;
+
+                                    //lastdt >>= 2;
                                 }
                                 else
                                 {
@@ -826,10 +831,16 @@ namespace MDSound
             info = C140Data[ChipID];
 
             //info->sample_rate=info->baserate=device->clock();
-            info.sample_rate = info.baserate = (int)clock;
+            if (clock < 1000000)
+                info.baserate = (int)clock;
+            else
+                info.baserate = (int)clock / 384;   // based on MAME's notes on Namco System II
+            info.sample_rate = info.baserate;
             if ((CHIP_SAMPLING_MODE == 0x01 && info.sample_rate < CHIP_SAMPLE_RATE) ||
                 CHIP_SAMPLING_MODE == 0x02)
                 info.sample_rate = CHIP_SAMPLE_RATE;
+            if (info.sample_rate >= 0x1000000) // limit to 16 MHz sample rate (32 MB buffer)
+                return 0;
 
             //info->banking_type = intf->banking_type;
             info.banking_type = (C140_TYPE)option[0];
