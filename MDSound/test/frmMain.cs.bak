@@ -156,10 +156,6 @@ namespace test
 
             }
             
-            for(int i = 0; i < PCMBank.Length; i++)
-            {
-                PCMBank[i] = new VGM_PCM_BANK();
-            }
 
             //ヘッダーを読み込めるサイズをもっているかチェック
             if (vgmBuf.Length < 0x40) return;
@@ -251,8 +247,7 @@ namespace test
                 chip = new MDSound.MDSound.Chip();
                 chip.type = MDSound.MDSound.enmInstrumentType.YM2151;
                 chip.ID = 0;
-                //MDSound.ym2151 ym2151 = new MDSound.ym2151();
-                MDSound.ym2151_mame ym2151 = new MDSound.ym2151_mame();
+                MDSound.ym2151 ym2151 = new MDSound.ym2151();
                 chip.Instrument = ym2151;
                 chip.Update = ym2151.Update;
                 chip.Start = ym2151.Start;
@@ -265,7 +260,7 @@ namespace test
                 lstChip.Add(chip);
             }
 
-            if (getLE32(0x44) != 0 && 0x44 < vgmDataOffset - 3)
+            if (getLE32(0x44) != 0)
             {
                 chip = new MDSound.MDSound.Chip();
                 chip.type = MDSound.MDSound.enmInstrumentType.YM2203;
@@ -277,7 +272,7 @@ namespace test
                 chip.Stop = ym2203.Stop;
                 chip.Reset = ym2203.Reset;
                 chip.SamplingRate = SamplingRate;
-                chip.Clock = getLE32(0x44);
+                chip.Clock = getLE32(0x44); 
                 chip.Volume = 0;
                 chip.Option = null;
                 lstChip.Add(chip);
@@ -300,7 +295,7 @@ namespace test
             //    chip.Option = null;
             //    lstChip.Add(chip);
             //}
-            if (getLE32(0x48) != 0 && 0x48 < vgmDataOffset - 3)
+            if (getLE32(0x48) != 0)
             {
                 chip = new MDSound.MDSound.Chip();
                 chip.type = MDSound.MDSound.enmInstrumentType.YM2609;
@@ -318,7 +313,7 @@ namespace test
                 lstChip.Add(chip);
             }
 
-            if (getLE32(0x4c) != 0 && 0x4c < vgmDataOffset - 3)
+            if (getLE32(0x4c) != 0)
             {
                 chip = new MDSound.MDSound.Chip();
                 chip.type = MDSound.MDSound.enmInstrumentType.YM2610;
@@ -338,7 +333,7 @@ namespace test
                 lstChip.Add(chip);
             }
 
-            if (getLE32(0x5c) != 0 && 0x5c < vgmDataOffset - 3)
+            if (getLE32(0x5c) != 0)
             {
                 chip = new MDSound.MDSound.Chip();
                 chip.type = MDSound.MDSound.enmInstrumentType.YMF262;
@@ -371,7 +366,7 @@ namespace test
                 //lstChip.Add(chip);
             }
 
-            if (getLE32(0x58) != 0 && 0x58 < vgmDataOffset - 3)
+            if (getLE32(0x58) != 0)
             {
                 chip = new MDSound.MDSound.Chip();
                 chip.type = MDSound.MDSound.enmInstrumentType.Y8950;
@@ -389,7 +384,7 @@ namespace test
                 lstChip.Add(chip);
             }
 
-            if (getLE32(0x60) != 0 && 0x60 < vgmDataOffset - 3)
+            if (getLE32(0x60) != 0)
             {
                 chip = new MDSound.MDSound.Chip();
                 chip.type = MDSound.MDSound.enmInstrumentType.YMF278B;
@@ -407,7 +402,7 @@ namespace test
                 lstChip.Add(chip);
             }
 
-            if (getLE32(0x64) != 0 && 0x64 < vgmDataOffset - 3)
+            if (getLE32(0x64) != 0)
             {
                 chip = new MDSound.MDSound.Chip();
                 chip.type = MDSound.MDSound.enmInstrumentType.YMF271;
@@ -425,7 +420,7 @@ namespace test
                 lstChip.Add(chip);
             }
 
-            if (getLE32(0x68) != 0 && 0x68 < vgmDataOffset - 3)
+            if (getLE32(0x68) != 0)
             {
                 chip = new MDSound.MDSound.Chip();
                 chip.type = MDSound.MDSound.enmInstrumentType.YMZ280B;
@@ -443,7 +438,7 @@ namespace test
                 lstChip.Add(chip);
             }
 
-            if (getLE32(0x74) != 0 && 0x74 < vgmDataOffset - 3)
+            if (getLE32(0x74) != 0)
             {
                 chip = new MDSound.MDSound.Chip();
                 chip.type = MDSound.MDSound.enmInstrumentType.AY8910;
@@ -464,10 +459,10 @@ namespace test
                 lstChip.Add(chip);
             }
 
-            if (version >= 0x0161 && 0x80 < vgmDataOffset - 3)
+            if (version >= 0x0161)
             {
 
-                if (getLE32(0x80) != 0 && 0x80 < vgmDataOffset - 3)
+                if (getLE32(0x80) != 0)
                 {
                     chip = new MDSound.MDSound.Chip();
                     chip.type = MDSound.MDSound.enmInstrumentType.DMG;
@@ -485,7 +480,7 @@ namespace test
                     lstChip.Add(chip);
                 }
 
-                if (getLE32(0x84) != 0 && 0x84 < vgmDataOffset - 3)
+                if (getLE32(0x84) != 0)
                 {
                     chip = new MDSound.MDSound.Chip();
                     chip.type = MDSound.MDSound.enmInstrumentType.Nes;
@@ -503,7 +498,7 @@ namespace test
                     lstChip.Add(chip);
                 }
 
-                if (getLE32(0x88) != 0 && 0x88 < vgmDataOffset - 3)
+                if (getLE32(0x88) != 0)
                 {
                     chip = new MDSound.MDSound.Chip();
                     chip.type = MDSound.MDSound.enmInstrumentType.MultiPCM;
@@ -521,7 +516,7 @@ namespace test
                     lstChip.Add(chip);
                 }
 
-                if (getLE32(0x98) != 0 && 0x98 < vgmDataOffset - 3)
+                if (getLE32(0x98) != 0)
                 {
                     chip = new MDSound.MDSound.Chip();
                     chip.type = MDSound.MDSound.enmInstrumentType.OKIM6295;
@@ -540,7 +535,7 @@ namespace test
                     lstChip.Add(chip);
                 }
 
-                if (getLE32(0x9c) != 0 && 0x9c < vgmDataOffset - 3)
+                if (getLE32(0x9c) != 0)
                 {
                     chip = new MDSound.MDSound.Chip();
                     chip.type = MDSound.MDSound.enmInstrumentType.K051649;
@@ -558,7 +553,7 @@ namespace test
                     lstChip.Add(chip);
                 }
 
-                if (getLE32(0xa0) != 0 && 0xa0 < vgmDataOffset - 3)
+                if (getLE32(0xa0) != 0)
                 {
                     MDSound.K054539 k054539 = new MDSound.K054539();
                     int max = (getLE32(0xa0) & 0x40000000) != 0 ? 2 : 1;
@@ -581,7 +576,7 @@ namespace test
                     }
                 }
 
-                if (getLE32(0xa4) != 0 && 0xa4 < vgmDataOffset - 3)
+                if (getLE32(0xa4) != 0)
                 {
                     chip = new MDSound.MDSound.Chip();
                     chip.type = MDSound.MDSound.enmInstrumentType.HuC6280;
@@ -599,25 +594,7 @@ namespace test
                     lstChip.Add(chip);
                 }
 
-                if (getLE32(0xa8) != 0 && 0xa8 < vgmDataOffset - 3)
-                {
-                    chip = new MDSound.MDSound.Chip();
-                    chip.type = MDSound.MDSound.enmInstrumentType.C140;
-                    chip.ID = 0;
-                    MDSound.c140 c140 = new MDSound.c140();
-                    chip.Instrument = c140;
-                    chip.Update = c140.Update;
-                    chip.Start = c140.Start;
-                    chip.Stop = c140.Stop;
-                    chip.Reset = c140.Reset;
-                    chip.SamplingRate = SamplingRate;
-                    chip.Clock = getLE32(0xa8);
-                    chip.Volume = 0;
-                    chip.Option = new object[1] { (MDSound.c140.C140_TYPE)vgmBuf[0x96] }; 
-                    lstChip.Add(chip);
-                }
-
-                if (getLE32(0xac) != 0 && 0xac < vgmDataOffset - 3)
+                if (getLE32(0xac) != 0)
                 {
                     chip = new MDSound.MDSound.Chip();
                     chip.type = MDSound.MDSound.enmInstrumentType.K053260;
@@ -635,7 +612,7 @@ namespace test
                     lstChip.Add(chip);
                 }
 
-                if (getLE32(0xb4) != 0 && 0xb4 < vgmDataOffset - 3)
+                if (getLE32(0xb4) != 0)
                 {
                     chip = new MDSound.MDSound.Chip();
                     chip.type = MDSound.MDSound.enmInstrumentType.QSound;
@@ -653,11 +630,11 @@ namespace test
                     lstChip.Add(chip);
                 }
 
-                if (version >= 0x170 && 0xdc < vgmDataOffset - 3)
+                if (version >= 0x170)
                 {
                     if (version >= 0x171)
                     {
-                        if (getLE32(0xdc) != 0 && 0xdc < vgmDataOffset - 3)
+                        if (getLE32(0xdc) != 0)
                         {
                             chip = new MDSound.MDSound.Chip();
                             chip.type = MDSound.MDSound.enmInstrumentType.C352;
@@ -676,7 +653,7 @@ namespace test
                             lstChip.Add(chip);
                         }
 
-                        if (getLE32(0xe0) != 0 && 0xe0 < vgmDataOffset - 3)
+                        if (getLE32(0xe0) != 0)
                         {
                             chip = new MDSound.MDSound.Chip();
                             chip.type = MDSound.MDSound.enmInstrumentType.GA20;
@@ -699,6 +676,47 @@ namespace test
                 }
             }
 
+            //chips[2] = new MDSound.MDSound.Chip();
+            //chips[2].type = MDSound.MDSound.enmInstrumentType.RF5C164;
+            //chips[2].ID = 0;
+            //MDSound.scd_pcm rf5c164 = new MDSound.scd_pcm();
+            //chips[2].Instrument = rf5c164;
+            //chips[2].Update = rf5c164.Update;
+            //chips[2].Start = rf5c164.Start;
+            //chips[2].Stop = rf5c164.Stop;
+            //chips[2].Reset = rf5c164.Reset;
+            //chips[2].SamplingRate = SamplingRate;
+            //chips[2].Clock = rf5c164ClockValue;
+            //chips[2].Volume = 50;
+            //chips[2].Option = null;
+
+            //chips[3] = new MDSound.MDSound.Chip();
+            //chips[3].type = MDSound.MDSound.enmInstrumentType.PWM;
+            //chips[3].ID = 0;
+            //MDSound.pwm pwm = new MDSound.pwm();
+            //chips[3].Instrument = pwm;
+            //chips[3].Update = pwm.Update;
+            //chips[3].Start = pwm.Start;
+            //chips[3].Stop = pwm.Stop;
+            //chips[3].Reset = pwm.Reset;
+            //chips[3].SamplingRate = SamplingRate;
+            //chips[3].Clock = pwmClockValue;
+            //chips[3].Volume = 100;
+            //chips[3].Option = null;
+
+            //chips[4] = new MDSound.MDSound.Chip();
+            //chips[4].type = MDSound.MDSound.enmInstrumentType.C140;
+            //chips[4].ID = 0;
+            //MDSound.c140 c140 = new MDSound.c140();
+            //chips[4].Instrument = c140;
+            //chips[4].Update = c140.Update;
+            //chips[4].Start = c140.Start;
+            //chips[4].Stop = c140.Stop;
+            //chips[4].Reset = c140.Reset;
+            //chips[4].SamplingRate = SamplingRate;
+            //chips[4].Clock = c140ClockValue;
+            //chips[4].Volume = 100;
+            //chips[4].Option = new object[1] { c140Type };
 
             chips = lstChip.ToArray();
             mds = new MDSound.MDSound(SamplingRate, samplingBuffer, chips);
@@ -1039,7 +1057,6 @@ namespace test
                                         break;
 
                                     case 0x8d:
-                                        mds.WriteC140PCMData(chipID, romSize, startAddress, bLen - 8, vgmBuf, vgmAdr + 15);
                                         break;
 
                                     case 0x8e:
@@ -1064,20 +1081,6 @@ namespace test
                                 vgmAdr += bLen + 7;
                                 break;
                         }
-                        break;
-                    case 0x68: //PCM RAM writes
-                        byte chipType = vgmBuf[vgmAdr + 2];
-                        uint chipReadOffset = getLE24(vgmAdr + 3);
-                        uint chipWriteOffset = getLE24(vgmAdr + 6);
-                        uint chipDataSize = getLE24(vgmAdr + 9);
-                        if (chipDataSize == 0) chipDataSize = 0x1000000;
-                        uint? pcmAdr = GetPCMAddressFromPCMBank(chipType, chipReadOffset);
-                        if (pcmAdr != null && chipType == 0x01)
-                        {
-                            mds.WriteRF5C68PCMData(0, chipWriteOffset, chipDataSize, PCMBank[chipType].Data, (uint)pcmAdr);
-                        }
-
-                        vgmAdr += 12;
                         break;
                     case 0x70: //Wait 1 sample
                     case 0x71: //Wait 2 sample
@@ -1277,13 +1280,6 @@ namespace test
                         vgmAdr += 4;
                         mds.WriteK054539(chipid, k054539_adr, rDat);
                         break;
-                    case 0xd4: //C140
-                        int c140_adr = (vgmBuf[vgmAdr + 1] & 0x7f) * 0x100 + vgmBuf[vgmAdr + 2];
-                        rDat = vgmBuf[vgmAdr + 3];
-                        byte c140_chipid = (byte)((vgmBuf[vgmAdr + 1] & 0x80) != 0 ? 1 : 0);
-                        vgmAdr += 4;
-                        mds.WriteC140(c140_chipid, (uint)c140_adr, rDat);
-                        break;
                     case 0xe0: //seek to offset in PCM data bank
                         vgmPcmPtr = getLE32(vgmAdr + 1) + vgmPcmBaseAdr;
                         vgmAdr += 5;
@@ -1305,34 +1301,6 @@ namespace test
             oneFrameVGMStream();
             vgmWait--;
 
-        }
-
-        private const int PCM_BANK_COUNT = 0x40;
-        private static VGM_PCM_BANK[] PCMBank = new VGM_PCM_BANK[PCM_BANK_COUNT];
-        public class VGM_PCM_DATA
-        {
-            public uint DataSize;
-            public byte[] Data;
-            public uint DataStart;
-        }
-        public class VGM_PCM_BANK
-        {
-            public uint BankCount;
-            public List<VGM_PCM_DATA> Bank = new List<VGM_PCM_DATA>();
-            public uint DataSize;
-            public byte[] Data;
-            public uint DataPos;
-            public uint BnkPos;
-        }
-        private static uint? GetPCMAddressFromPCMBank(byte chipType, uint chipReadOffset)
-        {
-            if (chipType >= PCM_BANK_COUNT)
-                return null;
-
-            if (chipReadOffset >= PCMBank[chipType].DataSize)
-                return null;
-
-            return chipReadOffset;
         }
 
         private static void oneFrameVGMStream()
@@ -1365,14 +1333,6 @@ namespace test
         {
             UInt32 dat;
             dat = (UInt32)vgmBuf[adr] + (UInt32)vgmBuf[adr + 1] * 0x100;
-
-            return dat;
-        }
-
-        private static UInt32 getLE24(UInt32 adr)
-        {
-            UInt32 dat;
-            dat = (UInt32)vgmBuf[adr] + (UInt32)vgmBuf[adr + 1] * 0x100 + (UInt32)vgmBuf[adr + 2] * 0x10000;
 
             return dat;
         }

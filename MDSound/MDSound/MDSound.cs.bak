@@ -104,9 +104,7 @@ namespace MDSound
             QSound,
             GA20,
             K053260,
-            Y8950,
-            RF5C68,
-            YM2151mame
+            Y8950
         }
 
         public class Chip
@@ -762,37 +760,6 @@ namespace MDSound
             }
         }
 
-        public void WriteRF5C68(byte ChipID, byte Adr, byte Data)
-        {
-            lock (lockobj)
-            {
-                if (!dicInst.ContainsKey(enmInstrumentType.RF5C68)) return;
-
-                dicInst[enmInstrumentType.RF5C68].Write(ChipID, 0, Adr, Data);
-            }
-        }
-
-        public void WriteRF5C68PCMData(byte ChipID, uint RAMStartAdr, uint RAMDataLength, byte[] SrcData, uint SrcStartAdr)
-        {
-            lock (lockobj)
-            {
-                if (!dicInst.ContainsKey(enmInstrumentType.RF5C68)) return;
-
-                ((rf5c68)(dicInst[enmInstrumentType.RF5C68])).rf5c68_write_ram2(ChipID, (int)RAMStartAdr, (int)RAMDataLength, SrcData, SrcStartAdr);
-            }
-        }
-
-        public void WriteRF5C68MemW(byte ChipID, uint Adr, byte Data)
-        {
-            lock (lockobj)
-            {
-                if (!dicInst.ContainsKey(enmInstrumentType.RF5C68)) return;
-
-                ((rf5c68)(dicInst[enmInstrumentType.RF5C68])).rf5c68_mem_w(ChipID, (int)Adr, Data);
-            }
-        }
-
-
         public void WriteC140(byte ChipID, uint Adr, byte Data)
         {
             lock (lockobj)
@@ -929,19 +896,7 @@ namespace MDSound
             {
                 if (!dicInst.ContainsKey(enmInstrumentType.YM2151)) return;
 
-                //((ym2151)(dicInst[enmInstrumentType.YM2151])).Write(ChipID, 0, Adr, Data);
-                ((dicInst[enmInstrumentType.YM2151])).Write(ChipID, 0, Adr, Data);
-            }
-        }
-
-        public void WriteYM2151mame(byte ChipID, byte Adr, byte Data)
-        {
-            lock (lockobj)
-            {
-                if (!dicInst.ContainsKey(enmInstrumentType.YM2151mame)) return;
-
-                //((ym2151)(dicInst[enmInstrumentType.YM2151])).Write(ChipID, 0, Adr, Data);
-                ((dicInst[enmInstrumentType.YM2151mame])).Write(ChipID, 0, Adr, Data);
+                ((ym2151)(dicInst[enmInstrumentType.YM2151])).Write(ChipID, 0, Adr, Data);
             }
         }
 
@@ -1254,17 +1209,6 @@ namespace MDSound
             foreach (Chip c in insts)
             {
                 if (c.type != enmInstrumentType.YM2151) continue;
-                c.Volume = Math.Max(Math.Min(vol, 20), -192);
-            }
-        }
-
-        public void SetVolumeYM2151mame(int vol)
-        {
-            if (!dicInst.ContainsKey(enmInstrumentType.YM2151mame)) return;
-
-            foreach (Chip c in insts)
-            {
-                if (c.type != enmInstrumentType.YM2151mame) continue;
                 c.Volume = Math.Max(Math.Min(vol, 20), -192);
             }
         }
@@ -2147,7 +2091,7 @@ namespace MDSound
         public int[][][] getYM2151VisVolume()
         {
             if (!dicInst.ContainsKey(enmInstrumentType.YM2151)) return null;
-            return (dicInst[enmInstrumentType.YM2151]).visVolume;
+            return ((ym2151)dicInst[enmInstrumentType.YM2151]).visVolume;
         }
 
         public int[][][] getYM2203VisVolume()

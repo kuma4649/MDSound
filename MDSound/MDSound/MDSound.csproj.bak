@@ -22,7 +22,6 @@
     </DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <PlatformTarget>x86</PlatformTarget>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>none</DebugType>
@@ -33,7 +32,6 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
-    <PlatformTarget>x86</PlatformTarget>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -92,13 +90,11 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="pwm.cs" />
     <Compile Include="qsound.cs" />
-    <Compile Include="rf5c68.cs" />
     <Compile Include="scd_pcm.cs" />
     <Compile Include="segapcm.cs" />
     <Compile Include="sn76489.cs" />
     <Compile Include="y8950.cs" />
     <Compile Include="ym2151.cs" />
-    <Compile Include="ym2151_mame.cs" />
     <Compile Include="ym2203.cs" />
     <Compile Include="ym2413.cs" />
     <Compile Include="ym2608.cs" />

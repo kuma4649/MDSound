@@ -432,8 +432,8 @@ namespace MDSound.fmgen
 
                         case 2:
                             p = (c + 0x80) & 0x1ff;
-                            p = p < 0x100 ? p - 0x80 : 0x17f - p;
-                            a = c < 0x100 ? 0xff - c : c - 0x100;
+                            p = p < 0x100 ? (p - 0x80) : (0x17f - p);
+                            a = c < 0x100 ? (0xff - c) : (c - 0x100);
                             break;
 
                         case 3:
