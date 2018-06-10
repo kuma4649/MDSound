@@ -2654,7 +2654,7 @@ INLINE signed int acc_calc(signed int value)
         */
         private void ym2151_update_one(YM2151 chip, Int32[][] buffers, int length)
         {
-            int i, chn;
+            int i;//, chn;
             int outl, outr;
             Int32[] bufL, bufR;
 

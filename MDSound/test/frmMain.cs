@@ -252,7 +252,8 @@ namespace test
                 chip.type = MDSound.MDSound.enmInstrumentType.YM2151;
                 chip.ID = 0;
                 //MDSound.ym2151 ym2151 = new MDSound.ym2151();
-                MDSound.ym2151_mame ym2151 = new MDSound.ym2151_mame();
+                //MDSound.ym2151_mame ym2151 = new MDSound.ym2151_mame();
+                MDSound.ym2151_x68sound ym2151 = new MDSound.ym2151_x68sound();
                 chip.Instrument = ym2151;
                 chip.Update = ym2151.Update;
                 chip.Start = ym2151.Start;
