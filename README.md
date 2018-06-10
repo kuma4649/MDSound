@@ -53,6 +53,7 @@
  ・Ootake  
  ・fmgen  
  ・NSFPlay  
+ ・X68Sound.dll  
   
 [SpecialThanks]  
  本ツールは以下の方々にお世話になっております。また以下のソフトウェア、ウェブページを参考、使用しています。  
