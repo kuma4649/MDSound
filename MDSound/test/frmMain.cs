@@ -232,8 +232,10 @@ namespace test
             {
                 chip = new MDSound.MDSound.Chip();
                 chip.type = MDSound.MDSound.enmInstrumentType.YM2612;
+                //chip.type = MDSound.MDSound.enmInstrumentType.YM3438;
                 chip.ID = 0;
-                MDSound.ym2612 ym2612 = new MDSound.ym2612();
+                //MDSound.ym2612 ym2612 = new MDSound.ym2612();
+                MDSound.ym3438 ym2612 = new MDSound.ym3438();
                 chip.Instrument = ym2612;
                 chip.Update = ym2612.Update;
                 chip.Start = ym2612.Start;

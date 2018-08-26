@@ -23,6 +23,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <PlatformTarget>x86</PlatformTarget>
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>none</DebugType>
@@ -34,6 +35,9 @@
     <WarningLevel>4</WarningLevel>
     <GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
     <PlatformTarget>x86</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject />
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -114,6 +118,8 @@
     <Compile Include="ym2609.cs" />
     <Compile Include="ym2610.cs" />
     <Compile Include="ym2612.cs" />
+    <Compile Include="ym3438.cs" />
+    <Compile Include="ym3438_const.cs" />
     <Compile Include="ymf262.cs" />
     <Compile Include="ymf271.cs" />
     <Compile Include="ymf278b.cs" />

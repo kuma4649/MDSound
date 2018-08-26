@@ -107,7 +107,8 @@ namespace MDSound
             Y8950,
             RF5C68,
             YM2151mame,
-            YM2151x68sound
+            YM2151x68sound,
+            YM3438
         }
 
         public class Chip
@@ -261,7 +262,7 @@ namespace MDSound
                 //    }
                 //}
 
-                for (int i = 0; i < sampleCount / 2; i++)
+                for (int i = 0; i < sampleCount ; i+=2)
                 {
 
                     if (frame != null) frame();
@@ -282,14 +283,14 @@ namespace MDSound
 
                     if (incFlag)
                     {
-                        buf[offset + i * 2 + 0] += (short)Math.Max(Math.Min(a, short.MaxValue), short.MinValue);
-                        buf[offset + i * 2 + 1] += (short)Math.Max(Math.Min(b, short.MaxValue), short.MinValue);
+                        a += buf[offset + i + 0];
+                        b += buf[offset + i + 1];
                     }
-                    else
-                    {
-                        buf[offset + i * 2 + 0] = (short)Math.Max(Math.Min(a, short.MaxValue), short.MinValue);
-                        buf[offset + i * 2 + 1] = (short)Math.Max(Math.Min(b, short.MaxValue), short.MinValue);
-                    }
+
+                    Clip(ref a, ref b);
+
+                    buf[offset + i + 0] = (short)a;
+                    buf[offset + i + 1] = (short)b;
 
                     //if (dicInst.ContainsKey(enmInstrumentType.RF5C164))
                     //{
@@ -312,6 +313,32 @@ namespace MDSound
 
                 return sampleCount;
 
+            }
+        }
+
+        private void Clip(ref int a,ref int b)
+        {
+            if ((uint)(a + 32767) > (uint)(32767 * 2))
+            {
+                if ((int)(a + 32767) >= (int)(32767 * 2))
+                {
+                    a = 32767;
+                }
+                else
+                {
+                    a = -32767;
+                }
+            }
+            if ((uint)(b + 32767) > (uint)(32767 * 2))
+            {
+                if ((int)(b + 32767) >= (int)(32767 * 2))
+                {
+                    b = 32767;
+                }
+                else
+                {
+                    b = -32767;
+                }
             }
         }
 
@@ -711,7 +738,7 @@ namespace MDSound
             }
         }
 
-        public void WriteYM2612(byte ChipID,byte Port, byte Adr, byte Data)
+        public void WriteYM2612(byte ChipID, byte Port, byte Adr, byte Data)
         {
             lock (lockobj)
             {
@@ -719,6 +746,17 @@ namespace MDSound
 
                 dicInst[enmInstrumentType.YM2612].Write(ChipID, 0, (byte)(0 + (Port & 1) * 2), Adr);
                 dicInst[enmInstrumentType.YM2612].Write(ChipID, 0, (byte)(1 + (Port & 1) * 2), Data);
+            }
+        }
+
+        public void WriteYM3438(byte ChipID, byte Port, byte Adr, byte Data)
+        {
+            lock (lockobj)
+            {
+                if (!dicInst.ContainsKey(enmInstrumentType.YM3438)) return;
+
+                dicInst[enmInstrumentType.YM3438].Write(ChipID, 0, (byte)(0 + (Port & 1) * 2), Adr);
+                dicInst[enmInstrumentType.YM3438].Write(ChipID, 0, (byte)(1 + (Port & 1) * 2), Data);
             }
         }
 
@@ -1519,6 +1557,17 @@ namespace MDSound
             foreach (Chip c in insts)
             {
                 if (c.type != enmInstrumentType.YM2612) continue;
+                c.Volume = Math.Max(Math.Min(vol, 20), -192);
+            }
+        }
+
+        public void SetVolumeYM3438(int vol)
+        {
+            if (!dicInst.ContainsKey(enmInstrumentType.YM3438)) return;
+
+            foreach (Chip c in insts)
+            {
+                if (c.type != enmInstrumentType.YM3438) continue;
                 c.Volume = Math.Max(Math.Min(vol, 20), -192);
             }
         }

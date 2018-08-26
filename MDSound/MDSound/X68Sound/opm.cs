@@ -1831,7 +1831,7 @@ pGimic->Release();
             }
         }
 
-        public int GetPcm(short[] buf, int ndata, Action<Action, bool> oneFrameProc = null)
+        public int GetPcm(short[] buf,int offset, int ndata, Action<Action, bool> oneFrameProc = null)
         {
             if (Dousa_mode != 2)
             {
@@ -1842,7 +1842,7 @@ pGimic->Release();
             PcmBufPtr = 0;
             if (global.WaveOutSamp == 44100 || global.WaveOutSamp == 48000)
             {
-                pcmset62(PcmBuf, 0, ndata, oneFrameProc);
+                pcmset62(PcmBuf, offset, ndata, oneFrameProc);
             }
             else
             {

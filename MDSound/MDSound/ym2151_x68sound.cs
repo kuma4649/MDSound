@@ -60,7 +60,7 @@ namespace MDSound
 
             for (int i = 0; i < samples; i++)
             {
-                x68sound[ChipID].X68Sound_GetPcm(buf[ChipID], samples * 2);
+                x68sound[ChipID].X68Sound_GetPcm(buf[ChipID], 0, samples * 2);
                 outputs[0][i] = buf[ChipID][0];
                 outputs[1][i] = buf[ChipID][1];
             }
@@ -72,7 +72,7 @@ namespace MDSound
 
             for (int i = 0; i < samples; i++)
             {
-                x68sound[ChipID].X68Sound_GetPcm(buf[ChipID], samples * 2, oneFrameproc);
+                x68sound[ChipID].X68Sound_GetPcm(buf[ChipID], 0, samples * 2, oneFrameproc);
                 outputs[0][i] = buf[ChipID][0];
                 outputs[1][i] = buf[ChipID][1];
             }

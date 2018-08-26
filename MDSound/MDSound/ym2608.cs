@@ -34,11 +34,26 @@ namespace MDSound
             return clock;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="ChipID"></param>
+        /// <param name="clock"></param>
+        /// <param name="FMClockValue"></param>
+        /// <param name="option">リズム音ファイルのパス(終端に\をつけること)</param>
+        /// <returns></returns>
         public override uint Start(byte ChipID, uint clock, uint FMClockValue, params object[] option)
         {
             chip[ChipID] = new fmgen.OPNA();
             //chip[ChipID] = new fmgen.OPNA2();
-            chip[ChipID].Init(FMClockValue, clock);
+            if (option != null && option.Length > 0 && option[0] is string)
+            {
+                chip[ChipID].Init(FMClockValue, clock, false, (string)option[0]);
+            }
+            else
+            {
+                chip[ChipID].Init(FMClockValue, clock);
+            }
 
             return clock;
         }

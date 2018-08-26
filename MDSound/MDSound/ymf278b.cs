@@ -7,6 +7,8 @@ namespace MDSound
 {
     public class ymf278b : Instrument
     {
+        private string romPath = "";
+
         public override void Reset(byte ChipID)
         {
             device_reset_ymf278b(ChipID);
@@ -19,6 +21,10 @@ namespace MDSound
 
         public override uint Start(byte ChipID, uint clock, uint FMClockValue, params object[] option)
         {
+            if(option!=null && option.Length>0 && option[0] is string)
+            {
+                romPath = (string)option[0];
+            }
             return (UInt32)device_start_ymf278b(ChipID, (Int32)FMClockValue);
         }
 
@@ -1219,6 +1225,10 @@ namespace MDSound
             //char[] FileName;
             //object hFile;
             //size_t RetVal;
+            if (!string.IsNullOrEmpty(romPath))
+            {
+                ROM_FILENAME = System.IO.Path.Combine(romPath, ROM_FILENAME);
+            }
 
             if (ROMFileSize == 0)
             {
