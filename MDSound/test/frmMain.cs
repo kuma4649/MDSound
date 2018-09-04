@@ -268,6 +268,25 @@ namespace test
                 lstChip.Add(chip);
             }
 
+            if (getLE32(0x38) != 0 && 0x38 < vgmDataOffset - 3)
+            {
+                chip = new MDSound.MDSound.Chip();
+                chip.type = MDSound.MDSound.enmInstrumentType.SEGAPCM;
+                chip.ID = 0;
+                MDSound.segapcm segapcm = new MDSound.segapcm();
+                chip.Instrument = segapcm;
+                chip.Update = segapcm.Update;
+                chip.Start = segapcm.Start;
+                chip.Stop = segapcm.Stop;
+                chip.Reset = segapcm.Reset;
+                chip.SamplingRate = SamplingRate;
+                chip.Clock = getLE32(0x38);
+                chip.Option = new object[1] { (int)getLE32(0x3c) };
+                chip.Volume = 0;
+                
+                lstChip.Add(chip);
+            }
+
             if (getLE32(0x44) != 0 && 0x44 < vgmDataOffset - 3)
             {
                 chip = new MDSound.MDSound.Chip();
@@ -935,6 +954,8 @@ namespace test
                                 switch (bType)
                                 {
                                     case 0x80:
+                                        //SEGA PCM
+                                        mds.WriteSEGAPCMPCMData(chipID, romSize, startAddress, bLen - 8, vgmBuf, vgmAdr + 15);
                                         break;
                                     case 0x81:
 
@@ -1235,6 +1256,10 @@ namespace test
                         vgmAdr += 3;
                         mds.WriteGA20(0, rAdr, rDat);
 
+                        break;
+                    case 0xc0://segaPCM
+                        mds.WriteSEGAPCM(0, (int)((vgmBuf[vgmAdr + 0x01] & 0xFF) | ((vgmBuf[vgmAdr + 0x02] & 0xFF) << 8)), vgmBuf[vgmAdr + 0x03]);
+                        vgmAdr += 4;
                         break;
                     case 0xc3://MultiPCM
                         byte multiPCM_ch = (byte)(vgmBuf[vgmAdr + 1] & 0x7f);

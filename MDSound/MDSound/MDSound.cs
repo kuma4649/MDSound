@@ -108,7 +108,8 @@ namespace MDSound
             RF5C68,
             YM2151mame,
             YM2151x68sound,
-            YM3438
+            YM3438,
+            mpcmX68k
         }
 
         public class Chip
@@ -1612,6 +1613,17 @@ namespace MDSound
             foreach (Chip c in insts)
             {
                 if (c.type != enmInstrumentType.OKIM6258) continue;
+                c.Volume = Math.Max(Math.Min(vol, 20), -192);
+            }
+        }
+
+        public void SetVolumeMpcmX68k(int vol)
+        {
+            if (!dicInst.ContainsKey(enmInstrumentType.mpcmX68k)) return;
+
+            foreach (Chip c in insts)
+            {
+                if (c.type != enmInstrumentType.mpcmX68k) continue;
                 c.Volume = Math.Max(Math.Min(vol, 20), -192);
             }
         }

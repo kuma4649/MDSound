@@ -261,7 +261,10 @@ namespace MDSound
 
                         /* fetch the sample */
                         //v = (sbyte)(rom[(addr >> 8) & rgnmask] - 0x80);
-                        v = (sbyte)(spcm.rom[ptrRom + ((addr >> 8) & rgnmask)] - 0x80);
+                        if (ptrRom + ((addr >> 8) & rgnmask) < spcm.rom.Length)
+                        {
+                            v = (sbyte)(spcm.rom[ptrRom + ((addr >> 8) & rgnmask)] - 0x80);
+                        }
                         //# ifdef _DEBUG
                         //                    if ((romusage[(addr >> 8) & rgnmask] & 0x03) == 0x02 && (regs[2] || regs[3]))
                         //                        printf("Access to empty ROM section! (0x%06lX)\n",
