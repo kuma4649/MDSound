@@ -1569,7 +1569,7 @@ namespace MDSound.fmgen
                         file.Read(subchunkname, 4);
                         file.Read(bufWhdr, 4);
                         fsize = (uint)(bufWhdr[0] + bufWhdr[1] * 0x100 + bufWhdr[2] * 0x10000 + bufWhdr[3] * 0x10000);
-                    } while ('d' != subchunkname[0] && 'a' != subchunkname[1] && 't' != subchunkname[2] && 'a' != subchunkname[3]);
+                    } while ('d' != subchunkname[0] || 'a' != subchunkname[1] || 't' != subchunkname[2] || 'a' != subchunkname[3]);
 
                     fsize /= 2;
                     if (fsize >= 0x100000 || whdr.tag != 1 || whdr.nch != 1)
