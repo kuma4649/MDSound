@@ -360,6 +360,24 @@ namespace test
                 lstChip.Add(chip);
             }
 
+            if (getLE32(0x50) != 0 && 0x50 < vgmDataOffset - 3)
+            {
+                chip = new MDSound.MDSound.Chip();
+                chip.type = MDSound.MDSound.enmInstrumentType.YM3812;
+                chip.ID = 0;
+                MDSound.ym3812 ym3812 = new MDSound.ym3812();
+                chip.Instrument = ym3812;
+                chip.Update = ym3812.Update;
+                chip.Start = ym3812.Start;
+                chip.Stop = ym3812.Stop;
+                chip.Reset = ym3812.Reset;
+                chip.SamplingRate = SamplingRate;
+                chip.Clock = getLE32(0x50) & 0x7fffffff;
+                chip.Volume = 0;
+                chip.Option = null;
+                lstChip.Add(chip);
+            }
+
             if (getLE32(0x5c) != 0 && 0x5c < vgmDataOffset - 3)
             {
                 chip = new MDSound.MDSound.Chip();
@@ -879,6 +897,13 @@ namespace test
                         mds.WriteYM2610(0, 1, rAdr, rDat);
 
                         break;
+                    case 0x5a: //YM3812
+                        rAdr = vgmBuf[vgmAdr + 1];
+                        rDat = vgmBuf[vgmAdr + 2];
+                        vgmAdr += 3;
+                        mds.WriteYM3812(0, rAdr, rDat);
+
+                        break;
                     case 0x5c: //Y8950
                         rAdr = vgmBuf[vgmAdr + 1];
                         rDat = vgmBuf[vgmAdr + 2];
@@ -1325,7 +1350,7 @@ namespace test
                         break;
                     default:
                         //わからんコマンド
-                        Console.WriteLine("{0:X}", vgmBuf[vgmAdr]);
+                        Console.WriteLine("{0:X}", vgmBuf[vgmAdr++]);
                         return;
                 }
             }

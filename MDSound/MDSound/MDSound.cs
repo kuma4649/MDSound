@@ -109,7 +109,8 @@ namespace MDSound
             YM2151mame,
             YM2151x68sound,
             YM3438,
-            mpcmX68k
+            mpcmX68k,
+            YM3812
         }
 
         public class Chip
@@ -850,6 +851,16 @@ namespace MDSound
                 if (!dicInst.ContainsKey(enmInstrumentType.C140)) return;
 
                 ((c140)(dicInst[enmInstrumentType.C140])).c140_write_rom2(ChipID, ROMSize, DataStart, DataLength, ROMData, SrcStartAdr);
+            }
+        }
+
+        public void WriteYM3812(int ChipID, int rAdr, int rDat)
+        {
+            lock (lockobj)
+            {
+                if (!dicInst.ContainsKey(enmInstrumentType.YM3812)) return;
+
+                ((ym3812)(dicInst[enmInstrumentType.YM3812])).Write((byte)ChipID, 0, rAdr, rDat);
             }
         }
 

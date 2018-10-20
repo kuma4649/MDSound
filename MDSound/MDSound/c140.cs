@@ -364,62 +364,29 @@ namespace MDSound
         per-game or at least per-PCB revision as addressing range needs grow.
         */
 
+        private static int[] asic219banks = new int[4] { 0x1f7, 0x1f1, 0x1f3, 0x1f5 };
+
         private static long find_sample(c140_state info, long adrs, long bank, int voice)
         {
-            //System.Console.Write("[{0:X}:{1:d}", adrs,bank);
-            long newadr = 0;
-
-            int[] asic219banks = new int[4] { 0x1f7, 0x1f1, 0x1f3, 0x1f5 };
-
             adrs = (bank << 16) + adrs;
 
             switch (info.banking_type)
             {
                 case C140_TYPE.SYSTEM2:
                     // System 2 banking
-                    newadr = ((adrs & 0x200000) >> 2) | (adrs & 0x7ffff);
-                    //System.Console.Write(":{0:X}]", newadr);
-                    break;
+                    return ((adrs & 0x200000) >> 2) | (adrs & 0x7ffff);
 
                 case C140_TYPE.SYSTEM21:
                     // System 21 banking.
                     // similar to System 2's.
-                    newadr = ((adrs & 0x300000) >> 1) | (adrs & 0x7ffff);
-                    break;
-                /*case C140_TYPE.SYSTEM21_A:
-                    // System 21 type A (simple) banking.
-                    // similar to System 2's.
-                    newadr = ((adrs & 0x300000) >> 1) + (adrs & 0x7ffff);
-                    break;
-
-                case C140_TYPE.SYSTEM21_B:
-                    // System 21 type B (chip select) banking
-
-                    // get base address of sample inside the bank
-                    newadr = ((adrs & 0x100000) >> 2) + (adrs & 0x3ffff);
-
-                    // now add the starting bank offsets based on the 2
-                    // chip select bits.
-                    // 0x40000 picks individual 512k ROMs
-                    if ((adrs & 0x40000) != 0)
-                    {
-                        newadr += 0x80000;
-                    }
-
-                    // and 0x200000 which group of chips...
-                    if ((adrs & 0x200000) != 0)
-                    {
-                        newadr += 0x100000;
-                    }
-                    break;*/
+                    return ((adrs & 0x300000) >> 1) | (adrs & 0x7ffff);
 
                 case C140_TYPE.ASIC219:
                     // ASIC219's banking is fairly simple
-                    newadr = (long)((info.REG[asic219banks[voice / 4]] & 0x3) * 0x20000) | adrs;
-                    break;
+                    return (long)((info.REG[asic219banks[voice / 4]] & 0x3) * 0x20000) | adrs;
             }
 
-            return (newadr);
+            return 0;
         }
 
         private void c140_w(byte ChipID, uint offset, byte data)
@@ -473,9 +440,9 @@ namespace MDSound
                         }
                         else
                         {
-                            v.sample_loop = (info.REG[vreg + 10] * 256) | info.REG[vreg + 11];
-                            v.sample_start = (info.REG[vreg + 6] * 256) | info.REG[vreg + 7];
-                            v.sample_end = (info.REG[vreg + 8] * 256) | info.REG[vreg + 9];
+                            v.sample_loop = (info.REG[vreg + 10] << 8) | info.REG[vreg + 11];
+                            v.sample_start = (info.REG[vreg + 6] << 8) | info.REG[vreg + 7];
+                            v.sample_end = (info.REG[vreg + 8] << 8) | info.REG[vreg + 9];
                         }
                     }
                     else
@@ -587,7 +554,6 @@ namespace MDSound
             int cnt, voicecnt;
             int lastdt, prevdt, dltdt;
             float pbase = (float)info.baserate * 2.0f / (float)info.sample_rate;
-            //System.Console.Write("pbase={0:f6} info->baserate={1:d} info->sample_rate={2:d} \n", pbase, info.baserate, info.sample_rate);
 
             int[] lmix, rmix;
 
@@ -602,8 +568,6 @@ namespace MDSound
             if (info.pRom == null)
                 return;
 
-            //System.Console.WriteLine("c140_update");
-
             /* get the number of voices to update */
             voicecnt = (info.banking_type == C140_TYPE.ASIC219) ? 16 : 24;
 
@@ -614,184 +578,151 @@ namespace MDSound
                 //voice_registers vreg = (voice_registers)info.REG[i * 16];
                 int vreg = i * 16;
 
-                if (v.key != 0 && v.Muted == 0)
+                if (v.key == 0 || v.Muted != 0) continue;
+                frequency = (info.REG[vreg + 2] << 8) | info.REG[vreg + 3];
+
+                /* Abort voice if no frequency value set */
+                if (frequency == 0) continue;
+
+                /* Delta =  frequency * ((8MHz/374)*2 / sample rate) */
+                delta = (int)(frequency * pbase);
+
+                /* Calculate left/right channel volumes */
+                lvol = (info.REG[vreg + 1] << 5) / MAX_VOICE; //32ch -> 24ch
+                rvol = (info.REG[vreg + 0] << 5) / MAX_VOICE;
+
+                /* Set mixer outputs base pointers */
+                lmix = info.mixer_buffer_left;
+                rmix = info.mixer_buffer_right;
+
+                /* Retrieve sample start/end and calculate size */
+                st = (int)v.sample_start;
+                ed = (int)v.sample_end;
+                sz = ed - st;
+
+                /* Retrieve base pointer to the sample data */
+                //pSampleData=(signed char*)((FPTR)info->pRom + find_sample(info, st, v->bank, i));
+                //pSampleData = info.pRom[find_sample(info, st, v.bank, i)];
+                pSampleData = find_sample(info, st, v.bank, i);
+
+                /* Fetch back previous data pointers */
+                offset = (int)v.ptoffset;
+                pos = (int)v.pos;
+                lastdt = (int)v.lastdt;
+                prevdt = (int)v.prevdt;
+                dltdt = (int)v.dltdt;
+
+                /* Switch on data type - compressed PCM is only for C140 */
+                if ((v.mode & 8) != 0 && (info.banking_type != C140_TYPE.ASIC219))
                 {
-                    //System.Console.Write("voicecnt={0:d} ", i);
-                    frequency = info.REG[vreg + 2] * 256 + info.REG[vreg + 3];
-
-                    /* Abort voice if no frequency value set */
-                    if (frequency == 0) continue;
-                    //System.Console.Write("frequency={0:d} ", frequency);
-
-                    /* Delta =  frequency * ((8MHz/374)*2 / sample rate) */
-                    delta = (int)((float)frequency * pbase);
-                    //System.Console.Write("delta={0:d} ", delta);
-
-                    /* Calculate left/right channel volumes */
-                    lvol = (info.REG[vreg + 1] * 32) / MAX_VOICE; //32ch -> 24ch
-                    rvol = (info.REG[vreg + 0] * 32) / MAX_VOICE;
-                    //System.Console.Write("MAX_VOICE={0} lvol={1} vreg->volume_left={2} ", MAX_VOICE, lvol, info.REG[vreg + 1]);
-                    //System.Console.Write("rvol={0} vreg->volume_right={1} ", rvol, info.REG[vreg + 0]);
-
-                    /* Set mixer outputs base pointers */
-                    lmix = info.mixer_buffer_left;
-                    rmix = info.mixer_buffer_right;
-
-                    /* Retrieve sample start/end and calculate size */
-                    st = (int)v.sample_start;
-                    ed = (int)v.sample_end;
-                    sz = ed - st;
-                    //System.Console.Write("st={0} ed={1} ", st, ed);
-
-                    /* Retrieve base pointer to the sample data */
-                    //pSampleData=(signed char*)((FPTR)info->pRom + find_sample(info, st, v->bank, i));
-                    //pSampleData = info.pRom[find_sample(info, st, v.bank, i)];
-                    pSampleData = find_sample(info, st, v.bank, i);
-                    //System.Console.Write("find_sample={0} ", find_sample(info, st, v.bank, i));
-
-                    /* Fetch back previous data pointers */
-                    offset = (int)v.ptoffset;
-                    pos = (int)v.pos;
-                    lastdt = (int)v.lastdt;
-                    prevdt = (int)v.prevdt;
-                    dltdt = (int)v.dltdt;
-                    //System.Console.Write("offset={0} pos={1} lastdt={2} prevdt={3} dltdt={4} ", offset, pos, lastdt, prevdt, dltdt);
-
-                    //System.Console.Write("v->mode={0} info->banking_type={1} ", v.mode, (int)info.banking_type);
-                    /* Switch on data type - compressed PCM is only for C140 */
-                    if ((v.mode & 8) != 0 && (info.banking_type != C140_TYPE.ASIC219))
+                    //compressed PCM (maybe correct...)
+                    /* Loop for enough to fill sample buffer as requested */
+                    for (j = 0; j < samples; j++)
                     {
-                        //compressed PCM (maybe correct...)
-                        /* Loop for enough to fill sample buffer as requested */
-                        for (j = 0; j < samples; j++)
+                        offset += delta;
+                        cnt = (offset >> 16) & 0x7fff;
+                        offset &= 0xffff;
+                        pos += cnt;
+                        /* Check for the end of the sample */
+                        if (pos >= sz)
                         {
-                            offset += delta;
-                            cnt = (offset >> 16) & 0x7fff;
-                            offset &= 0xffff;
-                            pos += cnt;
-                            //System.Console.Write("offset={0} cnt={1} pos={2} ", offset, cnt, pos);
-                            //for(;cnt>0;cnt--)
+                            /* Check if its a looping sample, either stop or loop */
+                            if ((v.mode & 0x10) != 0)
                             {
-                                /* Check for the end of the sample */
-                                if (pos >= sz)
-                                {
-                                    /* Check if its a looping sample, either stop or loop */
-                                    if ((v.mode & 0x10) != 0)
-                                    {
-                                        pos = (int)(v.sample_loop - st);
-                                    }
-                                    else
-                                    {
-                                        v.key = 0;
-                                        break;
-                                    }
-                                }
-
-                                /* Read the chosen sample byte */
-                                //dt = info.pRom[pSampleData + pos];
-                                dt = ((info.pRom[pSampleData + pos] & 0x80) != 0) ? (info.pRom[pSampleData + pos] - 256) : info.pRom[pSampleData + pos];
-                                //System.Console.Write("dt={0} ", dt);
-
-                                /* decompress to 13bit range */        //2000.06.26 CAB
-                                sdt = dt >> 3;              //signed
-                                //System.Console.Write("sdt={0} ", sdt);
-                                if (sdt < 0) sdt = (sdt << (dt & 7)) - info.pcmtbl[dt & 7];
-                                else sdt = (sdt << (dt & 7)) + info.pcmtbl[dt & 7];
-                                //System.Console.Write("sdt={0} info->pcmtbl[dt&7]={1} ", sdt, info.pcmtbl[dt & 7]);
-
-                                prevdt = lastdt;
-                                lastdt = sdt;
-                                dltdt = (lastdt - prevdt);
-                                //System.Console.Write("prevdt={0} lastdt={1} dltdt={2} ", prevdt, lastdt, dltdt);
+                                pos = (int)(v.sample_loop - st);
                             }
-
-                            /* Caclulate the sample value */
-                            dt = ((dltdt * offset) >> 16) + prevdt;
-                            //System.Console.Write("dt={0} ", dt);
-
-                            /* Write the data to the sample buffers */
-                            lmix[j] += (dt * lvol) >> (5 + 5);
-                            rmix[j] += (dt * rvol) >> (5 + 5);
-                            //System.Console.Write("(dt*lvol)>>(5+5)={0} ", (dt * lvol) >> (5 + 5));
-                            //System.Console.Write("(dt*rvol)>>(5+5)={0} ", (dt * rvol) >> (5 + 5));
+                            else
+                            {
+                                v.key = 0;
+                                break;
+                            }
                         }
+
+                        /* Read the chosen sample byte */
+                        dt = (sbyte)info.pRom[pSampleData + pos];
+
+                        /* decompress to 13bit range */        //2000.06.26 CAB
+                        sdt = dt >> 3;              //signed
+                        if (sdt < 0) sdt = (sdt << (dt & 7)) - info.pcmtbl[dt & 7];
+                        else sdt = (sdt << (dt & 7)) + info.pcmtbl[dt & 7];
+
+                        prevdt = lastdt;
+                        lastdt = sdt;
+                        dltdt = (lastdt - prevdt);
+
+                        /* Caclulate the sample value */
+                        dt = ((dltdt * offset) >> 16) + prevdt;
+
+                        /* Write the data to the sample buffers */
+                        lmix[j] += (dt * lvol) >> (5 + 5);
+                        rmix[j] += (dt * rvol) >> (5 + 5);
                     }
-                    else
-                    {
-                        /* linear 8bit signed PCM */
-                        for (j = 0; j < samples; j++)
-                        {
-                            offset += delta;
-                            cnt = (offset >> 16) & 0x7fff;
-                            offset &= 0xffff;
-                            pos += cnt;
-                            //System.Console.Write("linear offset={0} cnt={1} pos={2} ", offset, cnt, pos);
-                            /* Check for the end of the sample */
-                            if (pos >= sz)
-                            {
-                                /* Check if its a looping sample, either stop or loop */
-                                if ((v.mode & 0x10) != 0)
-                                {
-                                    pos = (int)(v.sample_loop - st);
-                                }
-                                else
-                                {
-                                    v.key = 0;
-                                    break;
-                                }
-                            }
-
-                            if (cnt != 0)
-                            {
-                                prevdt = lastdt;
-
-                                if (info.banking_type == C140_TYPE.ASIC219)
-                                {
-                                    //lastdt = pSampleData[BYTE_XOR_BE(pos)];
-                                    lastdt = (sbyte)info.pRom[pSampleData + (pos ^ 0x01)];
-                                    //System.Console.WriteLine("pos:{0} lastdt:{1}", pos, lastdt);
-
-                                    // Sign + magnitude format
-                                    if ((v.mode & 0x01) != 0 && ((lastdt & 0x80) != 0))
-                                    {
-                                        lastdt = -(lastdt & 0x7f);
-                                        //lastdt *= -1;
-                                    }
-                                    // Sign flip
-                                    if ((v.mode & 0x40) != 0)
-                                        lastdt = -lastdt;
-
-                                    //lastdt >>= 2;
-                                }
-                                else
-                                {
-                                    lastdt = ((info.pRom[pSampleData + pos] & 0x80) != 0) ? (info.pRom[pSampleData + pos] - 256) : info.pRom[pSampleData + pos];
-                                }
-
-                                dltdt = (lastdt - prevdt);
-                                //System.Console.Write("prevdt={0} lastdt={1} dltdt={2} ", prevdt, lastdt, dltdt);
-                            }
-
-                            /* Caclulate the sample value */
-                            dt = ((dltdt * offset) >> 16) + prevdt;
-                            //System.Console.Write("dt={0} ", dt);
-
-                            /* Write the data to the sample buffers */
-                            lmix[j] += (dt * lvol) >> 5;
-                            rmix[j] += (dt * rvol) >> 5;
-                            //System.Console.Write("(dt*lvol)>>5={0} ", (dt * lvol) >> 5);
-                            //System.Console.Write("(dt*rvol)>>5={0} ", (dt * rvol) >> 5);
-                        }
-                    }
-
-                    /* Save positional data for next callback */
-                    v.ptoffset = offset;
-                    v.pos = pos;
-                    v.lastdt = lastdt;
-                    v.prevdt = prevdt;
-                    v.dltdt = dltdt;
-                    //System.Console.Write("\n");
                 }
+                else
+                {
+                    /* linear 8bit signed PCM */
+                    for (j = 0; j < samples; j++)
+                    {
+                        offset += delta;
+                        cnt = (offset >> 16) & 0x7fff;
+                        offset &= 0xffff;
+                        pos += cnt;
+                        /* Check for the end of the sample */
+                        if (pos >= sz)
+                        {
+                            /* Check if its a looping sample, either stop or loop */
+                            if ((v.mode & 0x10) != 0)
+                            {
+                                pos = (int)(v.sample_loop - st);
+                            }
+                            else
+                            {
+                                v.key = 0;
+                                break;
+                            }
+                        }
+
+                        if (cnt != 0)
+                        {
+                            prevdt = lastdt;
+
+                            if (info.banking_type == C140_TYPE.ASIC219)
+                            {
+                                lastdt = (sbyte)info.pRom[pSampleData + (pos ^ 0x01)];
+
+                                // Sign + magnitude format
+                                if ((v.mode & 0x01) != 0 && ((lastdt & 0x80) != 0))
+                                {
+                                    lastdt = -(lastdt & 0x7f);
+                                }
+                                // Sign flip
+                                if ((v.mode & 0x40) != 0)
+                                    lastdt = -lastdt;
+
+                            }
+                            else
+                            {
+                                lastdt = (sbyte)info.pRom[pSampleData + pos];
+                            }
+
+                            dltdt = (lastdt - prevdt);
+                        }
+
+                        /* Caclulate the sample value */
+                        dt = ((dltdt * offset) >> 16) + prevdt;
+
+                        /* Write the data to the sample buffers */
+                        lmix[j] += (dt * lvol) >> 5;
+                        rmix[j] += (dt * rvol) >> 5;
+                    }
+                }
+
+                /* Save positional data for next callback */
+                v.ptoffset = offset;
+                v.pos = pos;
+                v.lastdt = lastdt;
+                v.prevdt = prevdt;
+                v.dltdt = dltdt;
             }
 
             /* render to MAME's stream buffer */
@@ -802,10 +733,8 @@ namespace MDSound
                 int[] dest2 = outputs[1];
                 for (i = 0; i < samples; i++)
                 {
-                    //*dest1++ = limit(8*(*lmix++));
-                    //*dest2++ = limit(8*(*rmix++));
-                    dest1[i] = 8 * lmix[i];
-                    dest2[i] = 8 * rmix[i];
+                    dest1[i] = lmix[i] << 3;
+                    dest2[i] = rmix[i] << 3;
                 }
             }
 

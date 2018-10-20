@@ -90,6 +90,11 @@ namespace MDSound.np.chip
                 return null;
         }
 
+        public byte[] GetVRC7regs()
+        {
+            return opll.reg;
+        }
+
         public override bool Write(UInt32 adr, UInt32 val, UInt32 id = 0)
         {
             if (adr == 0x9010)
