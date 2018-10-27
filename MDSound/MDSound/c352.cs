@@ -78,6 +78,10 @@ namespace MDSound
         //# include "mamedef.h"
         //# include "c352.h"
 
+
+        public static ushort[][] flags = new ushort[2][] { new ushort[32], new ushort[32] };
+
+
         private const int C352_VOICES = 32;
         private enum C352_FLG
         {
@@ -268,6 +272,7 @@ namespace MDSound
 
                     v = c.v[j];
                     s = 0;
+                    flags[ChipID][j] = v.flags;
 
                     //Console.WriteLine(" v.flags={0}", v.flags);
                     //if (v.flags & C352_FLG_BUSY)

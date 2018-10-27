@@ -523,10 +523,11 @@ namespace MDSound
 			info.initial_clock = (uint)clock;
 			info.master_clock = (uint)clock & 0x7FFFFFFF;
 			info.pin7_state = (byte)(((uint)clock & 0x80000000) >> 31);
-			info.SmpRateFunc=null;
+            //ここでnullは不要
+            //info.SmpRateFunc=null;
 
-			/* generate the name and create the stream */
-			divisor = info.pin7_state != 0 ? 132 : 165;
+            /* generate the name and create the stream */
+            divisor = info.pin7_state != 0 ? 132 : 165;
 			//info->stream = stream_create(device, 0, 1, device->clock/divisor, info, okim6295_update);
 
 			// moved to device_reset
@@ -631,11 +632,10 @@ namespace MDSound
 		{
 			int divisor;
 			divisor = info.pin7_state != 0 ? 132 : 165;
-			//stream_set_sample_rate(info->stream, info->master_clock/divisor);
-			if (info.SmpRateFunc != null)
-			    info.SmpRateFunc(info.SmpRateData, (int)info.master_clock / divisor);
+            //stream_set_sample_rate(info->stream, info->master_clock/divisor);
+            info.SmpRateFunc?.Invoke(info.SmpRateData, (int)info.master_clock / divisor);
 
-		}
+        }
 
 		//void okim6295_set_pin7(running_device *device, int pin7)
 		private static void okim6295_set_pin7(okim6295_state info, int pin7)

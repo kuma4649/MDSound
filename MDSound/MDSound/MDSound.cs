@@ -1931,6 +1931,15 @@ namespace MDSound
             }
         }
 
+        public ushort[] ReadC352Flag(int chipID)
+        {
+            lock (lockobj)
+            {
+                if (!dicInst.ContainsKey(enmInstrumentType.C352)) return null;
+                return c352.flags[chipID];
+            }
+        }
+
         public okim6258.okim6258_state ReadOKIM6258Status(int chipID)
         {
             lock(lockobj)
