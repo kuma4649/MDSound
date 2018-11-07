@@ -3075,7 +3075,7 @@ namespace MDSound
                     {
                         byte block = (byte)(block_fnum >> 10);
 
-                        CH.block_fnum = (byte)block_fnum;
+                        CH.block_fnum = (uint)block_fnum;
 
                         CH.ksl_base = ksl_tab[block_fnum >> 6];
                         CH.fc = OPL.fn_tab[block_fnum & 0x03ff] >> (7 - block);

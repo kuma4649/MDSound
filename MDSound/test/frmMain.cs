@@ -378,6 +378,24 @@ namespace test
                 lstChip.Add(chip);
             }
 
+            if (getLE32(0x54) != 0 && 0x54 < vgmDataOffset - 3)
+            {
+                chip = new MDSound.MDSound.Chip();
+                chip.type = MDSound.MDSound.enmInstrumentType.YM3526;
+                chip.ID = 0;
+                MDSound.ym3526 ym3526 = new MDSound.ym3526();
+                chip.Instrument = ym3526;
+                chip.Update = ym3526.Update;
+                chip.Start = ym3526.Start;
+                chip.Stop = ym3526.Stop;
+                chip.Reset = ym3526.Reset;
+                chip.SamplingRate = SamplingRate;
+                chip.Clock = getLE32(0x54) & 0x7fffffff;
+                chip.Volume = 0;
+                chip.Option = null;
+                lstChip.Add(chip);
+            }
+
             if (getLE32(0x5c) != 0 && 0x5c < vgmDataOffset - 3)
             {
                 chip = new MDSound.MDSound.Chip();
@@ -902,6 +920,13 @@ namespace test
                         rDat = vgmBuf[vgmAdr + 2];
                         vgmAdr += 3;
                         mds.WriteYM3812(0, rAdr, rDat);
+
+                        break;
+                    case 0x5b: //YM3526
+                        rAdr = vgmBuf[vgmAdr + 1];
+                        rDat = vgmBuf[vgmAdr + 2];
+                        vgmAdr += 3;
+                        mds.WriteYM3526(0, rAdr, rDat);
 
                         break;
                     case 0x5c: //Y8950

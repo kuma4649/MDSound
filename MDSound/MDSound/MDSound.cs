@@ -110,7 +110,8 @@ namespace MDSound
             YM2151x68sound,
             YM3438,
             mpcmX68k,
-            YM3812
+            YM3812,
+            YM3526
         }
 
         public class Chip
@@ -1093,13 +1094,23 @@ namespace MDSound
             }
         }
 
-        public void WriteY8950(byte ChipID,byte Adr, byte Data)
+        public void WriteYM3526(byte ChipID, byte Adr, byte Data)
+        {
+            lock (lockobj)
+            {
+                if (!dicInst.ContainsKey(enmInstrumentType.YM3526)) return;
+
+                ((ym3526)(dicInst[enmInstrumentType.YM3526])).Write(ChipID, 0, Adr, Data);
+            }
+        }
+
+        public void WriteY8950(byte ChipID, byte Adr, byte Data)
         {
             lock (lockobj)
             {
                 if (!dicInst.ContainsKey(enmInstrumentType.Y8950)) return;
 
-                ((y8950)(dicInst[enmInstrumentType.Y8950])).Write(ChipID,0, Adr, Data);
+                ((y8950)(dicInst[enmInstrumentType.Y8950])).Write(ChipID, 0, Adr, Data);
             }
         }
 

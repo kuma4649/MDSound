@@ -314,9 +314,6 @@ namespace MDSound
                                 bufR[j] += (int)(CH.Data * CH.MUL_R);
                             }
 
-                            bufL[j] = MDSound.Limit(bufL[j], Int16.MaxValue , Int16.MinValue );
-                            bufR[j] = MDSound.Limit(bufR[j], Int16.MaxValue , Int16.MinValue );
-
                             // update address register
                             k = Addr + 1;
                             CH.Addr = (CH.Addr + CH.Step) & 0x7FFFFFF;
@@ -338,6 +335,12 @@ namespace MDSound
                         CH.Addr = CH.Loop_Addr << PCM_STEP_SHIFT;
                     }
                 }
+            }
+
+            for (j = 0; j < Length; j++)
+            {
+                bufL[j] = MDSound.Limit(bufL[j], Int16.MaxValue, Int16.MinValue);
+                bufR[j] = MDSound.Limit(bufR[j], Int16.MaxValue, Int16.MinValue);
             }
 
             return 0;

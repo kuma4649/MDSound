@@ -121,6 +121,7 @@
     <Compile Include="ym2612.cs" />
     <Compile Include="ym3438.cs" />
     <Compile Include="ym3438_const.cs" />
+    <Compile Include="ym3526.cs" />
     <Compile Include="ym3812.cs" />
     <Compile Include="ymf262.cs" />
     <Compile Include="ymf271.cs" />
