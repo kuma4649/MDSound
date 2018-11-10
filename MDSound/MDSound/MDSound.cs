@@ -1705,6 +1705,61 @@ namespace MDSound
             }
         }
 
+        public void SetVolumeK053260(int vol)
+        {
+            if (!dicInst.ContainsKey(enmInstrumentType.K053260)) return;
+
+            foreach (Chip c in insts)
+            {
+                if (c.type != enmInstrumentType.K053260) continue;
+                c.Volume = Math.Max(Math.Min(vol, 20), -192);
+            }
+        }
+
+        public void SetVolumeRF5C68(int vol)
+        {
+            if (!dicInst.ContainsKey(enmInstrumentType.RF5C68)) return;
+
+            foreach (Chip c in insts)
+            {
+                if (c.type != enmInstrumentType.RF5C68) continue;
+                c.Volume = Math.Max(Math.Min(vol, 20), -192);
+            }
+        }
+
+        public void SetVolumeYM3812(int vol)
+        {
+            if (!dicInst.ContainsKey(enmInstrumentType.YM3812)) return;
+
+            foreach (Chip c in insts)
+            {
+                if (c.type != enmInstrumentType.YM3812) continue;
+                c.Volume = Math.Max(Math.Min(vol, 20), -192);
+            }
+        }
+
+        public void SetVolumeY8950(int vol)
+        {
+            if (!dicInst.ContainsKey(enmInstrumentType.Y8950)) return;
+
+            foreach (Chip c in insts)
+            {
+                if (c.type != enmInstrumentType.Y8950) continue;
+                c.Volume = Math.Max(Math.Min(vol, 20), -192);
+            }
+        }
+
+        public void SetVolumeYM3526(int vol)
+        {
+            if (!dicInst.ContainsKey(enmInstrumentType.YM3526)) return;
+
+            foreach (Chip c in insts)
+            {
+                if (c.type != enmInstrumentType.YM3526) continue;
+                c.Volume = Math.Max(Math.Min(vol, 20), -192);
+            }
+        }
+
         public void SetVolumeK054539(int vol)
         {
             if (!dicInst.ContainsKey(enmInstrumentType.K054539)) return;
@@ -2364,53 +2419,136 @@ namespace MDSound
             return ((K054539)dicInst[enmInstrumentType.K054539]).visVolume;
         }
 
+
+
+
         public int[][][] getNESVisVolume()
         {
             if (!dicInst.ContainsKey(enmInstrumentType.Nes)) return null;
-            return null;
+            return dicInst[enmInstrumentType.Nes].visVolume;
         }
 
         public int[][][] getDMCVisVolume()
         {
             if (!dicInst.ContainsKey(enmInstrumentType.DMC)) return null;
-            return null;
+            return dicInst[enmInstrumentType.DMC].visVolume;
         }
 
         public int[][][] getFDSVisVolume()
         {
             if (!dicInst.ContainsKey(enmInstrumentType.FDS)) return null;
-            return null;
+            return dicInst[enmInstrumentType.FDS].visVolume;
         }
 
         public int[][][] getMMC5VisVolume()
         {
             if (!dicInst.ContainsKey(enmInstrumentType.MMC5)) return null;
-            return null;
+            return dicInst[enmInstrumentType.MMC5].visVolume;
         }
 
         public int[][][] getN160VisVolume()
         {
             if (!dicInst.ContainsKey(enmInstrumentType.N160)) return null;
-            return null;
+            return dicInst[enmInstrumentType.N160].visVolume;
         }
 
         public int[][][] getVRC6VisVolume()
         {
             if (!dicInst.ContainsKey(enmInstrumentType.VRC6)) return null;
-            return null;
+            return dicInst[enmInstrumentType.VRC6].visVolume;
         }
 
         public int[][][] getVRC7VisVolume()
         {
             if (!dicInst.ContainsKey(enmInstrumentType.VRC7)) return null;
-            return null;
+            return dicInst[enmInstrumentType.VRC7].visVolume;
         }
 
         public int[][][] getFME7VisVolume()
         {
             if (!dicInst.ContainsKey(enmInstrumentType.FME7)) return null;
-            return null;
+            return dicInst[enmInstrumentType.FME7].visVolume;
         }
+
+        public int[][][] getYM3526VisVolume()
+        {
+            if (!dicInst.ContainsKey(enmInstrumentType.YM3526)) return null;
+            return dicInst[enmInstrumentType.YM3526].visVolume;
+        }
+
+        public int[][][] getY8950VisVolume()
+        {
+            if (!dicInst.ContainsKey(enmInstrumentType.Y8950)) return null;
+            return dicInst[enmInstrumentType.Y8950].visVolume;
+        }
+
+        public int[][][] getYM3812VisVolume()
+        {
+            if (!dicInst.ContainsKey(enmInstrumentType.YM3812)) return null;
+            return dicInst[enmInstrumentType.YM3812].visVolume;
+        }
+
+        public int[][][] getYMF262VisVolume()
+        {
+            if (!dicInst.ContainsKey(enmInstrumentType.YMF262)) return null;
+            return dicInst[enmInstrumentType.YMF262].visVolume;
+        }
+
+        public int[][][] getYMF278BVisVolume()
+        {
+            if (!dicInst.ContainsKey(enmInstrumentType.YMF278B)) return null;
+            return dicInst[enmInstrumentType.YMF278B].visVolume;
+        }
+
+        public int[][][] getYMZ280BVisVolume()
+        {
+            if (!dicInst.ContainsKey(enmInstrumentType.YMZ280B)) return null;
+            return dicInst[enmInstrumentType.YMZ280B].visVolume;
+        }
+
+        public int[][][] getYMF271VisVolume()
+        {
+            if (!dicInst.ContainsKey(enmInstrumentType.YMF271)) return null;
+            return dicInst[enmInstrumentType.YMF271].visVolume;
+        }
+
+        public int[][][] getRF5C68VisVolume()
+        {
+            if (!dicInst.ContainsKey(enmInstrumentType.RF5C68)) return null;
+            return dicInst[enmInstrumentType.RF5C68].visVolume;
+        }
+
+        public int[][][] getMultiPCMVisVolume()
+        {
+            if (!dicInst.ContainsKey(enmInstrumentType.MultiPCM)) return null;
+            return dicInst[enmInstrumentType.MultiPCM].visVolume;
+        }
+
+        public int[][][] getK053260VisVolume()
+        {
+            if (!dicInst.ContainsKey(enmInstrumentType.K053260)) return null;
+            return dicInst[enmInstrumentType.K053260].visVolume;
+        }
+
+        public int[][][] getQSoundVisVolume()
+        {
+            if (!dicInst.ContainsKey(enmInstrumentType.QSound)) return null;
+            return dicInst[enmInstrumentType.QSound].visVolume;
+        }
+
+        public int[][][] getGA20VisVolume()
+        {
+            if (!dicInst.ContainsKey(enmInstrumentType.GA20)) return null;
+            return dicInst[enmInstrumentType.GA20].visVolume;
+        }
+
+        public int[][][] getDMGVisVolume()
+        {
+            if (!dicInst.ContainsKey(enmInstrumentType.DMG)) return null;
+            return dicInst[enmInstrumentType.DMG].visVolume;
+        }
+
+
 
         /// <summary>
         /// Left全体ボリュームの取得(視覚効果向け)

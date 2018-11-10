@@ -10,6 +10,11 @@ namespace MDSound
         public override void Reset(byte ChipID)
         {
             device_reset_ymf271(ChipID);
+
+            visVolume = new int[2][][] {
+                new int[1][] { new int[2] { 0, 0 } }
+                , new int[1][] { new int[2] { 0, 0 } }
+            };
         }
 
         public override UInt32 Start(byte ChipID, UInt32 clock)
@@ -30,6 +35,9 @@ namespace MDSound
         public override void Update(byte ChipID, Int32[][] outputs, Int32 samples)
         {
             ymf271_update(ChipID, outputs, samples);
+
+            visVolume[ChipID][0][0] = outputs[0][0];
+            visVolume[ChipID][0][1] = outputs[1][0];
         }
 
         private int YMF271_Write(byte ChipID, int Port, byte Offset, byte Data)

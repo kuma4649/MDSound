@@ -2486,6 +2486,7 @@ namespace MDSound
 
         private void YM2413_Write(byte ChipID, byte Adr, byte Data)
         {
+            if (opll_[ChipID] == null) return;
             OPLL_writeReg(opll_[ChipID], Adr, Data);
         }
 

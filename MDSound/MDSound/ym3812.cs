@@ -13,6 +13,10 @@ namespace MDSound
         public override void Reset(byte ChipID)
         {
             device_reset_ym3812(ChipID);
+            visVolume = new int[2][][] {
+                new int[1][] { new int[2] { 0, 0 } }
+                , new int[1][] { new int[2] { 0, 0 } }
+            };
         }
 
         private const uint DefaultYM3812ClockValue = 3579545;
@@ -35,6 +39,9 @@ namespace MDSound
         public override void Update(byte ChipID, int[][] outputs, int samples)
         {
             ym3812_stream_update(ChipID, outputs, samples);
+
+            visVolume[ChipID][0][0] = outputs[0][0];
+            visVolume[ChipID][0][1] = outputs[1][0];
         }
 
         public override int Write(byte ChipID, int port, int adr, int data)

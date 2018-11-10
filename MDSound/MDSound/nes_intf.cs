@@ -31,6 +31,9 @@ namespace MDSound
         public override void Update(byte ChipID, int[][] outputs, int samples)
         {
             nes_stream_update(ChipID, outputs, samples);
+
+            visVolume[ChipID][0][0] = outputs[0][0];
+            visVolume[ChipID][0][1] = outputs[1][0];
         }
 
         private np_nes_apu nes_apu;
@@ -43,6 +46,11 @@ namespace MDSound
             nes_dmc = new np_nes_dmc();
             nes_fds = new np_nes_fds();
             nes_dmc.nes_apu = nes_apu;
+
+            visVolume = new int[2][][] {
+                new int[1][] { new int[2] { 0, 0 } }
+                , new int[1][] { new int[2] { 0, 0 } }
+            };
         }
 
         /****************************************************************
