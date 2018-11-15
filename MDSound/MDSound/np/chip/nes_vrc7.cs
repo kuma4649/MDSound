@@ -143,6 +143,8 @@ namespace MDSound.np.chip
             b[0] = (b[0] * MASTER) >> 8;
             b[1] = (b[1] * MASTER) >> 8;
 
+            MDSound.np_nes_vrc7_volume = Math.Abs(b[0]);
+
             return 2;
         }
 

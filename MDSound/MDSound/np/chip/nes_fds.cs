@@ -1,4 +1,6 @@
 ﻿
+using System;
+
 namespace MDSound.np.chip
 {
     public class nes_fds : ISoundChip
@@ -13,7 +15,9 @@ namespace MDSound.np.chip
 
         public override uint Render(int[] b)
         {
-            return fds.NES_FDS_org_Render(chip, b);
+            uint ret = fds.NES_FDS_org_Render(chip, b);
+            MDSound.np_nes_fds_volume = Math.Abs(b[0]);
+            return ret;
         }
 
         public override void Reset()

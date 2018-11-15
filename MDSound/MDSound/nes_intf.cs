@@ -36,6 +36,37 @@ namespace MDSound
             visVolume[ChipID][0][1] = outputs[1][0];
         }
 
+        //	音量設定
+        public void SetVolumeAPU(int db)
+        {
+            db = Math.Min(db, 20);
+            if (db > -192)
+                apuVolume = (int)(16384.0 * Math.Pow(10.0, db / 40.0));
+            else
+                apuVolume = 0;
+        }
+
+        public void SetVolumeDMC(int db)
+        {
+            db = Math.Min(db, 20);
+            if (db > -192)
+                dmcVolume = (int)(16384.0 * Math.Pow(10.0, db / 40.0));
+            else
+                dmcVolume = 0;
+        }
+
+        public void SetVolumeFDS(int db)
+        {
+            db = Math.Min(db, 20);
+            if (db > -192)
+                fdsVolume = (int)(16384.0 * Math.Pow(10.0, db / 40.0));
+            else
+                fdsVolume = 0;
+        }
+
+        private int apuVolume = 0;
+        private int dmcVolume = 0;
+        private int fdsVolume = 0;
         private np_nes_apu nes_apu;
         private np_nes_dmc nes_dmc;
         private np_nes_fds nes_fds;
@@ -51,6 +82,10 @@ namespace MDSound
                 new int[1][] { new int[2] { 0, 0 } }
                 , new int[1][] { new int[2] { 0, 0 } }
             };
+
+            SetVolumeAPU(0);
+            SetVolumeDMC(0);
+            SetVolumeFDS(0);
         }
 
         /****************************************************************
@@ -126,8 +161,12 @@ namespace MDSound
             {
                 nes_apu.NES_APU_np_Render(info.chip_apu, BufferA);
                 nes_dmc.NES_DMC_np_Render(info.chip_dmc, BufferD);
-                outputs[0][CurSmpl] = BufferA[0] + BufferD[0];
-                outputs[1][CurSmpl] = BufferA[1] + BufferD[1];
+                outputs[0][CurSmpl] = (short)((Limit(BufferA[0], 0x7fff, -0x8000) * apuVolume) >> 14);
+                outputs[1][CurSmpl] = (short)((Limit(BufferA[1], 0x7fff, -0x8000) * apuVolume) >> 14);
+                outputs[0][CurSmpl] += (short)((Limit(BufferD[0], 0x7fff, -0x8000) * dmcVolume) >> 14);
+                outputs[1][CurSmpl] += (short)((Limit(BufferD[1], 0x7fff, -0x8000) * dmcVolume) >> 14);
+                MDSound.np_nes_apu_volume = Math.Abs(BufferA[0]);
+                MDSound.np_nes_dmc_volume = Math.Abs(BufferD[0]);
             }
             //                    break;
             //            }
@@ -137,12 +176,18 @@ namespace MDSound
                 for (CurSmpl = 0x00; CurSmpl < samples; CurSmpl++)
                 {
                     nes_fds.NES_FDS_Render(info.chip_fds, BufferF);
-                    outputs[0][CurSmpl] += BufferF[0];
-                    outputs[1][CurSmpl] += BufferF[1];
+                    outputs[0][CurSmpl] += (short)((Limit(BufferF[0], 0x7fff, -0x8000) * fdsVolume) >> 14);
+                    outputs[1][CurSmpl] += (short)((Limit(BufferF[1], 0x7fff, -0x8000) * fdsVolume) >> 14);
+                    MDSound.np_nes_fds_volume = Math.Abs(BufferF[0]);
                 }
             }
 
             return;
+        }
+
+        public static int Limit(int v, int max, int min)
+        {
+            return v > max ? max : (v < min ? min : v);
         }
 
         private Int32 device_start_nes(byte ChipID, int clock)

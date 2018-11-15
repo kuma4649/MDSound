@@ -1,4 +1,6 @@
 ﻿
+using System;
+
 namespace MDSound.np.chip
 {
     public class nes_apu :  ISoundChip
@@ -13,7 +15,9 @@ namespace MDSound.np.chip
 
         public override uint Render(int[] b)
         {
-            return apu.NES_APU_org_Render(chip, b);
+            uint ret= apu.NES_APU_org_Render(chip, b);
+            MDSound.np_nes_apu_volume = Math.Abs(b[0]);
+            return ret;
         }
 
         public override void Reset()

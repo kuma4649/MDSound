@@ -285,6 +285,8 @@ namespace MDSound.np.chip
             b[0] = (b[0] * GAIN) >> 8;
             b[1] = (b[1] * GAIN) >> 8;
 
+            MDSound.np_nes_n106_volume = Math.Abs(b[0]);
+
             return 2;
         }
 

@@ -268,6 +268,8 @@ namespace MDSound.np.chip
             b[1] += m[2] * -sm[1][2];
             b[1] >>= 7;
 
+            MDSound.np_nes_mmc5_volume = Math.Abs(b[0]);
+
             return 2;
         }
 

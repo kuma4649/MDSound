@@ -53,6 +53,15 @@ namespace MDSound
 
         private int[][] tempSample = new int[2][] { new int[1], new int[1] };
 
+        public static int np_nes_apu_volume;
+        public static int np_nes_dmc_volume;
+        public static int np_nes_fds_volume;
+        public static int np_nes_fme7_volume;
+        public static int np_nes_mmc5_volume;
+        public static int np_nes_n106_volume;
+        public static int np_nes_vrc6_volume;
+        public static int np_nes_vrc7_volume;
+
 #if DEBUG
         System.Diagnostics.Stopwatch sw = System.Diagnostics.Stopwatch.StartNew();
 #endif
@@ -392,7 +401,9 @@ namespace MDSound
             {
                 inst = insts[i];
                 //double volume = inst.Volume/100.0;
-                int mul = (int)(16384.0 * Math.Pow(10.0, inst.Volume / 40.0));
+                int mul = inst.Volume;
+                if (inst.type == enmInstrumentType.Nes) mul = 0;
+                mul = (int)(16384.0 * Math.Pow(10.0, mul / 40.0));
 
                 switch (inst.Resampler)
                 {
@@ -417,7 +428,7 @@ namespace MDSound
                             {
                                 buff[0][0] = 0;
                                 buff[1][0] = 0;
-                                inst.Update(inst.ID, buff, 1);
+                                inst.Update?.Invoke(inst.ID, buff, 1);
 
                                 StreamBufs[0][ind] += (short)((Limit(buff[0][0], 0x7fff, -0x8000) * mul) >> 14);
                                 StreamBufs[1][ind] += (short)((Limit(buff[1][0], 0x7fff, -0x8000) * mul) >> 14);
@@ -490,7 +501,7 @@ namespace MDSound
                         {
                             buff[0][0] = 0;
                             buff[1][0] = 0;
-                            inst.Update(inst.ID, buff, 1);
+                            inst.Update?.Invoke(inst.ID, buff, 1);
 
                             StreamPnt[0][ind] += (short)((Limit(buff[0][0], 0x7fff, -0x8000) * mul) >> 14 );
                             StreamPnt[1][ind] += (short)((Limit(buff[1][0], 0x7fff, -0x8000) * mul) >> 14 );
@@ -538,7 +549,7 @@ namespace MDSound
                         {
                             buff[0][0] = 0;
                             buff[1][0] = 0;
-                            inst.Update(inst.ID, buff, 1);
+                            inst.Update?.Invoke(inst.ID, buff, 1);
 
                             StreamBufs[0][ind] = (short)((Limit(buff[0][0], 0x7fff, -0x8000) * mul) >> 14);
                             StreamBufs[1][ind] = (short)((Limit(buff[1][0], 0x7fff, -0x8000) * mul) >> 14);
@@ -1876,8 +1887,11 @@ namespace MDSound
 
             foreach (Chip c in insts)
             {
-                if (c.type != enmInstrumentType.Nes) continue;
-                c.Volume = Math.Max(Math.Min(vol, 20), -192);
+                if (c.type == enmInstrumentType.Nes)
+                {
+                    c.Volume = Math.Max(Math.Min(vol, 20), -192);
+                    ((nes_intf)c.Instrument).SetVolumeAPU(vol);
+                }
             }
         }
 
@@ -1887,8 +1901,11 @@ namespace MDSound
 
             foreach (Chip c in insts)
             {
-                if (c.type != enmInstrumentType.DMC) continue;
-                c.Volume = Math.Max(Math.Min(vol, 20), -192);
+                if (c.type == enmInstrumentType.DMC)
+                {
+                    c.Volume = Math.Max(Math.Min(vol, 20), -192);
+                    ((nes_intf)c.Instrument).SetVolumeDMC(vol);
+                }
             }
         }
 
@@ -1898,8 +1915,11 @@ namespace MDSound
 
             foreach (Chip c in insts)
             {
-                if (c.type != enmInstrumentType.FDS) continue;
-                c.Volume = Math.Max(Math.Min(vol, 20), -192);
+                if (c.type == enmInstrumentType.FDS)
+                {
+                    c.Volume = Math.Max(Math.Min(vol, 20), -192);
+                    ((nes_intf)c.Instrument).SetVolumeFDS(vol);
+                }
             }
         }
 
@@ -2424,20 +2444,23 @@ namespace MDSound
 
         public int[][][] getNESVisVolume()
         {
-            if (!dicInst.ContainsKey(enmInstrumentType.Nes)) return null;
-            return dicInst[enmInstrumentType.Nes].visVolume;
+            return null;
+            //if (!dicInst.ContainsKey(enmInstrumentType.Nes)) return null;
+            //return dicInst[enmInstrumentType.Nes].visVolume;
         }
 
         public int[][][] getDMCVisVolume()
         {
-            if (!dicInst.ContainsKey(enmInstrumentType.DMC)) return null;
-            return dicInst[enmInstrumentType.DMC].visVolume;
+            return null;
+            //if (!dicInst.ContainsKey(enmInstrumentType.DMC)) return null;
+            //return dicInst[enmInstrumentType.DMC].visVolume;
         }
 
         public int[][][] getFDSVisVolume()
         {
-            if (!dicInst.ContainsKey(enmInstrumentType.FDS)) return null;
-            return dicInst[enmInstrumentType.FDS].visVolume;
+            return null;
+            //if (!dicInst.ContainsKey(enmInstrumentType.FDS)) return null;
+            //return dicInst[enmInstrumentType.FDS].visVolume;
         }
 
         public int[][][] getMMC5VisVolume()
