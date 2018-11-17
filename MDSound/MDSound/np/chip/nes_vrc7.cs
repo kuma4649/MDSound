@@ -95,6 +95,33 @@ namespace MDSound.np.chip
             return opll.reg;
         }
 
+        public class ChipKeyInfo
+        {
+            public bool[] On = null;
+            public bool[] Off = null;
+
+            public ChipKeyInfo(int n)
+            {
+                On = new bool[n];
+                Off = new bool[n];
+                //for (int i = 0; i < n; i++) Off[i] = true;
+            }
+        }
+
+        private ChipKeyInfo ki = new ChipKeyInfo(6);
+        private ChipKeyInfo kiRet = new ChipKeyInfo(6);
+
+        public ChipKeyInfo getVRC7KeyInfo(int chipID)
+        {
+            for (int ch = 0; ch < 6; ch++)
+            {
+                kiRet.Off[ch] = ki.Off[ch];
+                kiRet.On[ch] = ki.On[ch];
+                ki.On[ch] = false;
+            }
+            return kiRet;
+        }
+
         public override bool Write(UInt32 adr, UInt32 val, UInt32 id = 0)
         {
             if (adr == 0x9010)
@@ -105,6 +132,20 @@ namespace MDSound.np.chip
             if (adr == 0x9030)
             {
                 emu2413.OPLL_writeIO(opll, 1, val);
+                if (opll.adr >= 0x20 && opll.adr<=0x25)
+                {
+                    uint ch = opll.adr - 0x20;
+                    uint k = val & 0x10;
+                    if (k == 0)
+                    {
+                        ki.Off[ch] = true;
+                    }
+                    else
+                    {
+                        if(ki.Off[ch]) ki.On[ch] = true;
+                        ki.Off[ch] = false;
+                    }
+                }
                 return true;
             }
             else
