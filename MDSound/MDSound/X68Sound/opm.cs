@@ -552,6 +552,74 @@ namespace MDSound.NX68Sound
             Dousa_mode = 0;
             OpmChMask = 0;
 
+            cmdTbl = new Action<byte, byte>[256]
+            {
+                  dmy             , ExeCmd_LfoReset , dmy             , dmy              // 00-03
+                , dmy             , dmy             , dmy             , dmy              // 04-07
+                , ExeCmd_KON      , dmy             , dmy             , dmy              // 08-0B
+                , dmy             , dmy             , dmy             , ExeCmd_NeNfrq    // 0C-0F
+                , dmy             , dmy             , dmy             , dmy              // 10-13
+                , dmy             , dmy             , dmy             , dmy              // 14-17
+                , ExeCmd_Lfrq     , ExeCmd_PmdAmd   , dmy             , ExeCmd_WaveForm  // 18-1B
+                , dmy             , dmy             , dmy             , dmy              // 1C-1F
+                , ExeCmd_PanFlCon , ExeCmd_PanFlCon , ExeCmd_PanFlCon , ExeCmd_PanFlCon  // 20-23
+                , ExeCmd_PanFlCon , ExeCmd_PanFlCon , ExeCmd_PanFlCon , ExeCmd_PanFlCon  // 24-27
+                , ExeCmd_Kc       , ExeCmd_Kc       , ExeCmd_Kc       , ExeCmd_Kc        // 28-2B
+                , ExeCmd_Kc       , ExeCmd_Kc       , ExeCmd_Kc       , ExeCmd_Kc        // 2C-2F
+                , ExeCmd_Kf       , ExeCmd_Kf       , ExeCmd_Kf       , ExeCmd_Kf        // 30-33
+                , ExeCmd_Kf       , ExeCmd_Kf       , ExeCmd_Kf       , ExeCmd_Kf        // 34-37
+                , ExeCmd_PmsAms   , ExeCmd_PmsAms   , ExeCmd_PmsAms   , ExeCmd_PmsAms    // 38-3B
+                , ExeCmd_PmsAms   , ExeCmd_PmsAms   , ExeCmd_PmsAms   , ExeCmd_PmsAms    // 3C-3F
+                , ExeCmd_Dt1Mul   , ExeCmd_Dt1Mul   , ExeCmd_Dt1Mul   , ExeCmd_Dt1Mul    // 40-43
+                , ExeCmd_Dt1Mul   , ExeCmd_Dt1Mul   , ExeCmd_Dt1Mul   , ExeCmd_Dt1Mul    // 44-47
+                , ExeCmd_Dt1Mul   , ExeCmd_Dt1Mul   , ExeCmd_Dt1Mul   , ExeCmd_Dt1Mul    // 48-4B
+                , ExeCmd_Dt1Mul   , ExeCmd_Dt1Mul   , ExeCmd_Dt1Mul   , ExeCmd_Dt1Mul    // 4C-4F
+                , ExeCmd_Dt1Mul   , ExeCmd_Dt1Mul   , ExeCmd_Dt1Mul   , ExeCmd_Dt1Mul    // 50-53
+                , ExeCmd_Dt1Mul   , ExeCmd_Dt1Mul   , ExeCmd_Dt1Mul   , ExeCmd_Dt1Mul    // 54-57
+                , ExeCmd_Dt1Mul   , ExeCmd_Dt1Mul   , ExeCmd_Dt1Mul   , ExeCmd_Dt1Mul    // 58-5B
+                , ExeCmd_Dt1Mul   , ExeCmd_Dt1Mul   , ExeCmd_Dt1Mul   , ExeCmd_Dt1Mul    // 5C-5F
+                , ExeCmd_Tl       , ExeCmd_Tl       , ExeCmd_Tl       , ExeCmd_Tl        // 60-63
+                , ExeCmd_Tl       , ExeCmd_Tl       , ExeCmd_Tl       , ExeCmd_Tl        // 64-67
+                , ExeCmd_Tl       , ExeCmd_Tl       , ExeCmd_Tl       , ExeCmd_Tl        // 68-6B
+                , ExeCmd_Tl       , ExeCmd_Tl       , ExeCmd_Tl       , ExeCmd_Tl        // 6C-6F
+                , ExeCmd_Tl       , ExeCmd_Tl       , ExeCmd_Tl       , ExeCmd_Tl        // 70-73
+                , ExeCmd_Tl       , ExeCmd_Tl       , ExeCmd_Tl       , ExeCmd_Tl        // 74-77
+                , ExeCmd_Tl       , ExeCmd_Tl       , ExeCmd_Tl       , ExeCmd_Tl        // 78-7B
+                , ExeCmd_Tl       , ExeCmd_Tl       , ExeCmd_Tl       , ExeCmd_Tl        // 7C-7F
+                , ExeCmd_KsAr     , ExeCmd_KsAr     , ExeCmd_KsAr     , ExeCmd_KsAr      // 80-83
+                , ExeCmd_KsAr     , ExeCmd_KsAr     , ExeCmd_KsAr     , ExeCmd_KsAr      // 84-87
+                , ExeCmd_KsAr     , ExeCmd_KsAr     , ExeCmd_KsAr     , ExeCmd_KsAr      // 88-8B
+                , ExeCmd_KsAr     , ExeCmd_KsAr     , ExeCmd_KsAr     , ExeCmd_KsAr      // 8C-8F
+                , ExeCmd_KsAr     , ExeCmd_KsAr     , ExeCmd_KsAr     , ExeCmd_KsAr      // 90-93
+                , ExeCmd_KsAr     , ExeCmd_KsAr     , ExeCmd_KsAr     , ExeCmd_KsAr      // 94-97
+                , ExeCmd_KsAr     , ExeCmd_KsAr     , ExeCmd_KsAr     , ExeCmd_KsAr      // 98-9B
+                , ExeCmd_KsAr     , ExeCmd_KsAr     , ExeCmd_KsAr     , ExeCmd_KsAr      // 9C-9F
+                , ExeCmd_AmeD1r   , ExeCmd_AmeD1r   , ExeCmd_AmeD1r   , ExeCmd_AmeD1r    // A0-A3
+                , ExeCmd_AmeD1r   , ExeCmd_AmeD1r   , ExeCmd_AmeD1r   , ExeCmd_AmeD1r    // A4-A7
+                , ExeCmd_AmeD1r   , ExeCmd_AmeD1r   , ExeCmd_AmeD1r   , ExeCmd_AmeD1r    // A8-AB
+                , ExeCmd_AmeD1r   , ExeCmd_AmeD1r   , ExeCmd_AmeD1r   , ExeCmd_AmeD1r    // AC-AF
+                , ExeCmd_AmeD1r   , ExeCmd_AmeD1r   , ExeCmd_AmeD1r   , ExeCmd_AmeD1r    // B0-B3
+                , ExeCmd_AmeD1r   , ExeCmd_AmeD1r   , ExeCmd_AmeD1r   , ExeCmd_AmeD1r    // B4-B7
+                , ExeCmd_AmeD1r   , ExeCmd_AmeD1r   , ExeCmd_AmeD1r   , ExeCmd_AmeD1r    // B8-BB
+                , ExeCmd_AmeD1r   , ExeCmd_AmeD1r   , ExeCmd_AmeD1r   , ExeCmd_AmeD1r    // BC-BF
+                , ExeCmd_Dt2D2r   , ExeCmd_Dt2D2r   , ExeCmd_Dt2D2r   , ExeCmd_Dt2D2r    // C0-C3
+                , ExeCmd_Dt2D2r   , ExeCmd_Dt2D2r   , ExeCmd_Dt2D2r   , ExeCmd_Dt2D2r    // C4-C7
+                , ExeCmd_Dt2D2r   , ExeCmd_Dt2D2r   , ExeCmd_Dt2D2r   , ExeCmd_Dt2D2r    // C8-CB
+                , ExeCmd_Dt2D2r   , ExeCmd_Dt2D2r   , ExeCmd_Dt2D2r   , ExeCmd_Dt2D2r    // CC-CF
+                , ExeCmd_Dt2D2r   , ExeCmd_Dt2D2r   , ExeCmd_Dt2D2r   , ExeCmd_Dt2D2r    // D0-D3
+                , ExeCmd_Dt2D2r   , ExeCmd_Dt2D2r   , ExeCmd_Dt2D2r   , ExeCmd_Dt2D2r    // D4-D7
+                , ExeCmd_Dt2D2r   , ExeCmd_Dt2D2r   , ExeCmd_Dt2D2r   , ExeCmd_Dt2D2r    // D8-DB
+                , ExeCmd_Dt2D2r   , ExeCmd_Dt2D2r   , ExeCmd_Dt2D2r   , ExeCmd_Dt2D2r    // DC-DF
+                , CmdExe_D1lRr    , CmdExe_D1lRr    , CmdExe_D1lRr    , CmdExe_D1lRr     // E0-E3
+                , CmdExe_D1lRr    , CmdExe_D1lRr    , CmdExe_D1lRr    , CmdExe_D1lRr     // E4-E7
+                , CmdExe_D1lRr    , CmdExe_D1lRr    , CmdExe_D1lRr    , CmdExe_D1lRr     // E8-EB
+                , CmdExe_D1lRr    , CmdExe_D1lRr    , CmdExe_D1lRr    , CmdExe_D1lRr     // EC-EF
+                , CmdExe_D1lRr    , CmdExe_D1lRr    , CmdExe_D1lRr    , CmdExe_D1lRr     // F0-F3
+                , CmdExe_D1lRr    , CmdExe_D1lRr    , CmdExe_D1lRr    , CmdExe_D1lRr     // F4-F7
+                , CmdExe_D1lRr    , CmdExe_D1lRr    , CmdExe_D1lRr    , CmdExe_D1lRr     // F8-FB
+                , CmdExe_D1lRr    , CmdExe_D1lRr    , CmdExe_D1lRr    , CmdExe_D1lRr     // FC-FF
+            };
+
 #if C86CTL
 	// C86CTL のロード
 	pChipBase = NULL;
@@ -751,46 +819,52 @@ pGimic->Release();
             switch (OpmRegNo)
             {
                 case 0x10:
+                    // TimerA
+
+                    TimerAreg10 = data;
+                    TimerA = 1024 - ((TimerAreg10 << 2) + TimerAreg11);
+
+                    break;
                 case 0x11:
                     // TimerA
-                    {
-                        if (OpmRegNo == 0x10)
-                        {
-                            TimerAreg10 = data;
-                        }
-                        else
-                        {
-                            TimerAreg11 = data & 3;
-                        }
-                        TimerA = 1024 - ((TimerAreg10 << 2) + TimerAreg11);
-                    }
+
+                    //if (OpmRegNo == 0x10)
+                    //{
+                    //    TimerAreg10 = data;
+                    //}
+                    //else
+                    //{
+                    TimerAreg11 = data & 3;
+                    //}
+                    TimerA = 1024 - ((TimerAreg10 << 2) + TimerAreg11);
+
                     break;
 
                 case 0x12:
                     // TimerB
-                    {
-                        TimerB = (256 - (int)data) << (10 - 6);
-                    }
+
+                    TimerB = (256 - (int)data) << (10 - 6);
+
                     break;
 
                 case 0x14:
                     // タイマー制御レジスタ
-                    {
-                        //while (_InterlockedCompareExchange(&TimerSemapho, 1, 0) == 1) ;
 
-                        TimerReg = data & 0x8F;
-                        StatReg &= 0xFF - ((data >> 4) & 3);
+                    //while (_InterlockedCompareExchange(&TimerSemapho, 1, 0) == 1) ;
 
-                        global.TimerSemapho = 0;
-                    }
+                    TimerReg = data & 0x8F;
+                    StatReg &= 0xFF - ((data >> 4) & 3);
+
+                    global.TimerSemapho = 0;
+
                     break;
 
                 case 0x1B:
                     // WaveForm
-                    {
-                        AdpcmBaseClock = (byte)(data >> 7);
-                        SetAdpcmRate();
-                    }
+
+                    AdpcmBaseClock = (byte)(data >> 7);
+                    SetAdpcmRate();
+
                     break;
             }
         }
@@ -846,376 +920,309 @@ pGimic->Release();
             }
         }
 
+        private Action<byte, byte>[] cmdTbl;
+
         private void ExecuteCmndCore(byte regno, byte data)
         {
-            switch (regno)
-            {
-                case 0x01:
-                    // LFO RESET
-                    {
-                        if ((data & 0x02) != 0)
-                        {
-                            lfo.LfoReset();
-                        }
-                        else
-                        {
-                            lfo.LfoStart();
-                        }
-                    }
-                    break;
 
-                case 0x08:
-                    // KON
-                    {
-                        int ch, s, bit;
-                        ch = data & 7;
-                        for (s = 0, bit = 8; s < 4; ++s, bit += bit)
-                        {
-                            if ((data & bit) != 0)
-                            {
-                                op[ch][s].KeyON(0);
-                            }
-                            else
-                            {
-                                op[ch][s].KeyOFF(0);
-                            }
-                        }
-                    }
-                    break;
+            cmdTbl[regno](regno, data);
 
-                case 0x0F:
-                    // NE,NFRQ
-                    {
-                        op[7][3].SetNFRQ(data & 0xFF);
-                    }
-                    break;
+            //switch (regno)
+            //{
+            //    case 0x01:
+            //        // LFO RESET
+            //        ExeCmd_LfoReset(data);
+            //        break;
+
+            //    case 0x08:
+            //        // KON
+            //        ExeCmd_KON(data);
+            //        break;
+
+            //    case 0x0F:
+            //        // NE,NFRQ
+            //        ExeCmd_NeNfrq(data);
+            //        break;
 
 
-                case 0x18:
-                    // LFRQ
-                    {
-                        lfo.SetLFRQ(data & 0xFF);
-                    }
-                    break;
-                case 0x19:
-                    // PMD/AMD
-                    {
-                        lfo.SetPMDAMD(data & 0xFF);
-                    }
-                    break;
-                case 0x1B:
-                    // WaveForm
-                    {
-                        lfo.SetWaveForm(data & 0xFF);
-                    }
-                    break;
+            //    case 0x18:
+            //        // LFRQ
+            //        ExeCmd_Lfrq(data);
+            //        break;
+            //    case 0x19:
+            //        // PMD/AMD
+            //        ExeCmd_PmdAmd(data);
+            //        break;
+            //    case 0x1B:
+            //        // WaveForm
+            //        ExeCmd_WaveForm(data);
+            //        break;
 
-                case 0x20:
-                case 0x21:
-                case 0x22:
-                case 0x23:
-                case 0x24:
-                case 0x25:
-                case 0x26:
-                case 0x27:
-                    // PAN/FL/CON
-                    {
-                        int ch = regno - 0x20;
-                        //			con[ch] = data & 7;
-                        SetConnection(ch, data & 7);
-                        //			pan[ch] = data>>6;
-                        pan[0][ch] = ((data & 0x40) != 0 ? -1 : 0);
-                        pan[1][ch] = ((data & 0x80) != 0 ? -1 : 0);
-                        op[ch][0].SetFL(data);
-                    }
-                    break;
+            //    case 0x20:
+            //    case 0x21:
+            //    case 0x22:
+            //    case 0x23:
+            //    case 0x24:
+            //    case 0x25:
+            //    case 0x26:
+            //    case 0x27:
+            //        // PAN/FL/CON
+            //        ExeCmd_PanFlCon(regno, data);
+            //        break;
 
-                case 0x28:
-                case 0x29:
-                case 0x2A:
-                case 0x2B:
-                case 0x2C:
-                case 0x2D:
-                case 0x2E:
-                case 0x2F:
-                    // KC
-                    {
-                        int ch = regno - 0x28;
-                        op[ch][0].SetKC(data);
-                        op[ch][1].SetKC(data);
-                        op[ch][2].SetKC(data);
-                        op[ch][3].SetKC(data);
-                    }
-                    break;
+            //    case 0x28:
+            //    case 0x29:
+            //    case 0x2A:
+            //    case 0x2B:
+            //    case 0x2C:
+            //    case 0x2D:
+            //    case 0x2E:
+            //    case 0x2F:
+            //        // KC
+            //        ExeCmd_Kc(regno, data);
+            //        break;
 
-                case 0x30:
-                case 0x31:
-                case 0x32:
-                case 0x33:
-                case 0x34:
-                case 0x35:
-                case 0x36:
-                case 0x37:
-                    // KF
-                    {
-                        int ch = regno - 0x30;
-                        op[ch][0].SetKF(data);
-                        op[ch][1].SetKF(data);
-                        op[ch][2].SetKF(data);
-                        op[ch][3].SetKF(data);
-                    }
-                    break;
+            //    case 0x30:
+            //    case 0x31:
+            //    case 0x32:
+            //    case 0x33:
+            //    case 0x34:
+            //    case 0x35:
+            //    case 0x36:
+            //    case 0x37:
+            //        // KF
+            //        ExeCmd_Kf(regno, data);
+            //        break;
 
-                case 0x38:
-                case 0x39:
-                case 0x3A:
-                case 0x3B:
-                case 0x3C:
-                case 0x3D:
-                case 0x3E:
-                case 0x3F:
-                    // PMS/AMS
-                    {
-                        int ch = regno - 0x38;
-                        lfo.SetPMSAMS(ch, data & 0xFF);
-                    }
-                    break;
+            //    case 0x38:
+            //    case 0x39:
+            //    case 0x3A:
+            //    case 0x3B:
+            //    case 0x3C:
+            //    case 0x3D:
+            //    case 0x3E:
+            //    case 0x3F:
+            //        // PMS/AMS
+            //        ExeCmd_PmsAms(regno, data);
+            //        break;
 
-                case 0x40:
-                case 0x41:
-                case 0x42:
-                case 0x43:
-                case 0x44:
-                case 0x45:
-                case 0x46:
-                case 0x47:
-                case 0x48:
-                case 0x49:
-                case 0x4A:
-                case 0x4B:
-                case 0x4C:
-                case 0x4D:
-                case 0x4E:
-                case 0x4F:
-                case 0x50:
-                case 0x51:
-                case 0x52:
-                case 0x53:
-                case 0x54:
-                case 0x55:
-                case 0x56:
-                case 0x57:
-                case 0x58:
-                case 0x59:
-                case 0x5A:
-                case 0x5B:
-                case 0x5C:
-                case 0x5D:
-                case 0x5E:
-                case 0x5F:
-                    // DT1/MUL
-                    {
-                        int slot = regno - 0x40;
-                        op[SLOTTBL[slot] >> 2][SLOTTBL[slot] & 3].SetDT1MUL(data);
-                    }
-                    break;
+            //    case 0x40:
+            //    case 0x41:
+            //    case 0x42:
+            //    case 0x43:
+            //    case 0x44:
+            //    case 0x45:
+            //    case 0x46:
+            //    case 0x47:
+            //    case 0x48:
+            //    case 0x49:
+            //    case 0x4A:
+            //    case 0x4B:
+            //    case 0x4C:
+            //    case 0x4D:
+            //    case 0x4E:
+            //    case 0x4F:
+            //    case 0x50:
+            //    case 0x51:
+            //    case 0x52:
+            //    case 0x53:
+            //    case 0x54:
+            //    case 0x55:
+            //    case 0x56:
+            //    case 0x57:
+            //    case 0x58:
+            //    case 0x59:
+            //    case 0x5A:
+            //    case 0x5B:
+            //    case 0x5C:
+            //    case 0x5D:
+            //    case 0x5E:
+            //    case 0x5F:
+            //        // DT1/MUL
+            //        ExeCmd_Dt1Mul(regno, data);
+            //        break;
 
-                case 0x60:
-                case 0x61:
-                case 0x62:
-                case 0x63:
-                case 0x64:
-                case 0x65:
-                case 0x66:
-                case 0x67:
-                case 0x68:
-                case 0x69:
-                case 0x6A:
-                case 0x6B:
-                case 0x6C:
-                case 0x6D:
-                case 0x6E:
-                case 0x6F:
-                case 0x70:
-                case 0x71:
-                case 0x72:
-                case 0x73:
-                case 0x74:
-                case 0x75:
-                case 0x76:
-                case 0x77:
-                case 0x78:
-                case 0x79:
-                case 0x7A:
-                case 0x7B:
-                case 0x7C:
-                case 0x7D:
-                case 0x7E:
-                case 0x7F:
-                    // TL
-                    {
-                        int slot = regno - 0x60;
-                        op[SLOTTBL[slot] >> 2][SLOTTBL[slot] & 3].SetTL(data);
-                    }
-                    break;
+            //    case 0x60:
+            //    case 0x61:
+            //    case 0x62:
+            //    case 0x63:
+            //    case 0x64:
+            //    case 0x65:
+            //    case 0x66:
+            //    case 0x67:
+            //    case 0x68:
+            //    case 0x69:
+            //    case 0x6A:
+            //    case 0x6B:
+            //    case 0x6C:
+            //    case 0x6D:
+            //    case 0x6E:
+            //    case 0x6F:
+            //    case 0x70:
+            //    case 0x71:
+            //    case 0x72:
+            //    case 0x73:
+            //    case 0x74:
+            //    case 0x75:
+            //    case 0x76:
+            //    case 0x77:
+            //    case 0x78:
+            //    case 0x79:
+            //    case 0x7A:
+            //    case 0x7B:
+            //    case 0x7C:
+            //    case 0x7D:
+            //    case 0x7E:
+            //    case 0x7F:
+            //        // TL
+            //        ExeCmd_Tl(regno, data);
+            //        break;
 
-                case 0x80:
-                case 0x81:
-                case 0x82:
-                case 0x83:
-                case 0x84:
-                case 0x85:
-                case 0x86:
-                case 0x87:
-                case 0x88:
-                case 0x89:
-                case 0x8A:
-                case 0x8B:
-                case 0x8C:
-                case 0x8D:
-                case 0x8E:
-                case 0x8F:
-                case 0x90:
-                case 0x91:
-                case 0x92:
-                case 0x93:
-                case 0x94:
-                case 0x95:
-                case 0x96:
-                case 0x97:
-                case 0x98:
-                case 0x99:
-                case 0x9A:
-                case 0x9B:
-                case 0x9C:
-                case 0x9D:
-                case 0x9E:
-                case 0x9F:
-                    // KS/AR
-                    {
-                        int slot = regno - 0x80;
-                        op[SLOTTBL[slot] >> 2][SLOTTBL[slot] & 3].SetKSAR(data);
-                    }
-                    break;
+            //    case 0x80:
+            //    case 0x81:
+            //    case 0x82:
+            //    case 0x83:
+            //    case 0x84:
+            //    case 0x85:
+            //    case 0x86:
+            //    case 0x87:
+            //    case 0x88:
+            //    case 0x89:
+            //    case 0x8A:
+            //    case 0x8B:
+            //    case 0x8C:
+            //    case 0x8D:
+            //    case 0x8E:
+            //    case 0x8F:
+            //    case 0x90:
+            //    case 0x91:
+            //    case 0x92:
+            //    case 0x93:
+            //    case 0x94:
+            //    case 0x95:
+            //    case 0x96:
+            //    case 0x97:
+            //    case 0x98:
+            //    case 0x99:
+            //    case 0x9A:
+            //    case 0x9B:
+            //    case 0x9C:
+            //    case 0x9D:
+            //    case 0x9E:
+            //    case 0x9F:
+            //        // KS/AR
+            //        ExeCmd_KsAr(regno, data);
+            //        break;
 
-                case 0xA0:
-                case 0xA1:
-                case 0xA2:
-                case 0xA3:
-                case 0xA4:
-                case 0xA5:
-                case 0xA6:
-                case 0xA7:
-                case 0xA8:
-                case 0xA9:
-                case 0xAA:
-                case 0xAB:
-                case 0xAC:
-                case 0xAD:
-                case 0xAE:
-                case 0xAF:
-                case 0xB0:
-                case 0xB1:
-                case 0xB2:
-                case 0xB3:
-                case 0xB4:
-                case 0xB5:
-                case 0xB6:
-                case 0xB7:
-                case 0xB8:
-                case 0xB9:
-                case 0xBA:
-                case 0xBB:
-                case 0xBC:
-                case 0xBD:
-                case 0xBE:
-                case 0xBF:
-                    // AME/D1R
-                    {
-                        int slot = regno - 0xA0;
-                        op[SLOTTBL[slot] >> 2][SLOTTBL[slot] & 3].SetAMED1R(data);
-                    }
-                    break;
+            //    case 0xA0:
+            //    case 0xA1:
+            //    case 0xA2:
+            //    case 0xA3:
+            //    case 0xA4:
+            //    case 0xA5:
+            //    case 0xA6:
+            //    case 0xA7:
+            //    case 0xA8:
+            //    case 0xA9:
+            //    case 0xAA:
+            //    case 0xAB:
+            //    case 0xAC:
+            //    case 0xAD:
+            //    case 0xAE:
+            //    case 0xAF:
+            //    case 0xB0:
+            //    case 0xB1:
+            //    case 0xB2:
+            //    case 0xB3:
+            //    case 0xB4:
+            //    case 0xB5:
+            //    case 0xB6:
+            //    case 0xB7:
+            //    case 0xB8:
+            //    case 0xB9:
+            //    case 0xBA:
+            //    case 0xBB:
+            //    case 0xBC:
+            //    case 0xBD:
+            //    case 0xBE:
+            //    case 0xBF:
+            //        // AME/D1R
+            //        ExeCmd_AmeD1r(regno, data);
+            //        break;
 
-                case 0xC0:
-                case 0xC1:
-                case 0xC2:
-                case 0xC3:
-                case 0xC4:
-                case 0xC5:
-                case 0xC6:
-                case 0xC7:
-                case 0xC8:
-                case 0xC9:
-                case 0xCA:
-                case 0xCB:
-                case 0xCC:
-                case 0xCD:
-                case 0xCE:
-                case 0xCF:
-                case 0xD0:
-                case 0xD1:
-                case 0xD2:
-                case 0xD3:
-                case 0xD4:
-                case 0xD5:
-                case 0xD6:
-                case 0xD7:
-                case 0xD8:
-                case 0xD9:
-                case 0xDA:
-                case 0xDB:
-                case 0xDC:
-                case 0xDD:
-                case 0xDE:
-                case 0xDF:
-                    // DT2/D2R
-                    {
-                        int slot = regno - 0xC0;
-                        op[SLOTTBL[slot] >> 2][SLOTTBL[slot] & 3].SetDT2D2R(data);
-                    }
-                    break;
+            //    case 0xC0:
+            //    case 0xC1:
+            //    case 0xC2:
+            //    case 0xC3:
+            //    case 0xC4:
+            //    case 0xC5:
+            //    case 0xC6:
+            //    case 0xC7:
+            //    case 0xC8:
+            //    case 0xC9:
+            //    case 0xCA:
+            //    case 0xCB:
+            //    case 0xCC:
+            //    case 0xCD:
+            //    case 0xCE:
+            //    case 0xCF:
+            //    case 0xD0:
+            //    case 0xD1:
+            //    case 0xD2:
+            //    case 0xD3:
+            //    case 0xD4:
+            //    case 0xD5:
+            //    case 0xD6:
+            //    case 0xD7:
+            //    case 0xD8:
+            //    case 0xD9:
+            //    case 0xDA:
+            //    case 0xDB:
+            //    case 0xDC:
+            //    case 0xDD:
+            //    case 0xDE:
+            //    case 0xDF:
+            //        // DT2/D2R
+            //        ExeCmd_Dt2D2r(regno, data);
+            //        break;
 
-                case 0xE0:
-                case 0xE1:
-                case 0xE2:
-                case 0xE3:
-                case 0xE4:
-                case 0xE5:
-                case 0xE6:
-                case 0xE7:
-                case 0xE8:
-                case 0xE9:
-                case 0xEA:
-                case 0xEB:
-                case 0xEC:
-                case 0xED:
-                case 0xEE:
-                case 0xEF:
-                case 0xF0:
-                case 0xF1:
-                case 0xF2:
-                case 0xF3:
-                case 0xF4:
-                case 0xF5:
-                case 0xF6:
-                case 0xF7:
-                case 0xF8:
-                case 0xF9:
-                case 0xFA:
-                case 0xFB:
-                case 0xFC:
-                case 0xFD:
-                case 0xFE:
-                case 0xFF:
-                    // D1L/RR
-                    {
-                        int slot = regno - 0xE0;
-                        op[SLOTTBL[slot] >> 2][SLOTTBL[slot] & 3].SetD1LRR(data);
-                    }
-                    break;
+            //    case 0xE0:
+            //    case 0xE1:
+            //    case 0xE2:
+            //    case 0xE3:
+            //    case 0xE4:
+            //    case 0xE5:
+            //    case 0xE6:
+            //    case 0xE7:
+            //    case 0xE8:
+            //    case 0xE9:
+            //    case 0xEA:
+            //    case 0xEB:
+            //    case 0xEC:
+            //    case 0xED:
+            //    case 0xEE:
+            //    case 0xEF:
+            //    case 0xF0:
+            //    case 0xF1:
+            //    case 0xF2:
+            //    case 0xF3:
+            //    case 0xF4:
+            //    case 0xF5:
+            //    case 0xF6:
+            //    case 0xF7:
+            //    case 0xF8:
+            //    case 0xF9:
+            //    case 0xFA:
+            //    case 0xFB:
+            //    case 0xFC:
+            //    case 0xFD:
+            //    case 0xFE:
+            //    case 0xFF:
+            //        // D1L/RR
+            //        CmdExe_D1lRr(regno, data);
+            //        break;
 
-            }
+            //}
 
 #if ROMEO
     if (UseOpmFlag == 2)
@@ -1224,6 +1231,130 @@ pGimic->Release();
     }
 #endif
 
+        }
+
+        private void dmy(byte regno, byte data)
+        {
+        }
+
+        private void CmdExe_D1lRr(byte regno, byte data)
+        {
+            int slot = regno - 0xE0;
+            op[SLOTTBL[slot] >> 2][SLOTTBL[slot] & 3].SetD1LRR(data);
+        }
+
+        private void ExeCmd_Dt2D2r(byte regno, byte data)
+        {
+            int slot = regno - 0xC0;
+            op[SLOTTBL[slot] >> 2][SLOTTBL[slot] & 3].SetDT2D2R(data);
+        }
+
+        private void ExeCmd_AmeD1r(byte regno, byte data)
+        {
+            int slot = regno - 0xA0;
+            op[SLOTTBL[slot] >> 2][SLOTTBL[slot] & 3].SetAMED1R(data);
+        }
+
+        private void ExeCmd_KsAr(byte regno, byte data)
+        {
+            int slot = regno - 0x80;
+            op[SLOTTBL[slot] >> 2][SLOTTBL[slot] & 3].SetKSAR(data);
+        }
+
+        private void ExeCmd_Tl(byte regno, byte data)
+        {
+            int slot = regno - 0x60;
+            op[SLOTTBL[slot] >> 2][SLOTTBL[slot] & 3].SetTL(data);
+        }
+
+        private void ExeCmd_Dt1Mul(byte regno, byte data)
+        {
+            int slot = regno - 0x40;
+            op[SLOTTBL[slot] >> 2][SLOTTBL[slot] & 3].SetDT1MUL(data);
+        }
+
+        private void ExeCmd_PmsAms(byte regno, byte data)
+        {
+            int ch = regno - 0x38;
+            lfo.SetPMSAMS(ch, data & 0xFF);
+        }
+
+        private void ExeCmd_Kf(byte regno, byte data)
+        {
+            int ch = regno - 0x30;
+            op[ch][0].SetKF(data);
+            op[ch][1].SetKF(data);
+            op[ch][2].SetKF(data);
+            op[ch][3].SetKF(data);
+        }
+
+        private void ExeCmd_Kc(byte regno, byte data)
+        {
+            int ch = regno - 0x28;
+            op[ch][0].SetKC(data);
+            op[ch][1].SetKC(data);
+            op[ch][2].SetKC(data);
+            op[ch][3].SetKC(data);
+        }
+
+        private void ExeCmd_PanFlCon(byte regno, byte data)
+        {
+            int ch = regno - 0x20;
+            //			con[ch] = data & 7;
+            SetConnection(ch, data & 7);
+            //			pan[ch] = data>>6;
+            pan[0][ch] = ((data & 0x40) != 0 ? -1 : 0);
+            pan[1][ch] = ((data & 0x80) != 0 ? -1 : 0);
+            op[ch][0].SetFL(data);
+        }
+
+        private void ExeCmd_WaveForm(byte regno, byte data)
+        {
+            lfo.SetWaveForm(data);// & 0xFF);
+        }
+
+        private void ExeCmd_PmdAmd(byte regno, byte data)
+        {
+            lfo.SetPMDAMD(data);// & 0xFF);
+        }
+
+        private void ExeCmd_Lfrq(byte regno, byte data)
+        {
+            lfo.SetLFRQ(data);// & 0xFF);
+        }
+
+        private void ExeCmd_NeNfrq(byte regno, byte data)
+        {
+            op[7][3].SetNFRQ(data);// & 0xFF);
+        }
+
+        private void ExeCmd_KON(byte regno, byte data)
+        {
+            int ch, s, bit;
+            ch = data & 7;
+            for (s = 0, bit = 8; s < 4; ++s, bit += bit)
+            {
+                if ((data & bit) != 0)
+                {
+                    op[ch][s].KeyON(0);
+                }
+                else
+                {
+                    op[ch][s].KeyOFF(0);
+                }
+            }
+        }
+
+        private void ExeCmd_LfoReset(byte regno,byte data)
+        {
+            if ((data & 0x02) != 0)
+            {
+                lfo.LfoReset();
+            }
+            else
+            {
+                lfo.LfoStart();
+            }
         }
 
         static int rate = 0;
@@ -1237,7 +1368,7 @@ pGimic->Release();
             PcmBufPtr = 0;
             for (i = 0; i < ndata / 2; ++i)
             {
-                int[] Out = new int[2];
+                //int[] Out = new int[2];
                 Out[0] = Out[1] = 0;
                 bool firstFlg = true;
 
@@ -1246,7 +1377,7 @@ pGimic->Release();
                 {
                     OpmLPFidx -= global.WaveOutSamp;
 
-                    int[] OutInpOpm = new int[2];
+                    //int[] OutInpOpm = new int[2];
                     OutInpOpm[0] = OutInpOpm[1] = 0;
                     if (UseOpmFlag != 0)
                     {
@@ -1283,8 +1414,8 @@ pGimic->Release();
                             {
                                 lfo.Update();
 
-                                int[] lfopitch = new int[8];
-                                int[] lfolevel = new int[8];
+                                //int[] lfopitch = new int[8];
+                                //int[] lfolevel = new int[8];
                                 int ch;
                                 for (ch = 0; ch < 8; ++ch)
                                 {
@@ -1313,23 +1444,44 @@ pGimic->Release();
                             }
 
                             // OpmHpfInp[] に OPM の出力PCMをステレオ加算
-                            OpmHpfInp[0] = ((OpmChMask & 0x01) != 0 ? 0 : (OpOut[0][0] & pan[0][0]))
-                                            + ((OpmChMask & 0x02) != 0 ? 0 : (OpOut[1][0] & pan[0][1]))
-                                            + ((OpmChMask & 0x04) != 0 ? 0 : (OpOut[2][0] & pan[0][2]))
-                                            + ((OpmChMask & 0x08) != 0 ? 0 : (OpOut[3][0] & pan[0][3]))
-                                            + ((OpmChMask & 0x10) != 0 ? 0 : (OpOut[4][0] & pan[0][4]))
-                                            + ((OpmChMask & 0x20) != 0 ? 0 : (OpOut[5][0] & pan[0][5]))
-                                            + ((OpmChMask & 0x40) != 0 ? 0 : (OpOut[6][0] & pan[0][6]))
-                                            + ((OpmChMask & 0x80) != 0 ? 0 : (OpOut[7][0] & pan[0][7]));
-                            OpmHpfInp[1] = ((OpmChMask & 0x01) != 0 ? 0 : (OpOut[0][0] & pan[1][0]))
-                                            + ((OpmChMask & 0x02) != 0 ? 0 : (OpOut[1][0] & pan[1][1]))
-                                            + ((OpmChMask & 0x04) != 0 ? 0 : (OpOut[2][0] & pan[1][2]))
-                                            + ((OpmChMask & 0x08) != 0 ? 0 : (OpOut[3][0] & pan[1][3]))
-                                            + ((OpmChMask & 0x10) != 0 ? 0 : (OpOut[4][0] & pan[1][4]))
-                                            + ((OpmChMask & 0x20) != 0 ? 0 : (OpOut[5][0] & pan[1][5]))
-                                            + ((OpmChMask & 0x40) != 0 ? 0 : (OpOut[6][0] & pan[1][6]))
-                                            + ((OpmChMask & 0x80) != 0 ? 0 : (OpOut[7][0] & pan[1][7]));
-
+                            if ((OpmChMask & 0xff) != 0)
+                            {
+                                OpmHpfInp[0] = ((OpmChMask & 0x01) != 0 ? 0 : (OpOut[0][0] & pan[0][0]))
+                                                + ((OpmChMask & 0x02) != 0 ? 0 : (OpOut[1][0] & pan[0][1]))
+                                                + ((OpmChMask & 0x04) != 0 ? 0 : (OpOut[2][0] & pan[0][2]))
+                                                + ((OpmChMask & 0x08) != 0 ? 0 : (OpOut[3][0] & pan[0][3]))
+                                                + ((OpmChMask & 0x10) != 0 ? 0 : (OpOut[4][0] & pan[0][4]))
+                                                + ((OpmChMask & 0x20) != 0 ? 0 : (OpOut[5][0] & pan[0][5]))
+                                                + ((OpmChMask & 0x40) != 0 ? 0 : (OpOut[6][0] & pan[0][6]))
+                                                + ((OpmChMask & 0x80) != 0 ? 0 : (OpOut[7][0] & pan[0][7]));
+                                OpmHpfInp[1] = ((OpmChMask & 0x01) != 0 ? 0 : (OpOut[0][0] & pan[1][0]))
+                                                + ((OpmChMask & 0x02) != 0 ? 0 : (OpOut[1][0] & pan[1][1]))
+                                                + ((OpmChMask & 0x04) != 0 ? 0 : (OpOut[2][0] & pan[1][2]))
+                                                + ((OpmChMask & 0x08) != 0 ? 0 : (OpOut[3][0] & pan[1][3]))
+                                                + ((OpmChMask & 0x10) != 0 ? 0 : (OpOut[4][0] & pan[1][4]))
+                                                + ((OpmChMask & 0x20) != 0 ? 0 : (OpOut[5][0] & pan[1][5]))
+                                                + ((OpmChMask & 0x40) != 0 ? 0 : (OpOut[6][0] & pan[1][6]))
+                                                + ((OpmChMask & 0x80) != 0 ? 0 : (OpOut[7][0] & pan[1][7]));
+                            }
+                            else
+                            {
+                                OpmHpfInp[0] = (OpOut[0][0] & pan[0][0])
+                                                + (OpOut[1][0] & pan[0][1])
+                                                + (OpOut[2][0] & pan[0][2])
+                                                + (OpOut[3][0] & pan[0][3])
+                                                + (OpOut[4][0] & pan[0][4])
+                                                + (OpOut[5][0] & pan[0][5])
+                                                + (OpOut[6][0] & pan[0][6])
+                                                + (OpOut[7][0] & pan[0][7]);
+                                OpmHpfInp[1] = (OpOut[0][0] & pan[1][0])
+                                                + (OpOut[1][0] & pan[1][1])
+                                                + (OpOut[2][0] & pan[1][2])
+                                                + (OpOut[3][0] & pan[1][3])
+                                                + (OpOut[4][0] & pan[1][4])
+                                                + (OpOut[5][0] & pan[1][5])
+                                                + (OpOut[6][0] & pan[1][6])
+                                                + (OpOut[7][0] & pan[1][7]);
+                            }
                             OpmHpfInp[0] = (OpmHpfInp[0] & -1024) << 4;// (int)0xFFFFFC00) << 4;
                             OpmHpfInp[1] = (OpmHpfInp[1] & -1024) << 4;// (int)0xFFFFFC00) << 4;
 
@@ -1562,6 +1714,7 @@ pGimic->Release();
         }
 
         private int[] Out = new int[2];
+        private int[] OutInpOpm = new int[2];
         int[] lfopitch = new int[8];
         int[] lfolevel = new int[8];
         int rate_b = 0;
@@ -1606,8 +1759,8 @@ pGimic->Release();
                         {
                             lfo.Update();
 
-                            int[] lfopitch = new int[8];
-                            int[] lfolevel = new int[8];
+                            //int[] lfopitch = new int[8];
+                            //int[] lfolevel = new int[8];
                             int ch;
                             for (ch = 0; ch < 8; ++ch)
                             {
@@ -1637,22 +1790,44 @@ pGimic->Release();
 
 
                         // InpInpOpm[] に OPM の出力PCMをステレオ加算
-                        InpInpOpm[0] = ((OpmChMask & 0x01) != 0 ? 0 : (OpOut[0][0] & pan[0][0]))
-                                        + ((OpmChMask & 0x02) != 0 ? 0 : (OpOut[1][0] & pan[0][1]))
-                                        + ((OpmChMask & 0x04) != 0 ? 0 : (OpOut[2][0] & pan[0][2]))
-                                        + ((OpmChMask & 0x08) != 0 ? 0 : (OpOut[3][0] & pan[0][3]))
-                                        + ((OpmChMask & 0x10) != 0 ? 0 : (OpOut[4][0] & pan[0][4]))
-                                        + ((OpmChMask & 0x20) != 0 ? 0 : (OpOut[5][0] & pan[0][5]))
-                                        + ((OpmChMask & 0x40) != 0 ? 0 : (OpOut[6][0] & pan[0][6]))
-                                        + ((OpmChMask & 0x80) != 0 ? 0 : (OpOut[7][0] & pan[0][7]));
-                        InpInpOpm[1] = ((OpmChMask & 0x01) != 0 ? 0 : (OpOut[0][0] & pan[1][0]))
-                                        + ((OpmChMask & 0x02) != 0 ? 0 : (OpOut[1][0] & pan[1][1]))
-                                        + ((OpmChMask & 0x04) != 0 ? 0 : (OpOut[2][0] & pan[1][2]))
-                                        + ((OpmChMask & 0x08) != 0 ? 0 : (OpOut[3][0] & pan[1][3]))
-                                        + ((OpmChMask & 0x10) != 0 ? 0 : (OpOut[4][0] & pan[1][4]))
-                                        + ((OpmChMask & 0x20) != 0 ? 0 : (OpOut[5][0] & pan[1][5]))
-                                        + ((OpmChMask & 0x40) != 0 ? 0 : (OpOut[6][0] & pan[1][6]))
-                                        + ((OpmChMask & 0x80) != 0 ? 0 : (OpOut[7][0] & pan[1][7]));
+                        if ((OpmChMask & 0xff) != 0)
+                        {
+                            InpInpOpm[0] = ((OpmChMask & 0x01) != 0 ? 0 : (OpOut[0][0] & pan[0][0]))
+                                            + ((OpmChMask & 0x02) != 0 ? 0 : (OpOut[1][0] & pan[0][1]))
+                                            + ((OpmChMask & 0x04) != 0 ? 0 : (OpOut[2][0] & pan[0][2]))
+                                            + ((OpmChMask & 0x08) != 0 ? 0 : (OpOut[3][0] & pan[0][3]))
+                                            + ((OpmChMask & 0x10) != 0 ? 0 : (OpOut[4][0] & pan[0][4]))
+                                            + ((OpmChMask & 0x20) != 0 ? 0 : (OpOut[5][0] & pan[0][5]))
+                                            + ((OpmChMask & 0x40) != 0 ? 0 : (OpOut[6][0] & pan[0][6]))
+                                            + ((OpmChMask & 0x80) != 0 ? 0 : (OpOut[7][0] & pan[0][7]));
+                            InpInpOpm[1] = ((OpmChMask & 0x01) != 0 ? 0 : (OpOut[0][0] & pan[1][0]))
+                                            + ((OpmChMask & 0x02) != 0 ? 0 : (OpOut[1][0] & pan[1][1]))
+                                            + ((OpmChMask & 0x04) != 0 ? 0 : (OpOut[2][0] & pan[1][2]))
+                                            + ((OpmChMask & 0x08) != 0 ? 0 : (OpOut[3][0] & pan[1][3]))
+                                            + ((OpmChMask & 0x10) != 0 ? 0 : (OpOut[4][0] & pan[1][4]))
+                                            + ((OpmChMask & 0x20) != 0 ? 0 : (OpOut[5][0] & pan[1][5]))
+                                            + ((OpmChMask & 0x40) != 0 ? 0 : (OpOut[6][0] & pan[1][6]))
+                                            + ((OpmChMask & 0x80) != 0 ? 0 : (OpOut[7][0] & pan[1][7]));
+                        }
+                        else
+                        {
+                            InpInpOpm[0] = (OpOut[0][0] & pan[0][0])
+                                            + (OpOut[1][0] & pan[0][1])
+                                            + (OpOut[2][0] & pan[0][2])
+                                            + (OpOut[3][0] & pan[0][3])
+                                            + (OpOut[4][0] & pan[0][4])
+                                            + (OpOut[5][0] & pan[0][5])
+                                            + (OpOut[6][0] & pan[0][6])
+                                            + (OpOut[7][0] & pan[0][7]);
+                            InpInpOpm[1] = (OpOut[0][0] & pan[1][0])
+                                            + (OpOut[1][0] & pan[1][1])
+                                            + (OpOut[2][0] & pan[1][2])
+                                            + (OpOut[3][0] & pan[1][3])
+                                            + (OpOut[4][0] & pan[1][4])
+                                            + (OpOut[5][0] & pan[1][5])
+                                            + (OpOut[6][0] & pan[1][6])
+                                            + (OpOut[7][0] & pan[1][7]);
+                        }
 
                         {
 

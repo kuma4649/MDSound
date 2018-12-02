@@ -2062,6 +2062,15 @@ namespace MDSound
             }
         }
 
+        public K051649.k051649_state ReadK051649Status(int chipID)
+        {
+            lock (lockobj)
+            {
+                if (!dicInst.ContainsKey(enmInstrumentType.K051649)) return null;
+                return ((K051649)dicInst[enmInstrumentType.K051649]).GetK051649_State((byte)chipID);
+            }
+        }
+
         public int[][] ReadRf5c164Volume(int chipID)
         {
             lock (lockobj)

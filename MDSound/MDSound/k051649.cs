@@ -23,12 +23,12 @@ namespace MDSound
 
         public override uint Start(byte ChipID, uint SamplingRate, uint clock, params object[] Option)
         {
-            for (int j = 0; j < SCC1Data.Length; j++)
+            if (SCC1Data[ChipID] == null)
             {
-                SCC1Data[j] = new k051649_state();
-                for (int i = 0; i < SCC1Data[j].channel_list.Length; i++)
+                SCC1Data[ChipID] = new k051649_state();
+                for (int i = 0; i < SCC1Data[ChipID].channel_list.Length; i++)
                 {
-                    SCC1Data[j].channel_list[i] = new k051649_sound_channel();
+                    SCC1Data[ChipID].channel_list[i] = new k051649_sound_channel();
                 }
             }
 
@@ -475,6 +475,11 @@ namespace MDSound
         {
             k051649_w(ChipID, adr, (byte)data);
             return 0;
+        }
+
+        public k051649_state GetK051649_State(byte ChipID)
+        {
+            return SCC1Data[ChipID];
         }
 
         /**************************************************************************
