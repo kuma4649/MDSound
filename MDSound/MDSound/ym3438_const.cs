@@ -179,12 +179,15 @@ namespace MDSound
             }
         };
 
-        public enum ym3438_type {
+        public enum ym3438_type
+        {
             discrete = 0,   /* Discrete YM3438 (Teradrive)          */
             asic = 1,       /* ASIC YM3438 (MD1 VA7, MD2, MD3, etc) */
-            ym2612 = 2      /* YM2612 (MD1, MD2 VA2)                */
+            ym2612 = 2,      /* YM2612 (MD1, MD2 VA2)                */
+            ym2612_u = 3/* YM2612 without lowpass filter 		*/
         };
         public static ym3438_type chip_type = ym3438_type.discrete;
+        public static uint use_filter = 0;
 
     }
 }
