@@ -5,6 +5,7 @@
  このDLLは、VGM Playerのソースなどからメガドライブなどに搭載されている以下の音源チップの動作をC#向けコードに移植したものです。  
   FM音源  
     YM2612   OPN2  
+	YM3438   OPN2(cmos)  
     YM2151(mame)   OPM  
     YM2151(FMGEN)   OPM  
     YM2151(X68sound)   OPM  
@@ -58,6 +59,7 @@
  ・NSFPlay  
  ・X68Sound.dll  
  ・TinyMPCM(仮)  
+ ・Nuked-OPN2  
   
 [SpecialThanks]  
  本ツールは以下の方々にお世話になっております。また以下のソフトウェア、ウェブページを参考、使用しています。  
@@ -66,6 +68,7 @@
  ・Visual Studio Community 2015  
  ・SGDK  
  ・VGM Player  
+ ・Nuked-OPN2  
  ・Git  
  ・SDL/SDLNET  
  ・SourceTree  
