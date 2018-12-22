@@ -2379,7 +2379,7 @@ namespace MDSound
         public int[][][] getYM2612VisVolume()
         {
             if (!dicInst.ContainsKey(enmInstrumentType.YM2612)) return null;
-            return ((ym2612)dicInst[enmInstrumentType.YM2612]).visVolume;
+            return (dicInst[enmInstrumentType.YM2612]).visVolume;
         }
 
         public int[][][] getSN76489VisVolume()

@@ -253,7 +253,7 @@ namespace MDSound
                 outputs[1][i] = 0;
             }
 
-            if ((info.regs[0x22f] & 1) == 0)
+            if ((info.regs[0x22f] & 1) == 0) //Enable PCM
                 return;
 
             rom = info.rom;
@@ -261,6 +261,7 @@ namespace MDSound
 
             for (i = 0; i != samples; i++)
             {
+                //リバーブ
                 if ((info.k054539_flags & K054539_DISABLE_REVERB) == 0)
                 {
                     //lval = rval = rbase[info.reverb_pos];
@@ -274,8 +275,9 @@ namespace MDSound
                 rbase[info.reverb_pos * 2] = 0;
                 rbase[info.reverb_pos * 2 + 1] = 0;
 
+
                 for (ch = 0; ch < 8; ch++)
-                    if (((info.regs[0x22c] & (1 << ch)) != 0) && info.Muted[ch] == 0)
+                    if (((info.regs[0x22c] & (1 << ch)) != 0) && info.Muted[ch] == 0)//0x22c ChannelActive
                     {
                         base1 = info.regs;
                         ptrBase1 = 0x20 * ch;
@@ -284,10 +286,12 @@ namespace MDSound
                         chan = info.channels;
                         ptrChan = ch;
 
+                        //pitch
                         delta = base1[ptrBase1 + 0x00] | (base1[ptrBase1 + 0x01] << 8) | (base1[ptrBase1 + 0x02] << 16);
 
                         vol = base1[ptrBase1 + 0x03];
 
+                        //0x04 reverb vol
                         bval = vol + base1[ptrBase1 + 0x04];
                         if (bval > 255)
                             bval = 255;

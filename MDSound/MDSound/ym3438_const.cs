@@ -181,12 +181,14 @@ namespace MDSound
 
         public enum ym3438_type
         {
-            discrete = 0,   /* Discrete YM3438 (Teradrive)          */
-            asic = 1,       /* ASIC YM3438 (MD1 VA7, MD2, MD3, etc) */
-            ym2612 = 2,      /* YM2612 (MD1, MD2 VA2)                */
-            ym2612_u = 3/* YM2612 without lowpass filter 		*/
+            discrete = 0, /* Discrete YM3438 (Teradrive)          (with ladderEffect)                                  */
+            asic = 1,     /* ASIC YM3438 (MD1 VA7, MD2, MD3, etc) (pure Sound)                                         */
+            ym2612 = 2,   /* YM2612 (MD1, MD2 VA2)                (with ladderEffect + Amplify signal + lowpassfilter) */
+            ym2612_u = 3, /* YM2612 without lowpass filter 		  (with ladderEffect + Amplify signal)                 */
+            asic_lp = 4   /* ASIC with lowpass filter             (with lowpassfilter)                                 */
         };
-        public static ym3438_type chip_type = ym3438_type.discrete;
+
+        public static ym3438_type chip_type = ym3438_type.asic;
         public static uint use_filter = 0;
 
     }

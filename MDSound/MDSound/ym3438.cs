@@ -43,6 +43,8 @@ using Bit64u = System.UInt64;
 using Bit64s = System.Int64;
 
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 
 namespace MDSound
 {
@@ -58,10 +60,11 @@ namespace MDSound
         public override string Name { get { return "YM3438"; } set { } }
         public override string ShortName { get { return "OPN2cmos"; } set { } }
 
-        private static void OPN2_DoIO(ym3438_ chip)
+        private void OPN2_DoIO(ym3438_ chip)
         {
             chip.write_a_en = (Bit8u)((chip.write_a & 0x03) == 0x01 ? 1 : 0);
             chip.write_d_en = (Bit8u)((chip.write_d & 0x03) == 0x01 ? 1 : 0);
+            //mlog("aen:{0} den:{1}\n", chip.write_a_en, chip.write_d_en);
             chip.write_a <<= 1;
             chip.write_d <<= 1;
             //BUSY Counter
@@ -71,7 +74,7 @@ namespace MDSound
             chip.write_busy_cnt &= 0x1f;
         }
 
-        private static void OPN2_DoRegWrite(ym3438_ chip)
+        private void OPN2_DoRegWrite(ym3438_ chip)
         {
             int i;
             Bit32u slot = chip.slot % 12;
@@ -141,7 +144,7 @@ namespace MDSound
                             chip.reg_a4 = (Bit8u)(chip.data & 0xff);
                             break;
                         case 0xa8: // fnum, block, kcode 3ch
-                            chip.fnum_3ch[channel] = (Bit8u)((chip.data & 0xff) | ((chip.reg_ac & 0x07) << 8));
+                            chip.fnum_3ch[channel] = (Bit16u)((chip.data & 0xff) | ((chip.reg_ac & 0x07) << 8));
                             chip.block_3ch[channel] = (Bit8u)((chip.reg_ac >> 3) & 0x07);
                             chip.kcode_3ch[channel] = (Bit8u)((Bit8u)(chip.block_3ch[channel] << 2) | ym3438_const.fn_note[chip.fnum_3ch[channel] >> 7]);
                             break;
@@ -186,6 +189,7 @@ namespace MDSound
                         chip.write_fm_address = 0;
                     }
                 }
+                //mlog("d_en:{0} wdata:{1} adr:{2}\n", chip.write_d_en, chip.write_data, chip.address);
                 if (chip.write_d_en != 0 && (chip.write_data & 0x100) == 0)
                 {
                     switch (chip.address)
@@ -242,6 +246,13 @@ namespace MDSound
                             {
                                 chip.mode_kon_channel = (Bit8u)((chip.write_data & 0x03) + ((chip.write_data >> 2) & 1) * 3);
                             }
+                            //mlog("kon_ope:{0}:{1}:{2}:{3} kon_ch:{4}\n"
+                                //, chip.mode_kon_operator[0]
+                                //, chip.mode_kon_operator[1]
+                                //, chip.mode_kon_operator[2]
+                                //, chip.mode_kon_operator[3]
+                                //, chip.mode_kon_channel
+                                //);
                             break;
                         case 0x2a: /* DAC data */
                             chip.dacdata &= 0x01;
@@ -313,6 +324,7 @@ namespace MDSound
             fnum &= 0xfff;
 
             basefreq = (fnum << chip.pg_block) >> 2;
+            //Console.Write("040   basefreq:{0} fnum:{1} chip.pg_block:{2}\n", basefreq, fnum, chip.pg_block);
 
             /* Apply detune */
             if (dt_l != 0)
@@ -419,6 +431,7 @@ namespace MDSound
             Bit32u slot = (chip.slot + 22) % 24;
 
             Bit8u nkon = chip.eg_kon_latch[slot];
+            //mlog("nkon:{0}\n", nkon);
             Bit8u okon = chip.eg_kon[slot];
             Bit8u kon_event;
             Bit8u koff_event;
@@ -459,6 +472,7 @@ namespace MDSound
                 eg_off = (Bit8u)((level & 0x3f0) == 0x3f0 ? 1 : 0);
             }
             nextlevel = level;
+            //mlog("nextlevel:{0} chip.eg_state[slot]:{1} slot:{2}\n", nextlevel, chip.eg_state[slot],slot);
             if (kon_event != 0)
             {
                 nextstate = (Bit8u)EG_PARAM.eg_num_attack;
@@ -471,6 +485,7 @@ namespace MDSound
                 {
                     inc = (Bit16s)((~level << chip.eg_inc) >> 5);
                 }
+                //mlog("inc:{0}\n", inc);
             }
             else
             {
@@ -485,6 +500,7 @@ namespace MDSound
                         {
                             inc = (Bit16s)((~level << chip.eg_inc) >> 5);
                         }
+                        //mlog("ainc:{0}\n", inc);
                         break;
                     case (Bit8u)EG_PARAM.eg_num_decay:
                         if ((level >> 5) == chip.eg_sl[1])
@@ -499,6 +515,7 @@ namespace MDSound
                                 inc <<= 2;
                             }
                         }
+                        //mlog("dinc:{0}\n", inc);
                         break;
                     case (Bit8u)EG_PARAM.eg_num_sustain:
                     case (Bit8u)EG_PARAM.eg_num_release:
@@ -510,6 +527,7 @@ namespace MDSound
                                 inc <<= 2;
                             }
                         }
+                        //mlog("srinc:{0}\n", inc);
                         break;
                     default:
                         break;
@@ -517,6 +535,7 @@ namespace MDSound
                 if (nkon == 0)
                 {
                     nextstate = (Bit8u)EG_PARAM.eg_num_release;
+                    //mlog("1rel\n", inc);
                 }
             }
             if (chip.eg_kon_csm[slot] != 0)
@@ -529,13 +548,16 @@ namespace MDSound
             {
                 nextstate = (Bit8u)EG_PARAM.eg_num_release;
                 nextlevel = 0x3ff;
+                //mlog("2rel\n", inc);
             }
 
             nextlevel += inc;
+            //mlog("nextlevel:{0}\n", nextlevel);
 
             chip.eg_kon[slot] = chip.eg_kon_latch[slot];
             chip.eg_level[slot] = (Bit16u)((Bit16u)nextlevel & 0x3ff);
             chip.eg_state[slot] = nextstate;
+            //mlog("chip.eg_level[slot]:{0} slot:{1}\n", chip.eg_level[slot], slot);
         }
 
         private void OPN2_EnvelopePrepare(ym3438_ chip)
@@ -632,6 +654,7 @@ namespace MDSound
             Bit16u level;
 
             level = chip.eg_level[slot];
+            //mlog("level:{0}\n", level);
 
             if (chip.eg_ssg_inv[slot] != 0)
             {
@@ -657,6 +680,7 @@ namespace MDSound
                 level = 0x3ff;
             }
             chip.eg_out[slot] = level;
+            //mlog("chip.eg_out[slot]:{0} slot:{1}\n", chip.eg_out[slot], slot);
         }
 
         private void OPN2_UpdateLFO(ym3438_ chip)
@@ -751,8 +775,10 @@ namespace MDSound
             if (ym3438_const.fm_algorithm[op][5][chip.connect[channel]] != 0 && test_dac == 0)
             {
                 add += (Bit16s)(chip.fm_out[slot] >> 5);
+                //mlog("040   chip.fm_out[slot]:{0} slot:{1}\n", chip.fm_out[slot], slot);
             }
             sum = (Bit16s)(acc + add);
+            //mlog("040   acc:{0} add:{1}\n", acc, add);
             /* Clamp */
             if (sum > 255)
             {
@@ -826,6 +852,7 @@ namespace MDSound
                 {
                     chip.mol = sign;
                 }
+                //Console.Write("040   out:{0} sign:{1}\n", out_, sign);
                 if (chip.ch_lock_r != 0 && out_en != 0)
                 {
                     chip.mor = out_;
@@ -862,6 +889,7 @@ namespace MDSound
             Bit32u slot = (chip.slot + 19) % 24;
             /* Calculate phase */
             Bit16u phase = (Bit16u)((chip.fm_mod[slot] + (chip.pg_phase[slot] >> 10)) & 0x3ff);
+            //mlog("040   chip.fm_mod[slot]:{0} chip.pg_phase[slot]:{1}\n", chip.fm_mod[slot], chip.pg_phase[slot]);
             Bit16u quarter;
             Bit16u level;
             Bit16s output;
@@ -876,12 +904,14 @@ namespace MDSound
             level = ym3438_const.logsinrom[quarter];
             /* Apply envelope */
             level += (Bit16u)(chip.eg_out[slot] << 2);
+            //mlog("040   quarter:{0} chip.eg_out[slot]:{1} slot:{2}\n", quarter, chip.eg_out[slot], slot);
             /* Transform */
             if (level > 0x1fff)
             {
                 level = 0x1fff;
             }
             output = (Bit16s)(((ym3438_const.exprom[(level & 0xff) ^ 0xff] | 0x400) << 2) >> (level >> 8));
+            //mlog("040   output:{0} level:{1}\n", output, level);
             if ((phase & 0x200) != 0)
             {
                 output = (Bit16s)(((~output) ^ (chip.mode_test_21[4] << 13)) + 1);
@@ -994,6 +1024,7 @@ namespace MDSound
             /* Key On */
             chip.eg_kon_latch[chip.slot] = chip.mode_kon[chip.slot];
             chip.eg_kon_csm[chip.slot] = 0;
+            //mlog("chip.eg_kon_latch[chip.slot]:{0} slot:{1}\n", chip.eg_kon_latch[chip.slot], chip.slot);
             if (chip.channel == 2 && chip.mode_kon_csm != 0)
             {
                 /* CSM Key On */
@@ -1045,21 +1076,41 @@ namespace MDSound
             {
                 chip.rateratio = (Bit32s)rateratio;
             }
+            //mlogsw = true;
+            //mlog("rateratio{0} rate{1} clock{2}\n", chip.rateratio,rate,clock);
+            //mlogsw = false;
         }
 
-        private void OPN2_SetChipType(ym3438_const.ym3438_type type)
+        public void OPN2_SetChipType(ym3438_const.ym3438_type type)
         {
-            ym3438_const.use_filter = 0;
-            if (type == ym3438_const.ym3438_type.ym2612)
-                ym3438_const.use_filter = 1;
-            if (type == ym3438_const.ym3438_type.ym2612_u)
-                type = ym3438_const.ym3438_type.ym2612;
+            switch (type)
+            {
+                case ym3438_const.ym3438_type.asic:
+                    ym3438_const.use_filter = 0;
+                    break;
+                case ym3438_const.ym3438_type.discrete:
+                    ym3438_const.use_filter = 0;
+                    break;
+                case ym3438_const.ym3438_type.ym2612:
+                    ym3438_const.use_filter = 1;
+                    break;
+                case ym3438_const.ym3438_type.ym2612_u:
+                    type = ym3438_const.ym3438_type.ym2612;
+                    ym3438_const.use_filter = 0;
+                    break;
+                case ym3438_const.ym3438_type.asic_lp:
+                    type = ym3438_const.ym3438_type.asic;
+                    ym3438_const.use_filter = 1;
+                    break;
+            }
 
             ym3438_const.chip_type = type;
         }
 
         private void OPN2_Clock(ym3438_ chip, Bit32s[] buffer)
         {
+            //Console.Write("010 mol:{0} mor:{1}\n", chip.mol, chip.mor);
+
             chip.lfo_inc = (Bit8u)(chip.mode_test_21[1]);
             chip.pg_read >>= 1;
             chip.eg_read[1] >>= 1;
@@ -1128,26 +1179,40 @@ namespace MDSound
                 chip.eg_cycle_stop = 0;
             }
 
+            //Console.Write("020 mol:{0} mor:{1}\n", chip.mol, chip.mor);
+
             OPN2_DoIO(chip);
+
+            //Console.Write("030 mol:{0} mor:{1}\n", chip.mol, chip.mor);
 
             OPN2_DoTimerA(chip);
             OPN2_DoTimerB(chip);
             OPN2_KeyOn(chip);
 
+            //Console.Write("040 mol:{0} mor:{1}\n", chip.mol, chip.mor);
+
             OPN2_ChOutput(chip);
+            //Console.Write("045 mol:{0} mor:{1}\n", chip.mol, chip.mor);
             OPN2_ChGenerate(chip);
+
+            //Console.Write("050 mol:{0} mor:{1}\n", chip.mol, chip.mor);
 
             OPN2_FMPrepare(chip);
             OPN2_FMGenerate(chip);
 
+            //Console.Write("060 mol:{0} mor:{1}\n", chip.mol, chip.mor);
+
             OPN2_PhaseGenerate(chip);
             OPN2_PhaseCalcIncrement(chip);
+
+            //Console.Write("070 mol:{0} mor:{1}\n", chip.mol, chip.mor);
 
             OPN2_EnvelopeADSR(chip);
             OPN2_EnvelopeGenerate(chip);
             OPN2_EnvelopeSSGEG(chip);
             OPN2_EnvelopePrepare(chip);
 
+            //Console.Write("080 mol:{0} mor:{1}\n", chip.mol, chip.mor);
 
             /* Prepare fnum & block */
             if (chip.mode_ch3 != 0)
@@ -1185,6 +1250,7 @@ namespace MDSound
                 chip.pg_kcode = chip.kcode[(chip.channel + 1) % 6];
             }
 
+            //Console.Write("090 mol:{0} mor:{1}\n", chip.mol, chip.mor);
 
             OPN2_UpdateLFO(chip);
             OPN2_DoRegWrite(chip);
@@ -1192,14 +1258,21 @@ namespace MDSound
             chip.slot = chip.cycles;
             chip.channel = chip.cycles % 6;
 
+            //Console.Write("100 mol:{0} mor:{1}\n", chip.mol, chip.mor);
 
             buffer[0] = chip.mol;
             buffer[1] = chip.mor;
 
+            //Console.Write("110 mol:{0} mor:{1}\n", chip.mol, chip.mor);
         }
 
         private void OPN2_Write(ym3438_ chip, Bit32u port, Bit8u data)
         {
+            //if (port == 1 && data == 0xf1)
+            //{
+            //    mlogOn();
+            //}
+            //mlog("port:{0:x} data:{1:x}\n", port, data);
 
             port &= 3;
             chip.write_data = (Bit16u)(((port << 7) & 0x100) | data);
@@ -1306,11 +1379,12 @@ namespace MDSound
             chip.writebuf_last = (chip.writebuf_last + 1) % 2048;// OPN_WRITEBUF_SIZE;
         }
 
+        Bit32s[] grBuffer = new Bit32s[2];
+
         private void OPN2_GenerateResampled(byte ChipID, Bit32s[] buf)
         {
             ym3438_ chip = ym3438_[ChipID];
             Bit32u i;
-            Bit32s[] buffer = new Bit32s[2];
             Bit32u mute;
 
             while (chip.samplecnt >= chip.rateratio)
@@ -1344,11 +1418,12 @@ namespace MDSound
                             mute = 0;
                             break;
                     }
-                    OPN2_Clock(chip, buffer);
+                    OPN2_Clock(chip, grBuffer);
+                    //Console.Write("l{0} r{1}\n", buffer[0], buffer[1]);
                     if (mute == 0)
                     {
-                        chip.samples[0] += buffer[0];
-                        chip.samples[1] += buffer[1];
+                        chip.samples[0] += grBuffer[0];
+                        chip.samples[1] += grBuffer[1];
                     }
 
                     while (chip.writebuf[chip.writebuf_cur].time <= chip.writebuf_samplecnt)
@@ -1377,79 +1452,30 @@ namespace MDSound
                     chip.samples[1] = (int)(chip.oldsamples[1] + (1 - 0.512331301282628) * (chip.samples[1] * 12 - chip.oldsamples[1]));
                 }
                 chip.samplecnt -= chip.rateratio;
+                //Console.Write("samplecnt{0}\n", chip.samplecnt);
             }
             buf[0] = (Bit32s)((chip.oldsamples[0] * (chip.rateratio - chip.samplecnt)
                              + chip.samples[0] * chip.samplecnt) / chip.rateratio);
             buf[1] = (Bit32s)((chip.oldsamples[1] * (chip.rateratio - chip.samplecnt)
                              + chip.samples[1] * chip.samplecnt) / chip.rateratio);
+            //mlog("bl{0} br{1} chip.oldsamples[0]{2} chip.samples[0]{3}\n", buf[0], buf[1], chip.oldsamples[0], chip.samples[0]);
             chip.samplecnt += 1 << 10;// RSM_FRAC;
         }
 
+        Bit32s[] gsBuffer = new Bit32s[2];
         private void OPN2_GenerateStream(byte ChipID, Bit32s[][] sndptr, Bit32u numsamples)
         {
             Bit32u i;
             Bit32s[] smpl, smpr;
-            Bit32s[] buffer = new Bit32s[2];
             smpl = sndptr[0];
             smpr = sndptr[1];
 
             for (i = 0; i < numsamples; i++)
             {
-                OPN2_GenerateResampled(ChipID, buffer);
-                smpl[i] = buffer[0];
-                smpr[i] = buffer[1];
+                OPN2_GenerateResampled(ChipID, gsBuffer);
+                smpl[i] = gsBuffer[0];
+                smpr[i] = gsBuffer[1];
             }
-        }
-
-
-
-        private ym3438_[] ym3438_ = new ym3438_[2] { new ym3438_(), new ym3438_() };
-        //private uint clock = 0;
-        //private uint clockValue = 0;
-        //private object[] option;
-        private int[] buf = new int[2];
-
-
-        public override uint Start(byte ChipID, uint clock)
-        {
-            return Start(ChipID, clock, 0, null);
-        }
-
-        public override uint Start(byte ChipID, uint clock, uint clockValue, params object[] option)
-        {
-            for (int i = 0; i < ym3438_[ChipID].writebuf.Length; i++)
-            {
-                ym3438_[ChipID].writebuf[i] = new opn2_writebuf();
-            }
-
-            //this.clock = clock;
-            //this.clockValue = clockValue;
-            //this.option = option;
-            OPN2_SetChipType(ym3438_const.ym3438_type.ym2612);
-            OPN2_Reset(ym3438_[ChipID], clock, clockValue);
-            return clock;
-        }
-
-        public override void Stop(byte ChipID)
-        {
-            OPN2_Reset(ym3438_[ChipID], 0, 0);
-        }
-
-        public override void Reset(byte ChipID)
-        {
-            OPN2_Reset(ym3438_[ChipID], 0, 0);
-        }
-
-        public override void Update(byte ChipID, int[][] outputs, int samples)
-        {
-            OPN2_GenerateStream(ChipID, outputs, (uint)samples);
-
-        }
-
-        public override int Write(byte ChipID, int port, int adr, int data)
-        {
-            OPN2_WriteBuffered(ChipID, (Bit32u)adr, (Bit8u)data);
-            return 0;
         }
 
         public void OPN2_SetOptions(Bit8u flags)
@@ -1481,6 +1507,89 @@ namespace MDSound
             }
         }
 
+
+
+        private ym3438_[] ym3438_ = new ym3438_[2] { new ym3438_(), new ym3438_() };
+        //private uint clock = 0;
+        //private uint clockValue = 0;
+        //private object[] option;
+        private int[] buf = new int[2];
+
+        public ym3438()
+        {
+            visVolume = new int[2][][] {
+                new int[1][] { new int[2] { 0, 0 } }
+                , new int[1][] { new int[2] { 0, 0 } }
+            };
+
+            for (int j = 0; j < 2; j++)
+            {
+                for (int i = 0; i < ym3438_[j].writebuf.Length; i++)
+                {
+                    ym3438_[j].writebuf[i] = new opn2_writebuf();
+                }
+            }
+        }
+
+        public override uint Start(byte ChipID, uint clock)
+        {
+            return Start(ChipID, clock, 0, null);
+        }
+
+        public override uint Start(byte ChipID, uint clock, uint clockValue, params object[] option)
+        {
+            //this.clock = clock;
+            //this.clockValue = clockValue;
+            //this.option = option;
+            //OPN2_SetChipType(ym3438_const.ym3438_type.ym2612_u);//.discrete);//.asic);//.ym2612);
+            OPN2_Reset(ym3438_[ChipID], clock, clockValue);
+            return clock;
+        }
+
+        public override void Stop(byte ChipID)
+        {
+            OPN2_Reset(ym3438_[ChipID], 0, 0);
+        }
+
+        public override void Reset(byte ChipID)
+        {
+            OPN2_Reset(ym3438_[ChipID], 0, 0);
+        }
+
+        public override void Update(byte ChipID, int[][] outputs, int samples)
+        {
+            OPN2_GenerateStream(ChipID, outputs, (uint)samples);
+
+            visVolume[ChipID][0][0] = outputs[0][0];
+            visVolume[ChipID][0][1] = outputs[1][0];
+        }
+
+        public override int Write(byte ChipID, int port, int adr, int data)
+        {
+            OPN2_WriteBuffered(ChipID, (Bit32u)adr, (Bit8u)data);
+            return 0;
+        }
+
+
+        //private StreamWriter fp;
+        //private bool mlogsw = false;
+        //private void mlogOn()
+        //{
+        //    mlogsw = true;
+        //}
+        //private void mlogOpen()
+        //{
+        //    File.Delete("CS.text");
+        //    fp = new StreamWriter("CS.text",true);
+        //}
+        //public void mlog(string msg,params object[] opt)
+        //{
+        //    if (fp == null)
+        //    {
+        //        mlogOpen();
+        //    }
+        //    if (mlogsw) fp.Write(msg, opt);
+        //}
     }
 
 
