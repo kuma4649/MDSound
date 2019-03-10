@@ -19,7 +19,7 @@ namespace test.Properties {
     // または Visual Studio のようなツールを使用して自動生成されました。
     // メンバーを追加または削除するには、.ResX ファイルを編集して、/str オプションと共に
     // ResGen を実行し直すか、または VS プロジェクトをビルドし直します。
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class Resources {
@@ -47,7 +47,7 @@ namespace test.Properties {
         }
         
         /// <summary>
-        ///   厳密に型指定されたこのリソース クラスを使用して、すべての検索リソースに対し、
+        ///   すべてについて、現在のスレッドの CurrentUICulture プロパティをオーバーライドします
         ///   現在のスレッドの CurrentUICulture プロパティをオーバーライドします。
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
@@ -57,6 +57,42 @@ namespace test.Properties {
             }
             set {
                 resourceCulture = value;
+            }
+        }
+        
+        /// <summary>
+        ///   例外発生:\r\n- Type ------\r\n{0}\r\n- Message ------\r\n{1}\r\n- Source ------\r\n{2}\r\n- StackTrace ------\r\n{3}\r\n に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string cntExceptionFormat {
+            get {
+                return ResourceManager.GetString("cntExceptionFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   内部例外:\r\n- Type ------\r\n{0}\r\n- Message ------\r\n{1}\r\n- Source ------\r\n{2}\r\n- StackTrace ------\r\n{3}\r\n に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string cntInnerExceptionFormat {
+            get {
+                return ResourceManager.GetString("cntInnerExceptionFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   log.txt に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string cntLogFilename {
+            get {
+                return ResourceManager.GetString("cntLogFilename", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   yyyy/MM/dd HH:mm:ss     に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string cntTimeFormat {
+            get {
+                return ResourceManager.GetString("cntTimeFormat", resourceCulture);
             }
         }
     }

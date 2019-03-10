@@ -277,7 +277,7 @@ namespace MDSound
                 for (int i = 0; i < sampleCount ; i+=2)
                 {
 
-                    if (frame != null) frame();
+                    frame?.Invoke();
 
                     a = 0;
                     b = 0;
@@ -665,10 +665,7 @@ namespace MDSound
                     inst.SmpP -= SamplingRate;
                 }
 
-                if (inst.AdditionalUpdate != null)
-                {
-                    inst.AdditionalUpdate(inst, inst.ID, tempSample, (int)Length);
-                }
+                inst.AdditionalUpdate?.Invoke(inst, inst.ID, tempSample, (int)Length);
 
                 for (int j = 0; j < Length; j++)
                 {
@@ -1036,6 +1033,26 @@ namespace MDSound
             }
         }
 
+        public byte[] GetADPCMBufferYM2608(byte ChipID)
+        {
+            lock (lockobj)
+            {
+                if (!dicInst.ContainsKey(enmInstrumentType.YM2608)) return null;
+
+                return ((ym2608)(dicInst[enmInstrumentType.YM2608])).GetADPCMBuffer(ChipID);
+            }
+        }
+
+        public uint ReadStatusExYM2608(byte ChipID)
+        {
+            lock (lockobj)
+            {
+                if (!dicInst.ContainsKey(enmInstrumentType.YM2608)) throw new Exception();
+
+                return ((ym2608)(dicInst[enmInstrumentType.YM2608])).ReadStatusEx(ChipID);
+            }
+        }
+
         public void WriteYM2609(byte ChipID, byte Port, byte Adr, byte Data)
         {
             lock (lockobj)
@@ -1332,6 +1349,8 @@ namespace MDSound
         {
             if (!dicInst.ContainsKey(enmInstrumentType.YM2151)) return;
 
+            if (insts == null) return;
+
             foreach (Chip c in insts)
             {
                 if (c.type != enmInstrumentType.YM2151) continue;
@@ -1342,6 +1361,8 @@ namespace MDSound
         public void SetVolumeYM2151mame(int vol)
         {
             if (!dicInst.ContainsKey(enmInstrumentType.YM2151mame)) return;
+
+            if (insts == null) return;
 
             foreach (Chip c in insts)
             {
@@ -1354,6 +1375,8 @@ namespace MDSound
         {
             if (!dicInst.ContainsKey(enmInstrumentType.YM2151x68sound)) return;
 
+            if (insts == null) return;
+
             foreach (Chip c in insts)
             {
                 if (c.type != enmInstrumentType.YM2151x68sound) continue;
@@ -1365,6 +1388,8 @@ namespace MDSound
         {
             if (!dicInst.ContainsKey(enmInstrumentType.YM2203)) return;
 
+            if (insts == null) return;
+
             foreach (Chip c in insts)
             {
                 if (c.type != enmInstrumentType.YM2203) continue;
@@ -1375,6 +1400,8 @@ namespace MDSound
         public void SetVolumeYM2203FM(int vol)
         {
             if (!dicInst.ContainsKey(enmInstrumentType.YM2203)) return;
+
+            if (insts == null) return;
 
             foreach (Chip c in insts)
             {
@@ -1388,6 +1415,8 @@ namespace MDSound
         {
             if (!dicInst.ContainsKey(enmInstrumentType.YM2203)) return;
 
+            if (insts == null) return;
+
             foreach (Chip c in insts)
             {
                 if (c.type != enmInstrumentType.YM2203) continue;
@@ -1400,6 +1429,8 @@ namespace MDSound
         {
             if (!dicInst.ContainsKey(enmInstrumentType.YM2413)) return;
 
+            if (insts == null) return;
+
             foreach (Chip c in insts)
             {
                 if (c.type != enmInstrumentType.YM2413) continue;
@@ -1410,6 +1441,8 @@ namespace MDSound
         public void setVolumeHuC6280(int vol)
         {
             if (!dicInst.ContainsKey(enmInstrumentType.HuC6280)) return;
+
+            if (insts == null) return;
 
             foreach (Chip c in insts)
             {
@@ -1422,6 +1455,8 @@ namespace MDSound
         {
             if (!dicInst.ContainsKey(enmInstrumentType.YM2608)) return;
 
+            if (insts == null) return;
+
             foreach (Chip c in insts)
             {
                 if (c.type != enmInstrumentType.YM2608) continue;
@@ -1432,6 +1467,8 @@ namespace MDSound
         public void SetVolumeYM2608FM(int vol)
         {
             if (!dicInst.ContainsKey(enmInstrumentType.YM2608)) return;
+
+            if (insts == null) return;
 
             foreach (Chip c in insts)
             {
@@ -1445,6 +1482,8 @@ namespace MDSound
         {
             if (!dicInst.ContainsKey(enmInstrumentType.YM2608)) return;
 
+            if (insts == null) return;
+
             foreach (Chip c in insts)
             {
                 if (c.type != enmInstrumentType.YM2608) continue;
@@ -1456,6 +1495,8 @@ namespace MDSound
         public void SetVolumeYM2608Rhythm(int vol)
         {
             if (!dicInst.ContainsKey(enmInstrumentType.YM2608)) return;
+
+            if (insts == null) return;
 
             foreach (Chip c in insts)
             {
@@ -1469,6 +1510,8 @@ namespace MDSound
         {
             if (!dicInst.ContainsKey(enmInstrumentType.YM2608)) return;
 
+            if (insts == null) return;
+
             foreach (Chip c in insts)
             {
                 if (c.type != enmInstrumentType.YM2608) continue;
@@ -1480,6 +1523,8 @@ namespace MDSound
         public void SetVolumeYM2609FM(int vol)
         {
             if (!dicInst.ContainsKey(enmInstrumentType.YM2609)) return;
+
+            if (insts == null) return;
 
             foreach (Chip c in insts)
             {
@@ -1493,6 +1538,8 @@ namespace MDSound
         {
             if (!dicInst.ContainsKey(enmInstrumentType.YM2609)) return;
 
+            if (insts == null) return;
+
             foreach (Chip c in insts)
             {
                 if (c.type != enmInstrumentType.YM2609) continue;
@@ -1504,6 +1551,8 @@ namespace MDSound
         public void SetVolumeYM2609Rhythm(int vol)
         {
             if (!dicInst.ContainsKey(enmInstrumentType.YM2609)) return;
+
+            if (insts == null) return;
 
             foreach (Chip c in insts)
             {
@@ -1517,6 +1566,8 @@ namespace MDSound
         {
             if (!dicInst.ContainsKey(enmInstrumentType.YM2609)) return;
 
+            if (insts == null) return;
+
             foreach (Chip c in insts)
             {
                 if (c.type != enmInstrumentType.YM2609) continue;
@@ -1529,6 +1580,8 @@ namespace MDSound
         {
             if (!dicInst.ContainsKey(enmInstrumentType.YM2610)) return;
 
+            if (insts == null) return;
+
             foreach (Chip c in insts)
             {
                 if (c.type != enmInstrumentType.YM2610) continue;
@@ -1539,6 +1592,8 @@ namespace MDSound
         public void SetVolumeYM2610FM(int vol)
         {
             if (!dicInst.ContainsKey(enmInstrumentType.YM2610)) return;
+
+            if (insts == null) return;
 
             foreach (Chip c in insts)
             {
@@ -1552,6 +1607,8 @@ namespace MDSound
         {
             if (!dicInst.ContainsKey(enmInstrumentType.YM2610)) return;
 
+            if (insts == null) return;
+
             foreach (Chip c in insts)
             {
                 if (c.type != enmInstrumentType.YM2610) continue;
@@ -1563,6 +1620,8 @@ namespace MDSound
         public void SetVolumeYM2610AdpcmA(int vol)
         {
             if (!dicInst.ContainsKey(enmInstrumentType.YM2610)) return;
+
+            if (insts == null) return;
 
             foreach (Chip c in insts)
             {
@@ -1576,6 +1635,8 @@ namespace MDSound
         {
             if (!dicInst.ContainsKey(enmInstrumentType.YM2610)) return;
 
+            if (insts == null) return;
+
             foreach (Chip c in insts)
             {
                 if (c.type != enmInstrumentType.YM2610) continue;
@@ -1588,6 +1649,8 @@ namespace MDSound
         {
             if (!dicInst.ContainsKey(enmInstrumentType.YM2612)) return;
 
+            if (insts == null) return;
+
             foreach (Chip c in insts)
             {
                 if (c.type != enmInstrumentType.YM2612) continue;
@@ -1598,6 +1661,8 @@ namespace MDSound
         public void SetVolumeYM3438(int vol)
         {
             if (!dicInst.ContainsKey(enmInstrumentType.YM3438)) return;
+
+            if (insts == null) return;
 
             foreach (Chip c in insts)
             {
@@ -1610,6 +1675,8 @@ namespace MDSound
         {
             if (!dicInst.ContainsKey(enmInstrumentType.SN76489)) return;
 
+            if (insts == null) return;
+
             foreach (Chip c in insts)
             {
                 if (c.type != enmInstrumentType.SN76489) continue;
@@ -1620,6 +1687,8 @@ namespace MDSound
         public void SetVolumeRF5C164(int vol)
         {
             if (!dicInst.ContainsKey(enmInstrumentType.RF5C164)) return;
+
+            if (insts == null) return;
 
             foreach (Chip c in insts)
             {
@@ -1632,6 +1701,8 @@ namespace MDSound
         {
             if (!dicInst.ContainsKey(enmInstrumentType.PWM)) return;
 
+            if (insts == null) return;
+
             foreach (Chip c in insts)
             {
                 if (c.type != enmInstrumentType.PWM) continue;
@@ -1642,6 +1713,8 @@ namespace MDSound
         public void SetVolumeOKIM6258(int vol)
         {
             if (!dicInst.ContainsKey(enmInstrumentType.OKIM6258)) return;
+
+            if (insts == null) return;
 
             foreach (Chip c in insts)
             {
@@ -1654,6 +1727,8 @@ namespace MDSound
         {
             if (!dicInst.ContainsKey(enmInstrumentType.mpcmX68k)) return;
 
+            if (insts == null) return;
+
             foreach (Chip c in insts)
             {
                 if (c.type != enmInstrumentType.mpcmX68k) continue;
@@ -1664,6 +1739,8 @@ namespace MDSound
         public void SetVolumeOKIM6295(int vol)
         {
             if (!dicInst.ContainsKey(enmInstrumentType.OKIM6295)) return;
+
+            if (insts == null) return;
 
             foreach (Chip c in insts)
             {
@@ -1676,6 +1753,8 @@ namespace MDSound
         {
             if (!dicInst.ContainsKey(enmInstrumentType.C140)) return;
 
+            if (insts == null) return;
+
             foreach (Chip c in insts)
             {
                 if (c.type != enmInstrumentType.C140) continue;
@@ -1686,6 +1765,8 @@ namespace MDSound
         public void SetVolumeC352(int vol)
         {
             if (!dicInst.ContainsKey(enmInstrumentType.C352)) return;
+
+            if (insts == null) return;
 
             foreach (Chip c in insts)
             {
@@ -1698,6 +1779,8 @@ namespace MDSound
         {
             if (!dicInst.ContainsKey(enmInstrumentType.C352)) return;
 
+            if (insts == null) return;
+
             foreach (Chip c in insts)
             {
                 if (c.type != enmInstrumentType.C352) continue;
@@ -1708,6 +1791,8 @@ namespace MDSound
         public void SetVolumeK051649(int vol)
         {
             if (!dicInst.ContainsKey(enmInstrumentType.K051649)) return;
+
+            if (insts == null) return;
 
             foreach (Chip c in insts)
             {
@@ -1720,6 +1805,8 @@ namespace MDSound
         {
             if (!dicInst.ContainsKey(enmInstrumentType.K053260)) return;
 
+            if (insts == null) return;
+
             foreach (Chip c in insts)
             {
                 if (c.type != enmInstrumentType.K053260) continue;
@@ -1730,6 +1817,8 @@ namespace MDSound
         public void SetVolumeRF5C68(int vol)
         {
             if (!dicInst.ContainsKey(enmInstrumentType.RF5C68)) return;
+
+            if (insts == null) return;
 
             foreach (Chip c in insts)
             {
@@ -1742,6 +1831,8 @@ namespace MDSound
         {
             if (!dicInst.ContainsKey(enmInstrumentType.YM3812)) return;
 
+            if (insts == null) return;
+
             foreach (Chip c in insts)
             {
                 if (c.type != enmInstrumentType.YM3812) continue;
@@ -1752,6 +1843,8 @@ namespace MDSound
         public void SetVolumeY8950(int vol)
         {
             if (!dicInst.ContainsKey(enmInstrumentType.Y8950)) return;
+
+            if (insts == null) return;
 
             foreach (Chip c in insts)
             {
@@ -1764,6 +1857,8 @@ namespace MDSound
         {
             if (!dicInst.ContainsKey(enmInstrumentType.YM3526)) return;
 
+            if (insts == null) return;
+
             foreach (Chip c in insts)
             {
                 if (c.type != enmInstrumentType.YM3526) continue;
@@ -1774,6 +1869,8 @@ namespace MDSound
         public void SetVolumeK054539(int vol)
         {
             if (!dicInst.ContainsKey(enmInstrumentType.K054539)) return;
+
+            if (insts == null) return;
 
             foreach (Chip c in insts)
             {
@@ -1786,6 +1883,8 @@ namespace MDSound
         {
             if (!dicInst.ContainsKey(enmInstrumentType.QSound)) return;
 
+            if (insts == null) return;
+
             foreach (Chip c in insts)
             {
                 if (c.type != enmInstrumentType.QSound) continue;
@@ -1796,6 +1895,8 @@ namespace MDSound
         public void SetVolumeDMG(int vol)
         {
             if (!dicInst.ContainsKey(enmInstrumentType.DMG)) return;
+
+            if (insts == null) return;
 
             foreach (Chip c in insts)
             {
@@ -1808,6 +1909,8 @@ namespace MDSound
         {
             if (!dicInst.ContainsKey(enmInstrumentType.GA20)) return;
 
+            if (insts == null) return;
+
             foreach (Chip c in insts)
             {
                 if (c.type != enmInstrumentType.GA20) continue;
@@ -1818,6 +1921,8 @@ namespace MDSound
         public void SetVolumeYMZ280B(int vol)
         {
             if (!dicInst.ContainsKey(enmInstrumentType.YMZ280B)) return;
+
+            if (insts == null) return;
 
             foreach (Chip c in insts)
             {
@@ -1830,6 +1935,8 @@ namespace MDSound
         {
             if (!dicInst.ContainsKey(enmInstrumentType.YMF271)) return;
 
+            if (insts == null) return;
+
             foreach (Chip c in insts)
             {
                 if (c.type != enmInstrumentType.YMF271) continue;
@@ -1840,6 +1947,8 @@ namespace MDSound
         public void SetVolumeYMF262(int vol)
         {
             if (!dicInst.ContainsKey(enmInstrumentType.YMF262)) return;
+
+            if (insts == null) return;
 
             foreach (Chip c in insts)
             {
@@ -1852,6 +1961,8 @@ namespace MDSound
         {
             if (!dicInst.ContainsKey(enmInstrumentType.YMF278B)) return;
 
+            if (insts == null) return;
+
             foreach (Chip c in insts)
             {
                 if (c.type != enmInstrumentType.YMF278B) continue;
@@ -1862,6 +1973,8 @@ namespace MDSound
         public void SetVolumeMultiPCM(int vol)
         {
             if (!dicInst.ContainsKey(enmInstrumentType.MultiPCM)) return;
+
+            if (insts == null) return;
 
             foreach (Chip c in insts)
             {
@@ -1874,6 +1987,8 @@ namespace MDSound
         {
             if (!dicInst.ContainsKey(enmInstrumentType.SEGAPCM)) return;
 
+            if (insts == null) return;
+
             foreach (Chip c in insts)
             {
                 if (c.type != enmInstrumentType.SEGAPCM) continue;
@@ -1884,6 +1999,8 @@ namespace MDSound
         public void SetVolumeNES(int vol)
         {
             if (!dicInst.ContainsKey(enmInstrumentType.Nes)) return;
+
+            if (insts == null) return;
 
             foreach (Chip c in insts)
             {
@@ -1899,6 +2016,8 @@ namespace MDSound
         {
             if (!dicInst.ContainsKey(enmInstrumentType.DMC)) return;
 
+            if (insts == null) return;
+
             foreach (Chip c in insts)
             {
                 if (c.type == enmInstrumentType.DMC)
@@ -1912,6 +2031,8 @@ namespace MDSound
         public void SetVolumeFDS(int vol)
         {
             if (!dicInst.ContainsKey(enmInstrumentType.FDS)) return;
+
+            if (insts == null) return;
 
             foreach (Chip c in insts)
             {
@@ -1927,6 +2048,8 @@ namespace MDSound
         {
             if (!dicInst.ContainsKey(enmInstrumentType.MMC5)) return;
 
+            if (insts == null) return;
+
             foreach (Chip c in insts)
             {
                 if (c.type != enmInstrumentType.MMC5) continue;
@@ -1937,6 +2060,8 @@ namespace MDSound
         public void SetVolumeN160(int vol)
         {
             if (!dicInst.ContainsKey(enmInstrumentType.N160)) return;
+
+            if (insts == null) return;
 
             foreach (Chip c in insts)
             {
@@ -1949,6 +2074,8 @@ namespace MDSound
         {
             if (!dicInst.ContainsKey(enmInstrumentType.VRC6)) return;
 
+            if (insts == null) return;
+
             foreach (Chip c in insts)
             {
                 if (c.type != enmInstrumentType.VRC6) continue;
@@ -1960,6 +2087,8 @@ namespace MDSound
         {
             if (!dicInst.ContainsKey(enmInstrumentType.VRC7)) return;
 
+            if (insts == null) return;
+
             foreach (Chip c in insts)
             {
                 if (c.type != enmInstrumentType.VRC7) continue;
@@ -1970,6 +2099,8 @@ namespace MDSound
         public void SetVolumeFME7(int vol)
         {
             if (!dicInst.ContainsKey(enmInstrumentType.FME7)) return;
+
+            if (insts == null) return;
 
             foreach (Chip c in insts)
             {

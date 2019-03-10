@@ -55,10 +55,17 @@ namespace MDSound
         eg_num_sustain = 2,
         eg_num_release = 3
     }
+
     public class ym3438 : Instrument
     {
         public override string Name { get { return "YM3438"; } set { } }
         public override string ShortName { get { return "OPN2cmos"; } set { } }
+
+        private Bit32s[] dmyBuffer = new Bit32s[2];
+        private Bit32s[] grBuffer = new Bit32s[2];
+        private Bit32s[] gsBuffer = new Bit32s[2];
+        private ym3438_[] ym3438_ = new ym3438_[2] { new ym3438_(), new ym3438_() };
+        private int[] buf = new int[2];
 
         private void OPN2_DoIO(ym3438_ chip)
         {
@@ -831,11 +838,12 @@ namespace MDSound
             {
                 out_ = chip.ch_lock;
             }
-            chip.mol = 0;
-            chip.mor = 0;
 
+            //chip.mol = 0;
+            //chip.mor = 0;
             if (ym3438_const.chip_type == ym3438_const.ym3438_type.ym2612)
             {
+
                 out_en = (Bit32u)((((cycles & 3) == 3) || test_dac != 0) ? 1 : 0);
                 /* YM2612 DAC emulation(not verified) */
                 sign = (Bit16s)(out_ >> 8);
@@ -844,29 +852,36 @@ namespace MDSound
                     out_++;
                     sign++;
                 }
+
+                chip.mol = sign;
+                chip.mor = sign;
+
                 if (chip.ch_lock_l != 0 && out_en != 0)
                 {
                     chip.mol = out_;
                 }
-                else
-                {
-                    chip.mol = sign;
-                }
+                //else
+                //{
+                //    chip.mol = sign;
+                //}
                 //Console.Write("040   out:{0} sign:{1}\n", out_, sign);
                 if (chip.ch_lock_r != 0 && out_en != 0)
                 {
                     chip.mor = out_;
                 }
-                else
-                {
-                    chip.mor = sign;
-                }
+                //else
+                //{
+                //    chip.mor = sign;
+                //}
                 /* Amplify signal */
                 chip.mol *= 3;
                 chip.mor *= 3;
             }
             else
             {
+                chip.mol = 0;
+                chip.mor = 0;
+
                 out_en = (Bit32u)((((cycles & 3) != 0) || test_dac != 0) ? 1 : 0);
                 /* Discrete YM3438 seems has the ladder effect too */
                 if (out_ >= 0 && ym3438_const.chip_type == ym3438_const.ym3438_type.discrete)
@@ -1347,7 +1362,6 @@ namespace MDSound
         {
             ym3438_ chip = ym3438_[ChipID];
             Bit64u time1, time2;
-            Bit32s[] buffer = new Bit32s[2];
             Bit64u skip;
 
             if ((chip.writebuf[chip.writebuf_last].port & 0x04) != 0)
@@ -1360,7 +1374,7 @@ namespace MDSound
                 chip.writebuf_samplecnt = chip.writebuf[chip.writebuf_last].time;
                 while (skip-- != 0)
                 {
-                    OPN2_Clock(chip, buffer);
+                    OPN2_Clock(chip, dmyBuffer);
                 }
             }
 
@@ -1378,8 +1392,6 @@ namespace MDSound
             chip.writebuf_lasttime = time1;
             chip.writebuf_last = (chip.writebuf_last + 1) % 2048;// OPN_WRITEBUF_SIZE;
         }
-
-        Bit32s[] grBuffer = new Bit32s[2];
 
         private void OPN2_GenerateResampled(byte ChipID, Bit32s[] buf)
         {
@@ -1462,19 +1474,20 @@ namespace MDSound
             chip.samplecnt += 1 << 10;// RSM_FRAC;
         }
 
-        Bit32s[] gsBuffer = new Bit32s[2];
         private void OPN2_GenerateStream(byte ChipID, Bit32s[][] sndptr, Bit32u numsamples)
         {
             Bit32u i;
-            Bit32s[] smpl, smpr;
-            smpl = sndptr[0];
-            smpr = sndptr[1];
+            //Bit32s[] smpl, smpr;
+            //smpl = sndptr[0];
+            //smpr = sndptr[1];
 
             for (i = 0; i < numsamples; i++)
             {
                 OPN2_GenerateResampled(ChipID, gsBuffer);
-                smpl[i] = gsBuffer[0];
-                smpr[i] = gsBuffer[1];
+                //smpl[i] = gsBuffer[0];
+                //smpr[i] = gsBuffer[1];
+                sndptr[0][i] = gsBuffer[0];
+                sndptr[1][i] = gsBuffer[1];
             }
         }
 
@@ -1509,11 +1522,6 @@ namespace MDSound
 
 
 
-        private ym3438_[] ym3438_ = new ym3438_[2] { new ym3438_(), new ym3438_() };
-        //private uint clock = 0;
-        //private uint clockValue = 0;
-        //private object[] option;
-        private int[] buf = new int[2];
 
         public ym3438()
         {
@@ -1570,26 +1578,6 @@ namespace MDSound
             return 0;
         }
 
-
-        //private StreamWriter fp;
-        //private bool mlogsw = false;
-        //private void mlogOn()
-        //{
-        //    mlogsw = true;
-        //}
-        //private void mlogOpen()
-        //{
-        //    File.Delete("CS.text");
-        //    fp = new StreamWriter("CS.text",true);
-        //}
-        //public void mlog(string msg,params object[] opt)
-        //{
-        //    if (fp == null)
-        //    {
-        //        mlogOpen();
-        //    }
-        //    if (mlogsw) fp.Write(msg, opt);
-        //}
     }
 
 

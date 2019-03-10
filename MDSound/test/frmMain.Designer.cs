@@ -1,6 +1,6 @@
 ﻿namespace test
 {
-    partial class frmMain
+    partial class FrmMain
     {
         /// <summary>
         /// 必要なデザイナー変数です。
@@ -37,8 +37,6 @@
             this.label2 = new System.Windows.Forms.Label();
             this.timer1 = new System.Windows.Forms.Timer(this.components);
             this.label3 = new System.Windows.Forms.Label();
-            this.trackBar1 = new System.Windows.Forms.TrackBar();
-            ((System.ComponentModel.ISupportInitialize)(this.trackBar1)).BeginInit();
             this.SuspendLayout();
             // 
             // label1
@@ -65,7 +63,7 @@
             this.btnRef.TabIndex = 2;
             this.btnRef.Text = "...";
             this.btnRef.UseVisualStyleBackColor = true;
-            this.btnRef.Click += new System.EventHandler(this.btnRef_Click);
+            this.btnRef.Click += new System.EventHandler(this.BtnRef_Click);
             // 
             // btnPlay
             // 
@@ -75,7 +73,7 @@
             this.btnPlay.TabIndex = 3;
             this.btnPlay.Text = ">";
             this.btnPlay.UseVisualStyleBackColor = true;
-            this.btnPlay.Click += new System.EventHandler(this.btnPlay_Click);
+            this.btnPlay.Click += new System.EventHandler(this.BtnPlay_Click);
             // 
             // btnStop
             // 
@@ -85,7 +83,7 @@
             this.btnStop.TabIndex = 4;
             this.btnStop.Text = "[]";
             this.btnStop.UseVisualStyleBackColor = true;
-            this.btnStop.Click += new System.EventHandler(this.btnStop_Click);
+            this.btnStop.Click += new System.EventHandler(this.BtnStop_Click);
             // 
             // label2
             // 
@@ -100,7 +98,7 @@
             // 
             this.timer1.Enabled = true;
             this.timer1.Interval = 10;
-            this.timer1.Tick += new System.EventHandler(this.timer1_Tick);
+            this.timer1.Tick += new System.EventHandler(this.Timer1_Tick);
             // 
             // label3
             // 
@@ -111,24 +109,11 @@
             this.label3.TabIndex = 5;
             this.label3.Text = "||||||||||||||||||||||||||||||||||||||||||||||||||||||||||";
             // 
-            // trackBar1
-            // 
-            this.trackBar1.Location = new System.Drawing.Point(335, 9);
-            this.trackBar1.Maximum = 20;
-            this.trackBar1.Minimum = -192;
-            this.trackBar1.Name = "trackBar1";
-            this.trackBar1.Orientation = System.Windows.Forms.Orientation.Vertical;
-            this.trackBar1.Size = new System.Drawing.Size(45, 66);
-            this.trackBar1.TabIndex = 6;
-            this.trackBar1.TickFrequency = 25;
-            this.trackBar1.ValueChanged += new System.EventHandler(this.trackBar1_ValueChanged);
-            // 
             // frmMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(334, 82);
-            this.Controls.Add(this.trackBar1);
             this.Controls.Add(this.label3);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.btnStop);
@@ -139,8 +124,7 @@
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedToolWindow;
             this.Name = "frmMain";
             this.Text = "TestPlayer";
-            this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.frmMain_FormClosed);
-            ((System.ComponentModel.ISupportInitialize)(this.trackBar1)).EndInit();
+            this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.FrmMain_FormClosed);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -156,7 +140,6 @@
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Timer timer1;
         private System.Windows.Forms.Label label3;
-        private System.Windows.Forms.TrackBar trackBar1;
     }
 }
 

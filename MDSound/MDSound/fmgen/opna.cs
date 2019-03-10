@@ -1536,14 +1536,29 @@ namespace MDSound.fmgen
                     buf = buf + rhythmname[i];
                     buf = buf + ".WAV";
 
+                    bool f = true;
+                    string rymBuf = "2608_RYM.WAV";
+                    if (path != null && path != "") rymBuf = path+rymBuf;
+
+                    if (!System.IO.File.Exists(buf))
+                    {
+                        f = false;
+                        if (i==5 && System.IO.File.Exists(rymBuf))
+                        {
+                            f = true;
+                        }
+                    }
+
+                    if (!f)
+                    {
+                        continue;
+                    }
+
                     if (!file.Open(buf, (uint)FileIO.Flags.Readonly))
                     {
                         if (i != 5)
                             break;
-                        if (path != null && path != "")
-                            buf = path;
-                        buf = buf + "2608_RYM.WAV";
-                        if (!file.Open(buf, (uint)FileIO.Flags.Readonly))
+                        if (!file.Open(rymBuf, (uint)FileIO.Flags.Readonly))
                             break;
                     }
 

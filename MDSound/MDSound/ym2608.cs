@@ -128,5 +128,15 @@ namespace MDSound
         {
             return YM2608_Write(ChipID, (uint)adr, (byte)data);
         }
+
+        public byte[] GetADPCMBuffer(byte ChipID)
+        {
+            return chip[ChipID].GetADPCMBuffer();
+        }
+
+        public uint ReadStatusEx(byte ChipID)
+        {
+            return chip[ChipID].ReadStatusEx();
+        }
     }
 }
