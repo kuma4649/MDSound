@@ -4,6 +4,8 @@ using System.Windows.Forms;
 using SdlDotNet.Audio;
 using System.Runtime.InteropServices;
 using System.Collections.Generic;
+using System.Threading;
+using SoundManager;
 
 namespace test
 {
@@ -59,7 +61,7 @@ namespace test
 
         private static short[] emuRenderBuf = new short[2];
         private static long PackCounter = 0;
-        private static RingBuffer.Pack Pack = new RingBuffer.Pack();
+        private static Pack Pack = new Pack();
 
         private static long DriverSeqCounter = 0;
         private static long EmuSeqCounter = 0;
@@ -82,7 +84,7 @@ namespace test
             public uint BnkPos;
         }
 
-        private static SoundManager sm;
+        private static SoundManager.SoundManager sm;
         private static Enq enq;
         private static RingBuffer recvBuffer = new RingBuffer(10000);
         private static RealChip rc = null;
@@ -142,7 +144,7 @@ namespace test
             while (sm.IsRunningAsync()) ;
 
             DriverSeqCounter = 0;
-            EmuSeqCounter = -10000;
+            //EmuSeqCounter = -10000;
 
             Play(tbFile.Text);
 
@@ -211,15 +213,18 @@ namespace test
 
         private void Mount()
         {
-            sm = new SoundManager();
+            sm = new SoundManager.SoundManager();
+            DriverAction DriverAction = new DriverAction();
+            DriverAction.Main = ActionOfDriver;
+            DriverAction.Final = ActionOfDriverFinal;
 
             if (rsc == null)
             {
-                sm.Setup(ActionOfDriver, ActionOfEmuDevice, null);
+                sm.Setup(DriverAction, ActionOfEmuDevice, null, SoftResetYM2608(0x56));
             }
             else
             {
-                sm.Setup(ActionOfDriver, ActionOfEmuDevice, ActionOfRealDevice);
+                sm.Setup(DriverAction, null, ActionOfRealDevice, SoftResetYM2608(-1));
             }
 
             enq = sm.GetDriverDataEnqueue();
@@ -228,6 +233,114 @@ namespace test
         private void ActionOfDriver()
         {
             OneFrameVGM();
+        }
+
+        private void ActionOfDriverFinal()
+        {
+            Pack[] data;
+
+            if (rsc == null)
+            {
+                data = SoftResetYM2608(0x56);
+                enq(DriverSeqCounter, 0x56, 0, -1, -1, data);
+            }
+            else
+            {
+                data = SoftResetYM2608(-1);
+                enq(DriverSeqCounter, -1, 0, -1, -1, data);
+            }
+        }
+
+        private static Pack[] SoftResetYM2608(int Dev)
+        {
+            List<Pack> data = new List<Pack>();
+            byte i;
+
+            // FM全チャネルキーオフ
+            data.Add(new Pack(Dev, 0, 0x28, 0x00, null));
+            data.Add(new Pack(Dev, 0, 0x28, 0x01, null));
+            data.Add(new Pack(Dev, 0, 0x28, 0x02, null));
+            data.Add(new Pack(Dev, 0, 0x28, 0x04, null));
+            data.Add(new Pack(Dev, 0, 0x28, 0x05, null));
+            data.Add(new Pack(Dev, 0, 0x28, 0x06, null));
+
+            // FM TL=127
+            for (i = 0x40; i < 0x4F + 1; i++)
+            {
+                data.Add(new Pack(Dev, 0, i, 0x7f, null));
+                data.Add(new Pack(Dev, 1, i, 0x7f, null));
+            }
+            // FM ML/DT
+            for (i = 0x30; i < 0x3F + 1; i++)
+            {
+                data.Add(new Pack(Dev, 0, i, 0x0, null));
+                data.Add(new Pack(Dev, 1, i, 0x0, null));
+            }
+            // FM AR,DR,SR,KS,AMON
+            for (i = 0x50; i < 0x7F + 1; i++)
+            {
+                data.Add(new Pack(Dev, 0, i, 0x0, null));
+                data.Add(new Pack(Dev, 1, i, 0x0, null));
+            }
+            // FM SL,RR
+            for (i = 0x80; i < 0x8F + 1; i++)
+            {
+                data.Add(new Pack(Dev, 0, i, 0xff, null));
+                data.Add(new Pack(Dev, 1, i, 0xff, null));
+            }
+            // FM F-Num, FB/CONNECT
+            for (i = 0x90; i < 0xBF + 1; i++)
+            {
+                data.Add(new Pack(Dev, 0, i, 0x0, null));
+                data.Add(new Pack(Dev, 1, i, 0x0, null));
+            }
+            // FM PAN/AMS/PMS
+            for (i = 0xB4; i < 0xB6 + 1; i++)
+            {
+                data.Add(new Pack(Dev, 0, i, 0xc0, null));
+                data.Add(new Pack(Dev, 1, i, 0xc0, null));
+            }
+            data.Add(new Pack(Dev, 0, 0x22, 0x00, null)); // HW LFO
+            data.Add(new Pack(Dev, 0, 0x24, 0x00, null)); // Timer-A(1)
+            data.Add(new Pack(Dev, 0, 0x25, 0x00, null)); // Timer-A(2)
+            data.Add(new Pack(Dev, 0, 0x26, 0x00, null)); // Timer-B
+            data.Add(new Pack(Dev, 0, 0x27, 0x30, null)); // Timer Control
+            data.Add(new Pack(Dev, 0, 0x29, 0x80, null)); // FM4-6 Enable
+
+            // SSG 音程(2byte*3ch)
+            for (i = 0x00; i < 0x05 + 1; i++)
+            {
+                data.Add(new Pack(Dev, 0, i, 0x00, null));
+            }
+            data.Add(new Pack(Dev, 0, 0x06, 0x00, null));// SSG ノイズ周波数
+            data.Add(new Pack(Dev, 0, 0x07, 0x38, null)); // SSG ミキサ
+                                                          // SSG ボリューム(3ch)
+            for (i = 0x08; i < 0x0A + 1; i++)
+            {
+                data.Add(new Pack(Dev, 0, i, 0x00, null));
+            }
+            // SSG Envelope
+            for (i = 0x0B; i < 0x0D + 1; i++)
+            {
+                data.Add(new Pack(Dev, 0, i, 0x00, null));
+            }
+
+            // RHYTHM
+            data.Add(new Pack(Dev, 0, 0x10, 0xBF, null)); // 強制発音停止
+            data.Add(new Pack(Dev, 0, 0x11, 0x00, null)); // Total Level
+            data.Add(new Pack(Dev, 0, 0x18, 0x00, null)); // BD音量
+            data.Add(new Pack(Dev, 0, 0x19, 0x00, null)); // SD音量
+            data.Add(new Pack(Dev, 0, 0x1A, 0x00, null)); // CYM音量
+            data.Add(new Pack(Dev, 0, 0x1B, 0x00, null)); // HH音量
+            data.Add(new Pack(Dev, 0, 0x1C, 0x00, null)); // TOM音量
+            data.Add(new Pack(Dev, 0, 0x1D, 0x00, null)); // RIM音量
+
+            // ADPCM
+            data.Add(new Pack(Dev, 1, 0x00, 0x21, null)); // ADPCMリセット
+            data.Add(new Pack(Dev, 1, 0x01, 0x06, null)); // ADPCM消音
+            data.Add(new Pack(Dev, 1, 0x10, 0x9C, null)); // FLAGリセット        
+
+            return data.ToArray();
         }
 
         private static void ActionOfEmuDevice(long Counter, int Dev, int Typ, int Adr, int Val, object[] Ex)
@@ -243,12 +356,20 @@ namespace test
             }
             else
             {
-                Tuple<byte, byte, byte>[] data = (Tuple<byte, byte, byte>[])Ex;
-                foreach (Tuple<byte, byte, byte> dat in data)
+                sm.SetInterrupt();
+                try
                 {
-                    rsc.setRegister(dat.Item1 * 0x100 + dat.Item2, dat.Item3);
+                    Pack[] data = (Pack[])Ex;
+                    foreach (Pack dat in data)
+                    {
+                        rsc.setRegister(dat.Typ * 0x100 + dat.Adr, dat.Val);
+                    }
+                    rc.WaitOPNADPCMData(true);
                 }
-                rc.WaitOPNADPCMData(true);
+                finally
+                {
+                    sm.ResetInterrupt();
+                }
             }
         }
 
@@ -911,8 +1032,11 @@ namespace test
 
         private static void Callback(IntPtr userData, IntPtr stream, int len)
         {
+            long bufCnt = len / 4;
+            long seqcnt = sm.GetSeqCounter();
+            EmuSeqCounter = seqcnt - bufCnt;
 
-            for (int i = 0; i < len / 4; i++)
+            for (int i = 0; i < bufCnt; i++)
             {
                 mds.Update(emuRenderBuf, 0, 2, OneFrameVGMStream);
 
@@ -1123,34 +1247,34 @@ namespace test
                                 case 0x81:
 
                                     // YM2608/YM2609
-                                    List<Tuple<byte, byte, byte>> data = new List<Tuple<byte, byte, byte>>
+                                    List<Pack> data = new List<Pack>
                                     {
-                                        new Tuple<byte, byte, byte>(0x1, 0x00, 0x20),
-                                        new Tuple<byte, byte, byte>(0x1, 0x00, 0x21),
-                                        new Tuple<byte, byte, byte>(0x1, 0x00, 0x00),
+                                        new Pack(0,0x1, 0x00, 0x20,null),
+                                        new Pack(0,0x1, 0x00, 0x21,null),
+                                        new Pack(0,0x1, 0x00, 0x00,null),
 
-                                        new Tuple<byte, byte, byte>(0x1, 0x10, 0x00),
-                                        new Tuple<byte, byte, byte>(0x1, 0x10, 0x80),
+                                        new Pack(0,0x1, 0x10, 0x00,null),
+                                        new Pack(0,0x1, 0x10, 0x80,null),
 
-                                        new Tuple<byte, byte, byte>(0x1, 0x00, 0x61),
-                                        new Tuple<byte, byte, byte>(0x1, 0x00, 0x68),
-                                        new Tuple<byte, byte, byte>(0x1, 0x01, 0x00),
+                                        new Pack(0,0x1, 0x00, 0x61,null),
+                                        new Pack(0,0x1, 0x00, 0x68,null),
+                                        new Pack(0,0x1, 0x01, 0x00,null),
 
-                                        new Tuple<byte, byte, byte>(0x1, 0x02, (byte)(startAddress >> 2)),
-                                        new Tuple<byte, byte, byte>(0x1, 0x03, (byte)(startAddress >> 10)),
-                                        new Tuple<byte, byte, byte>(0x1, 0x04, 0xff),
-                                        new Tuple<byte, byte, byte>(0x1, 0x05, 0xff),
-                                        new Tuple<byte, byte, byte>(0x1, 0x0c, 0xff),
-                                        new Tuple<byte, byte, byte>(0x1, 0x0d, 0xff)
+                                        new Pack(0,0x1, 0x02, (byte)(startAddress >> 2),null),
+                                        new Pack(0,0x1, 0x03, (byte)(startAddress >> 10),null),
+                                        new Pack(0,0x1, 0x04, 0xff,null),
+                                        new Pack(0,0x1, 0x05, 0xff,null),
+                                        new Pack(0,0x1, 0x0c, 0xff,null),
+                                        new Pack(0,0x1, 0x0d, 0xff,null)
                                     };
 
                                     // データ転送
                                     for (int cnt = 0; cnt < bLen - 8; cnt++)
                                     {
-                                        data.Add(new Tuple<byte, byte, byte>(0x1, 0x08, vgmBuf[vgmAdr + 15 + cnt]));
+                                        data.Add(new Pack(0, 0x1, 0x08, vgmBuf[vgmAdr + 15 + cnt], null));
                                     }
-                                    data.Add(new Tuple<byte, byte, byte>(0x1, 0x00, 0x00));
-                                    data.Add(new Tuple<byte, byte, byte>(0x1, 0x10, 0x80));
+                                    data.Add(new Pack(0, 0x1, 0x00, 0x00, null));
+                                    data.Add(new Pack(0, 0x1, 0x10, 0x80, null));
 
                                     if (rsc == null) enq(DriverSeqCounter, 0x56, 0, -1, -1, data.ToArray());
                                     else enq(DriverSeqCounter, -1, 0, -1, -1, data.ToArray());
@@ -1526,15 +1650,24 @@ namespace test
                     }
                     else
                     {
-                        Tuple<byte, byte, byte>[] data = (Tuple<byte, byte, byte>[])Ex;
-                        foreach (Tuple<byte, byte, byte> dat in data)
+                        sm.SetInterrupt();
+                        try
                         {
-                            mds.WriteYM2609(0, dat.Item1, dat.Item2, dat.Item3);
+                            Pack[] data = (Pack[])Ex;
+                            foreach (Pack dat in data)
+                            {
+                                mds.WriteYM2609(0, (byte)dat.Typ, (byte)dat.Adr, (byte)dat.Val);
+                            }
+                        }
+                        finally
+                        {
+                            sm.ResetInterrupt();
                         }
                     }
                     break;
             }
         }
+
 
 
         private static UInt32 GetLE16(UInt32 adr)

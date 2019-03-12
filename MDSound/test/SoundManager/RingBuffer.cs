@@ -1,45 +1,9 @@
 ﻿using System.Collections.Generic;
 
-namespace test
+namespace SoundManager
 {
     public class RingBuffer
     {
-        public class Pack
-        {
-            public int Dev;
-            public int Typ;
-            public int Adr;
-            public int Val;
-            public object[] Ex;
-
-            public void Copy(Pack pack)
-            {
-                Dev = pack.Dev;
-                Typ = pack.Typ;
-                Adr = pack.Adr;
-                Val = pack.Val;
-                Ex = pack.Ex;
-            }
-
-            public void Copy(int Dev, int Typ, int Adr, int Val, object[] Ex)
-            {
-                this.Dev = Dev;
-                this.Typ = Typ;
-                this.Adr = Adr;
-                this.Val = Val;
-                this.Ex = Ex;
-            }
-        }
-
-        private class PPack
-        {
-            public PPack prev;
-            public PPack next;
-
-            public long Counter;
-
-            public Pack pack = new Pack();
-        }
 
         private List<PPack> buf;
         private PPack enqPos = null;

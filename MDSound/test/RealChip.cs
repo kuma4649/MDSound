@@ -1,10 +1,7 @@
 ﻿using NScci;
 using Nc86ctl;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Threading;
 
 namespace test
 {
@@ -133,8 +130,7 @@ namespace test
 
         public void setLevelDisp(bool v)
         {
-            if (nScci == null) return;
-            nScci.NSoundInterfaceManager_.setLevelDisp(v);
+            if (nScci != null) nScci.NSoundInterfaceManager_.setLevelDisp(v);
         }
 
         //public void Init()
@@ -180,6 +176,8 @@ namespace test
                 //    }
                 //}
             }
+
+            Thread.Sleep(1000);
         }
 
         public void WaitOPNADPCMData(bool isGIMIC)
@@ -187,22 +185,31 @@ namespace test
             if (nScci != null) nScci.NSoundInterfaceManager_.sendData();
             if (nc86ctl != null && isGIMIC)
             {
-                int n = nc86ctl.getNumberOfChip();
-                for (int i = 0; i < n; i++)
-                {
-                    NIRealChip rc = nc86ctl.getChipInterface(i);
-                    if (rc != null)
-                    {
-                        while ((rc.@in(0x0) & 0x83) != 0)
-                            System.Threading.Thread.Sleep(0);
-                        while ((rc.@in(0x100) & 0xbf) != 0)
-                        {
-                            System.Threading.Thread.Sleep(0);
-                        }
-                    }
-                }
-
+                //int n = nc86ctl.getNumberOfChip();
+                //for (int i = 0; i < n; i++)
+                //{
+                //    NIRealChip rc = nc86ctl.getChipInterface(i);
+                //    if (rc != null)
+                //    {
+                //        int timeOutCounter;
+                //        timeOutCounter = 10000;
+                //        while ((rc.@in(0x0) & 0x83) != 0 && timeOutCounter > 0)
+                //        {
+                //            Thread.Sleep(1);
+                //            timeOutCounter--;
+                //            //Debug.WriteLine("{0:x}", rc.@in(0x0));
+                //        }
+                //        timeOutCounter = 10000;
+                //        while ((rc.@in(0x100) & 0xbf) != 0 && timeOutCounter > 0)
+                //        {
+                //            Thread.Sleep(1);
+                //            timeOutCounter--;
+                //        }
+                //    }
+                //}
             }
+
+            Thread.Sleep(1000);
         }
 
         public RSoundChip SearchOPNA()
@@ -264,188 +271,6 @@ namespace test
 
         }
 
-        //public RSoundChip GetRealChip(Setting.ChipType chipType, int ind = 0)
-        //{
-        //    if (nScci != null)
-        //    {
-        //        int iCount = nScci.NSoundInterfaceManager_.getInterfaceCount();
-        //        for (int i = 0; i < iCount; i++)
-        //        {
-        //            NSoundInterface iIntfc = nScci.NSoundInterfaceManager_.getInterface(i);
-        //            NSCCI_INTERFACE_INFO iInfo = nScci.NSoundInterfaceManager_.getInterfaceInfo(i);
-        //            int sCount = iIntfc.getSoundChipCount();
-        //            for (int s = 0; s < sCount; s++)
-        //            {
-        //                NSoundChip sc = iIntfc.getSoundChip(s);
-
-        //                switch (ind)
-        //                {
-        //                    case 0:
-        //                        if (0 == chipType.SoundLocation
-        //                            && i == chipType.BusID
-        //                            && s == chipType.SoundChip)
-        //                        {
-        //                            RScciSoundChip rsc = new RScciSoundChip(0, i, s);
-        //                            rsc.scci = nScci;
-        //                            return rsc;
-        //                        }
-        //                        break;
-        //                    case 1:
-        //                        if (0 == chipType.SoundLocation2A
-        //                            && i == chipType.BusID2A
-        //                            && s == chipType.SoundChip2A)
-        //                        {
-        //                            RScciSoundChip rsc = new RScciSoundChip(0, i, s);
-        //                            rsc.scci = nScci;
-        //                            return rsc;
-        //                        }
-        //                        break;
-        //                    case 2:
-        //                        if (0 == chipType.SoundLocation2B
-        //                            && i == chipType.BusID2B
-        //                            && s == chipType.SoundChip2B)
-        //                        {
-        //                            RScciSoundChip rsc = new RScciSoundChip(0, i, s);
-        //                            rsc.scci = nScci;
-        //                            return rsc;
-        //                        }
-        //                        break;
-        //                }
-
-        //            }
-        //        }
-        //    }
-
-        //    if (nc86ctl != null)
-        //    {
-        //        int iCount = nc86ctl.getNumberOfChip();
-        //        for (int i = 0; i < iCount; i++)
-        //        {
-        //            NIRealChip rc = nc86ctl.getChipInterface(i);
-        //            NIGimic2 gm = rc.QueryInterface();
-        //            ChipType cct = gm.getModuleType();
-        //            int o = -1;
-        //            string seri = gm.getModuleInfo().Serial;
-        //            if (!int.TryParse(seri, out o)) o = -1;
-
-        //            switch (ind)
-        //            {
-        //                case 0:
-        //                    if (-1 == chipType.SoundLocation
-        //                        && i == chipType.BusID
-        //                        && o == chipType.SoundChip)
-        //                    {
-        //                        RC86ctlSoundChip rsc = new RC86ctlSoundChip(-1, i, o);
-        //                        rsc.c86ctl = nc86ctl;
-        //                        return rsc;
-        //                    }
-        //                    break;
-        //                case 1:
-        //                    if (-1 == chipType.SoundLocation2A
-        //                        && i == chipType.BusID2A
-        //                        && o == chipType.SoundChip)
-        //                    {
-        //                        RC86ctlSoundChip rsc = new RC86ctlSoundChip(-1, i, o);
-        //                        rsc.c86ctl = nc86ctl;
-        //                        return rsc;
-        //                    }
-        //                    break;
-        //                case 2:
-        //                    if (-1 == chipType.SoundLocation2B
-        //                        && i == chipType.BusID2B
-        //                        && o == chipType.SoundChip)
-        //                    {
-        //                        RC86ctlSoundChip rsc = new RC86ctlSoundChip(-1, i, o);
-        //                        rsc.c86ctl = nc86ctl;
-        //                        return rsc;
-        //                    }
-        //                    break;
-        //            }
-
-        //        }
-        //    }
-
-        //    return null;
-        //}
-
-        //public List<Setting.ChipType> GetRealChipList(EnmRealChipType realChipType)
-        //{
-        //    List<Setting.ChipType> ret = new List<Setting.ChipType>();
-
-        //    if (nScci != null)
-        //    {
-        //        int iCount = nScci.NSoundInterfaceManager_.getInterfaceCount();
-        //        for (int i = 0; i < iCount; i++)
-        //        {
-        //            NSoundInterface iIntfc = nScci.NSoundInterfaceManager_.getInterface(i);
-        //            NSCCI_INTERFACE_INFO iInfo = nScci.NSoundInterfaceManager_.getInterfaceInfo(i);
-        //            int sCount = iIntfc.getSoundChipCount();
-        //            for (int s = 0; s < sCount; s++)
-        //            {
-        //                NSoundChip sc = iIntfc.getSoundChip(s);
-        //                int t = sc.getSoundChipType();
-        //                if (t == (int)realChipType)
-        //                {
-        //                    Setting.ChipType ct = new Setting.ChipType();
-        //                    ct.SoundLocation = 0;
-        //                    ct.BusID = i;
-        //                    ct.SoundChip = s;
-        //                    ct.ChipName = sc.getSoundChipInfo().cSoundChipName;
-        //                    ct.InterfaceName = iInfo.cInterfaceName;
-        //                    ret.Add(ct);
-        //                }
-
-        //            }
-        //        }
-        //    }
-
-        //    if (nc86ctl != null)
-        //    {
-        //        int iCount = nc86ctl.getNumberOfChip();
-        //        for (int i = 0; i < iCount; i++)
-        //        {
-        //            NIRealChip rc = nc86ctl.getChipInterface(i);
-        //            NIGimic2 gm = rc.QueryInterface();
-        //            ChipType cct = gm.getModuleType();
-        //            Setting.ChipType ct = null;
-        //            int o = -1;
-        //            switch (realChipType)
-        //            {
-        //                case EnmRealChipType.YM2203:
-        //                case EnmRealChipType.YM2608:
-        //                    if (cct == ChipType.CHIP_YM2608 || cct == ChipType.CHIP_YMF288 || cct == ChipType.CHIP_YM2203)
-        //                    {
-        //                        ct = new Setting.ChipType();
-        //                        ct.SoundLocation = -1;
-        //                        ct.BusID = i;
-        //                        string seri = gm.getModuleInfo().Serial;
-        //                        if (!int.TryParse(seri, out o)) o = -1;
-        //                        ct.SoundChip = o;
-        //                        ct.ChipName = gm.getModuleInfo().Devname;
-        //                        ct.InterfaceName = gm.getMBInfo().Devname;
-        //                    }
-        //                    break;
-        //                case EnmRealChipType.YM2151:
-        //                    if (cct == ChipType.CHIP_YM2151)
-        //                    {
-        //                        ct = new Setting.ChipType();
-        //                        ct.SoundLocation = -1;
-        //                        ct.BusID = i;
-        //                        string seri = gm.getModuleInfo().Serial;
-        //                        if (!int.TryParse(seri, out o)) o = -1;
-        //                        ct.SoundChip = o;
-        //                        ct.ChipName = gm.getModuleInfo().Devname;
-        //                        ct.InterfaceName = gm.getMBInfo().Devname;
-        //                    }
-        //                    break;
-        //            }
-
-        //            if (ct != null) ret.Add(ct);
-        //        }
-        //    }
-
-        //    return ret;
-        //}
     }
 
     public class RSoundChip
