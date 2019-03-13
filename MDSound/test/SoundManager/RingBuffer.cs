@@ -54,12 +54,19 @@ namespace SoundManager
                         return false;
                     }
                     //自動拡張
-                    PPack p = new PPack();
-                    buf.Add(p);
-                    p.prev = enqPos;
-                    p.next = enqPos.next;
-                    enqPos.next = p;
-                    p.next.prev = p;
+                    try
+                    {
+                        PPack p = new PPack();
+                        buf.Add(p);
+                        p.prev = enqPos;
+                        p.next = enqPos.next;
+                        enqPos.next = p;
+                        p.next.prev = p;
+                    }
+                    catch
+                    {
+                        return false;
+                    }
                 }
 
                 bLength++;

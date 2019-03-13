@@ -39,7 +39,7 @@ namespace SoundManager
         private int interruptCounter = 0;
 
 
-        public void Setup(DriverAction ActionOfDriver, Snd ActionOfEmuDevice, Snd ActionOfRealDevice, Pack[] stopData)
+        public void Setup(DriverAction ActionOfDriver, Snd ActionOfEmuDevice, Snd ActionOfRealDevice, Pack[] startData, Pack[] stopData)
         {
             this.OfDriver = ActionOfDriver;
             this.OfEmu = ActionOfEmuDevice;
@@ -48,7 +48,7 @@ namespace SoundManager
             dataMaker = new DataMaker(OfDriver);
             emuChipSender = new EmuChipSender(ActionOfEmuDevice, DATA_SEQUENCE_FREQUENCE);
             realChipSender = new RealChipSender(ActionOfRealDevice, DATA_SEQUENCE_FREQUENCE);
-            dataSender = new DataSender(emuChipSender.Enq, realChipSender.Enq, stopData);
+            dataSender = new DataSender(emuChipSender.Enq, realChipSender.Enq, startData, stopData);
 
             dataMaker.parent = this;
             emuChipSender.parent = this;
@@ -74,7 +74,10 @@ namespace SoundManager
             dataSender.Init();
 
             dataMaker.RequestStart();
+            while (!dataMaker.IsRunning()) ;
             dataSender.RequestStart();
+            while (!dataSender.IsRunning()) ;
+
             emuChipSender.RequestStart();
             realChipSender.RequestStart();
         }
@@ -144,7 +147,7 @@ namespace SoundManager
             return realChipSender.Deq;
         }
 
-        public RingBuffer GetRecvBuffer()
+        public RingBuffer GetEmuRecvBuffer()
         {
             return emuChipSender.recvBuffer;
         }

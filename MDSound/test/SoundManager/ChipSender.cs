@@ -57,7 +57,14 @@ namespace SoundManager
                         if (ringBuffer.GetDataSize() == 0)
                         {
                             //送信データが無く、停止指示がある場合のみ停止する
-                            if (!GetStart()) break;
+                            if (!GetStart())
+                            {
+                                if (recvBuffer.GetDataSize() > 0)
+                                {
+                                    continue;
+                                }
+                                break;
+                            }
                             continue;
                         }
 
@@ -71,8 +78,13 @@ namespace SoundManager
                         {
                             while (ringBuffer.Deq(ref Counter, ref Dev, ref Typ, ref Adr, ref Val, ref Ex))
                             {
-                                ActionOfChip?.Invoke(Counter, Dev, Typ, Adr, Val, Ex);
-                                //while (!recvBuffer.Enq(Counter, Dev, Typ, Adr, Val, Ex)) { }
+                                //ActionOfChip?.Invoke(Counter, Dev, Typ, Adr, Val, Ex);
+                                if (!recvBuffer.Enq(Counter, Dev, Typ, Adr, Val, Ex))
+                                {
+                                    parent.SetInterrupt();
+                                    while (!recvBuffer.Enq(Counter, Dev, Typ, Adr, Val, Ex)) { }
+                                    parent.ResetInterrupt();
+                                }
                             }
                         }
                         catch
@@ -90,6 +102,7 @@ namespace SoundManager
                     {
                         isRunning = false;
                         ringBuffer.Init(ringBufferSize);
+                        recvBuffer.Init(DATA_SEQUENCE_FREQUENCE);
                     }
 
                 }

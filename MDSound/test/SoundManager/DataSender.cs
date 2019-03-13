@@ -13,9 +13,10 @@ namespace SoundManager
 
         private readonly Enq EmuEnq = null;
         private readonly Enq RealEnq = null;
+        private readonly Pack[] startData = null;
         private readonly Pack[] stopData = null;
 
-        public DataSender(Enq EmuEnq, Enq RealEnq, Pack[] stopData, int BufferSize = DATA_SEQUENCE_FREQUENCE, int Frq = DATA_SEQUENCE_FREQUENCE)
+        public DataSender(Enq EmuEnq, Enq RealEnq, Pack[] startData, Pack[] stopData, int BufferSize = DATA_SEQUENCE_FREQUENCE, int Frq = DATA_SEQUENCE_FREQUENCE)
         {
             action = Main;
             this.Frq = Frq;
@@ -24,6 +25,7 @@ namespace SoundManager
             SeqCounter = Def_SeqCounter;
             this.EmuEnq = EmuEnq;
             this.RealEnq = RealEnq;
+            this.startData = startData;
             this.stopData = stopData;
         }
 
@@ -47,6 +49,18 @@ namespace SoundManager
         {
             SeqCounter = Def_SeqCounter;
             ringBuffer.Init(ringBufferSize);
+
+            //開始時のデータの送信
+            if (startData != null)
+            {
+                foreach (Pack dat in startData)
+                {
+                    //振り分けてEnqueue
+                    if (dat.Dev >= 0) while (!EmuEnq(0, dat.Dev, dat.Typ, dat.Adr, dat.Val, null)) Thread.Sleep(1);
+                    else while (!RealEnq(0, dat.Dev, dat.Typ, dat.Adr, dat.Val, null)) Thread.Sleep(1);
+                }
+            }
+
         }
 
         private void Main()
@@ -65,6 +79,7 @@ namespace SoundManager
 
                     double o = sw.ElapsedTicks / swFreq;
                     double step = 1 / (double)Frq;
+                    SeqCounter = Def_SeqCounter;
 
                     while (true)
                     {
@@ -85,21 +100,24 @@ namespace SoundManager
                             o += step;
                         }
 
-                        lock (lockObj)
+                        //lock (lockObj)
                         {
                             //待ち合わせ割り込み
                             if (parent.GetInterrupt())
                             {
-                                Thread.Sleep(1);
+                                //Thread.Sleep(0);
                                 continue;
                             }
 
                             SeqCounter++;
+                            if (SeqCounter < 0) continue;
+
                             if (ringBuffer.GetDataSize() == 0)
                             {
                                 if (!parent.IsRunningAtDataMaker())
                                 {
                                     //RequestStop();
+                                    break;
                                 }
                                 continue;
                             }
@@ -108,11 +126,17 @@ namespace SoundManager
                         }
 
                         //dataが貯まってます！
-                        ringBuffer.Deq(ref Counter, ref Dev, ref Typ, ref Adr, ref Val, ref Ex);
+                        while (SeqCounter >= ringBuffer.LookUpCounter())
+                        {
+                            if(!ringBuffer.Deq(ref Counter, ref Dev, ref Typ, ref Adr, ref Val, ref Ex))
+                            {
+                                break;
+                            }
 
-                        //振り分けてEnqueue
-                        if (Dev >= 0) while (!EmuEnq(Counter, Dev, Typ, Adr, Val, Ex)) Thread.Sleep(1);
-                        else while (!RealEnq(Counter, Dev, Typ, Adr, Val, Ex)) Thread.Sleep(1);
+                            //振り分けてEnqueue
+                            if (Dev >= 0) while (!EmuEnq(Counter, Dev, Typ, Adr, Val, Ex)) Thread.Sleep(0);
+                            else while (!RealEnq(Counter, Dev, Typ, Adr, Val, Ex)) Thread.Sleep(0);
+                        }
                     }
 
                     //停止時のデータの送信
@@ -129,7 +153,11 @@ namespace SoundManager
                     lock (lockObj)
                     {
                         isRunning = false;
+                        Counter = 0;
+                        Start = false;
                     }
+                    parent.RequestStopAtEmuChipSender();
+                    parent.RequestStopAtRealChipSender();
                 }
             }
             catch
