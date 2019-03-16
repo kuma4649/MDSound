@@ -21,6 +21,7 @@ namespace SoundManager
             action = Main;
             this.Frq = Frq;
             ringBuffer = new RingBuffer(BufferSize);
+            ringBuffer.AutoExtend = false;
             this.ringBufferSize = BufferSize;
             SeqCounter = Def_SeqCounter;
             this.EmuEnq = EmuEnq;

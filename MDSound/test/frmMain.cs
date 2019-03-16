@@ -146,8 +146,7 @@ namespace test
                 Thread.Sleep(1);
             }
 
-            DriverSeqCounter = 0;
-            //EmuSeqCounter = -10000;
+            DriverSeqCounter = sm.GetDriverSeqCounterDelay();
 
             Play(tbFile.Text);
 
@@ -261,27 +260,27 @@ namespace test
             if (rsc == null)
             {
                 data = SoftResetYM2608(0x56);
-                enq(DriverSeqCounter, 0x56, 0, -1, -1, data);
+                DataEnq(DriverSeqCounter, 0x56, 0, -1, -1, data);
             }
             else
             {
                 data = SoftResetYM2608(-1);
-                enq(DriverSeqCounter, -1, 0, -1, -1, data);
+                DataEnq(DriverSeqCounter, -1, 0, -1, -1, data);
             }
         }
 
-        private void RealChipAction(long Counter, int Dev, int Typ, int Adr, int Val, object[] Ex)
+        private void RealChipAction(long counter, int dev, int typ, int adr, int val, object[] ex)
         {
-            if (Adr >= 0)
+            if (adr >= 0)
             {
-                rsc.setRegister(Adr, Val);
+                rsc.setRegister(adr, val);
             }
             else
             {
                 sm.SetInterrupt();
                 try
                 {
-                    Pack[] data = (Pack[])Ex;
+                    Pack[] data = (Pack[])ex;
                     foreach (Pack dat in data)
                     {
                         rsc.setRegister(dat.Adr, dat.Val);
@@ -302,113 +301,117 @@ namespace test
             sm.Release();
         }
 
+        public static void DataEnq(long counter, int dev, int typ, int adr, int val, object[] ex)
+        {
+            while (!enq(counter, dev, typ, adr, val, ex)) Thread.Sleep(1);
+        }
 
 
-        private static Pack[] SoftInitYM2608(int Dev)
+        private static Pack[] SoftInitYM2608(int dev)
         {
             List<Pack> data = new List<Pack>();
             byte i;
 
-            data.Add(new Pack(Dev, 0, 0x2d, 0x00, null));
-            data.Add(new Pack(Dev, 0, 0x29, 0x82, null));
-            data.Add(new Pack(Dev, 0, 0x07, 0x38, null)); //PSG TONE でリセット
+            data.Add(new Pack(dev, 0, 0x2d, 0x00, null));
+            data.Add(new Pack(dev, 0, 0x29, 0x82, null));
+            data.Add(new Pack(dev, 0, 0x07, 0x38, null)); //PSG TONE でリセット
             for (i = 0xb4; i < 0xb4 + 3; i++)
             {
-                data.Add(new Pack(Dev, 0, i, 0xc0, null));
-                data.Add(new Pack(Dev, 0, 0x100 + i, 0xc0, null));
+                data.Add(new Pack(dev, 0, i, 0xc0, null));
+                data.Add(new Pack(dev, 0, 0x100 + i, 0xc0, null));
             }
 
             return data.ToArray();
         }
 
-        private static Pack[] SoftResetYM2608(int Dev)
+        private static Pack[] SoftResetYM2608(int dev)
         {
             List<Pack> data = new List<Pack>();
             byte i;
 
             // FM全チャネルキーオフ
-            data.Add(new Pack(Dev, 0, 0x28, 0x00, null));
-            data.Add(new Pack(Dev, 0, 0x28, 0x01, null));
-            data.Add(new Pack(Dev, 0, 0x28, 0x02, null));
-            data.Add(new Pack(Dev, 0, 0x28, 0x04, null));
-            data.Add(new Pack(Dev, 0, 0x28, 0x05, null));
-            data.Add(new Pack(Dev, 0, 0x28, 0x06, null));
+            data.Add(new Pack(dev, 0, 0x28, 0x00, null));
+            data.Add(new Pack(dev, 0, 0x28, 0x01, null));
+            data.Add(new Pack(dev, 0, 0x28, 0x02, null));
+            data.Add(new Pack(dev, 0, 0x28, 0x04, null));
+            data.Add(new Pack(dev, 0, 0x28, 0x05, null));
+            data.Add(new Pack(dev, 0, 0x28, 0x06, null));
 
             // FM TL=127
             for (i = 0x40; i < 0x4F + 1; i++)
             {
-                data.Add(new Pack(Dev, 0, i, 0x7f, null));
-                data.Add(new Pack(Dev, 0, 0x100 + i, 0x7f, null));
+                data.Add(new Pack(dev, 0, i, 0x7f, null));
+                data.Add(new Pack(dev, 0, 0x100 + i, 0x7f, null));
             }
             // FM ML/DT
             for (i = 0x30; i < 0x3F + 1; i++)
             {
-                data.Add(new Pack(Dev, 0, i, 0x0, null));
-                data.Add(new Pack(Dev, 0, 0x100 + i, 0x0, null));
+                data.Add(new Pack(dev, 0, i, 0x0, null));
+                data.Add(new Pack(dev, 0, 0x100 + i, 0x0, null));
             }
             // FM AR,DR,SR,KS,AMON
             for (i = 0x50; i < 0x7F + 1; i++)
             {
-                data.Add(new Pack(Dev, 0, i, 0x0, null));
-                data.Add(new Pack(Dev, 0, 0x100 + i, 0x0, null));
+                data.Add(new Pack(dev, 0, i, 0x0, null));
+                data.Add(new Pack(dev, 0, 0x100 + i, 0x0, null));
             }
             // FM SL,RR
             for (i = 0x80; i < 0x8F + 1; i++)
             {
-                data.Add(new Pack(Dev, 0, i, 0xff, null));
-                data.Add(new Pack(Dev, 0, 0x100 + i, 0xff, null));
+                data.Add(new Pack(dev, 0, i, 0xff, null));
+                data.Add(new Pack(dev, 0, 0x100 + i, 0xff, null));
             }
             // FM F-Num, FB/CONNECT
             for (i = 0x90; i < 0xBF + 1; i++)
             {
-                data.Add(new Pack(Dev, 0, i, 0x0, null));
-                data.Add(new Pack(Dev, 0, 0x100 + i, 0x0, null));
+                data.Add(new Pack(dev, 0, i, 0x0, null));
+                data.Add(new Pack(dev, 0, 0x100 + i, 0x0, null));
             }
             // FM PAN/AMS/PMS
             for (i = 0xB4; i < 0xB6 + 1; i++)
             {
-                data.Add(new Pack(Dev, 0, i, 0xc0, null));
-                data.Add(new Pack(Dev, 0, 0x100 + i, 0xc0, null));
+                data.Add(new Pack(dev, 0, i, 0xc0, null));
+                data.Add(new Pack(dev, 0, 0x100 + i, 0xc0, null));
             }
-            data.Add(new Pack(Dev, 0, 0x22, 0x00, null)); // HW LFO
-            data.Add(new Pack(Dev, 0, 0x24, 0x00, null)); // Timer-A(1)
-            data.Add(new Pack(Dev, 0, 0x25, 0x00, null)); // Timer-A(2)
-            data.Add(new Pack(Dev, 0, 0x26, 0x00, null)); // Timer-B
-            data.Add(new Pack(Dev, 0, 0x27, 0x30, null)); // Timer Control
-            data.Add(new Pack(Dev, 0, 0x29, 0x80, null)); // FM4-6 Enable
+            data.Add(new Pack(dev, 0, 0x22, 0x00, null)); // HW LFO
+            data.Add(new Pack(dev, 0, 0x24, 0x00, null)); // Timer-A(1)
+            data.Add(new Pack(dev, 0, 0x25, 0x00, null)); // Timer-A(2)
+            data.Add(new Pack(dev, 0, 0x26, 0x00, null)); // Timer-B
+            data.Add(new Pack(dev, 0, 0x27, 0x30, null)); // Timer Control
+            data.Add(new Pack(dev, 0, 0x29, 0x80, null)); // FM4-6 Enable
 
             // SSG 音程(2byte*3ch)
             for (i = 0x00; i < 0x05 + 1; i++)
             {
-                data.Add(new Pack(Dev, 0, i, 0x00, null));
+                data.Add(new Pack(dev, 0, i, 0x00, null));
             }
-            data.Add(new Pack(Dev, 0, 0x06, 0x00, null));// SSG ノイズ周波数
-            data.Add(new Pack(Dev, 0, 0x07, 0x38, null)); // SSG ミキサ
+            data.Add(new Pack(dev, 0, 0x06, 0x00, null));// SSG ノイズ周波数
+            data.Add(new Pack(dev, 0, 0x07, 0x38, null)); // SSG ミキサ
                                                           // SSG ボリューム(3ch)
             for (i = 0x08; i < 0x0A + 1; i++)
             {
-                data.Add(new Pack(Dev, 0, i, 0x00, null));
+                data.Add(new Pack(dev, 0, i, 0x00, null));
             }
             // SSG Envelope
             for (i = 0x0B; i < 0x0D + 1; i++)
             {
-                data.Add(new Pack(Dev, 0, i, 0x00, null));
+                data.Add(new Pack(dev, 0, i, 0x00, null));
             }
 
             // RHYTHM
-            data.Add(new Pack(Dev, 0, 0x10, 0xBF, null)); // 強制発音停止
-            data.Add(new Pack(Dev, 0, 0x11, 0x00, null)); // Total Level
-            data.Add(new Pack(Dev, 0, 0x18, 0x00, null)); // BD音量
-            data.Add(new Pack(Dev, 0, 0x19, 0x00, null)); // SD音量
-            data.Add(new Pack(Dev, 0, 0x1A, 0x00, null)); // CYM音量
-            data.Add(new Pack(Dev, 0, 0x1B, 0x00, null)); // HH音量
-            data.Add(new Pack(Dev, 0, 0x1C, 0x00, null)); // TOM音量
-            data.Add(new Pack(Dev, 0, 0x1D, 0x00, null)); // RIM音量
+            data.Add(new Pack(dev, 0, 0x10, 0xBF, null)); // 強制発音停止
+            data.Add(new Pack(dev, 0, 0x11, 0x00, null)); // Total Level
+            data.Add(new Pack(dev, 0, 0x18, 0x00, null)); // BD音量
+            data.Add(new Pack(dev, 0, 0x19, 0x00, null)); // SD音量
+            data.Add(new Pack(dev, 0, 0x1A, 0x00, null)); // CYM音量
+            data.Add(new Pack(dev, 0, 0x1B, 0x00, null)); // HH音量
+            data.Add(new Pack(dev, 0, 0x1C, 0x00, null)); // TOM音量
+            data.Add(new Pack(dev, 0, 0x1D, 0x00, null)); // RIM音量
 
             // ADPCM
-            data.Add(new Pack(Dev, 0, 0x100 + 0x00, 0x21, null)); // ADPCMリセット
-            data.Add(new Pack(Dev, 0, 0x100 + 0x01, 0x06, null)); // ADPCM消音
-            data.Add(new Pack(Dev, 0, 0x100 + 0x10, 0x9C, null)); // FLAGリセット        
+            data.Add(new Pack(dev, 0, 0x100 + 0x00, 0x21, null)); // ADPCMリセット
+            data.Add(new Pack(dev, 0, 0x100 + 0x01, 0x06, null)); // ADPCM消音
+            data.Add(new Pack(dev, 0, 0x100 + 0x10, 0x9C, null)); // FLAGリセット        
 
             return data.ToArray();
         }
@@ -1157,16 +1160,16 @@ namespace test
                     rAdr = vgmBuf[vgmAdr + 1];
                     rDat = vgmBuf[vgmAdr + 2];
                     vgmAdr += 3;
-                    if (rsc == null) enq(DriverSeqCounter, 0x56, 0, 0 * 0x100 + rAdr, rDat, null);
-                    else enq(DriverSeqCounter, -1, 0, 0 * 0x100 + rAdr, rDat, null);
+                    if (rsc == null) DataEnq(DriverSeqCounter, 0x56, 0, 0 * 0x100 + rAdr, rDat, null);
+                    else DataEnq(DriverSeqCounter, -1, 0, 0 * 0x100 + rAdr, rDat, null);
                     //mds.WriteYM2609(0, 0, rAdr, rDat);
                     break;
                 case 0x57: //YM2609 Port1
                     rAdr = vgmBuf[vgmAdr + 1];
                     rDat = vgmBuf[vgmAdr + 2];
                     vgmAdr += 3;
-                    if (rsc == null) enq(DriverSeqCounter, 0x56, 0, 1 * 0x100 + rAdr, rDat, null);
-                    else enq(DriverSeqCounter, -1, 0, 1 * 0x100 + rAdr, rDat, null);
+                    if (rsc == null) DataEnq(DriverSeqCounter, 0x56, 0, 1 * 0x100 + rAdr, rDat, null);
+                    else DataEnq(DriverSeqCounter, -1, 0, 1 * 0x100 + rAdr, rDat, null);
                     //mds.WriteYM2609(0, 1, rAdr, rDat);
 
                     break;
@@ -1308,10 +1311,10 @@ namespace test
                                     data.Add(new Pack(0, 0, 0x100 + 0x00, 0x00, null));
                                     data.Add(new Pack(0, 0, 0x100 + 0x10, 0x80, null));
 
-                                    if (rsc == null) enq(DriverSeqCounter, 0x56, 0, -1, -1, data.ToArray());
+                                    if (rsc == null) DataEnq(DriverSeqCounter, 0x56, 0, -1, -1, data.ToArray());
                                     else
                                     {
-                                        enq(DriverSeqCounter, -1, 0, -1, -1, data.ToArray());
+                                        DataEnq(DriverSeqCounter, -1, 0, -1, -1, data.ToArray());
                                         DriverSeqCounter += bLen;
                                     }
 

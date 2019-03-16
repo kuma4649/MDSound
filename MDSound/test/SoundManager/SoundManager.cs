@@ -136,6 +136,11 @@ namespace SoundManager
             return realChipSender.IsRunning();
         }
 
+        public long GetDriverSeqCounterDelay()
+        {
+            return (long)(DATA_SEQUENCE_FREQUENCE * 0.1);
+        }
+
         public bool IsRunningAtEmuChipSender()
         {
             return emuChipSender.IsRunning();

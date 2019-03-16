@@ -13,6 +13,7 @@ namespace SoundManager
     public class DataMaker : BaseMakerSender
     {
         private readonly DriverAction ActionOfDriver;
+        private bool pause = false;
 
         public DataMaker(DriverAction ActionOfDriver)
         {
@@ -26,6 +27,9 @@ namespace SoundManager
             {
                 while (true)
                 {
+
+                    pause = false;
+
                     while (true)
                     {
                         Thread.Sleep(100);
@@ -42,8 +46,25 @@ namespace SoundManager
                     while (true)
                     {
                         if (!GetStart()) break;
+
+                        if (pause)
+                        {
+                            if (parent.GetDataSenderBufferSize() >= DATA_SEQUENCE_FREQUENCE / 2)
+                            {
+                                Thread.Sleep(10);
+                                continue;
+                            }
+
+                            pause = false;
+                        }
+
                         Thread.Sleep(0);
                         ActionOfDriver?.Main?.Invoke();
+
+                        if (parent.GetDataSenderBufferSize() >= DATA_SEQUENCE_FREQUENCE)
+                        {
+                            pause = true;
+                        }
                     }
 
                     ActionOfDriver?.Final?.Invoke();
