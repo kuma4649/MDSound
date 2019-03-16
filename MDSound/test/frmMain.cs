@@ -18,7 +18,7 @@ namespace test
         private static MDSound.MDSound mds = null;
         
         private static AudioStream sdl;
-        private static AudioCallback sdlCb = new AudioCallback(Callback);
+        private static AudioCallback sdlCb = new AudioCallback(EmuCallback);
         private static IntPtr sdlCbPtr;
         private static GCHandle sdlCbHandle;
 
@@ -88,7 +88,7 @@ namespace test
         private static Enq enq;
         private static RealChip rc = null;
         private static RSoundChip rsc = null;
-        private static RingBuffer recvBuffer = null;
+        private static RingBuffer emuRecvBuffer = null;
 
 
         public FrmMain()
@@ -208,6 +208,21 @@ namespace test
 
             label2.Location = new System.Drawing.Point(Math.Min((l / 600) * 3 - 174, 0), label2.Location.Y);
             label3.Location = new System.Drawing.Point(Math.Min((r / 600) * 3 - 174, 0), label3.Location.Y);
+
+            lblDriverSeqCounter.Text = DriverSeqCounter.ToString();
+            lblEmuSeqCounter.Text = EmuSeqCounter.ToString();
+            lblSeqCounter.Text = sm.GetSeqCounter().ToString();
+            lblDataSenderBufferCounter.Text = sm.GetDataSenderBufferCounter().ToString();
+            lblDataSenderBufferSize.Text = sm.GetDataSenderBufferSize().ToString();
+            lblEmuChipSenderBufferSize.Text = sm.GetEmuChipSenderBufferSize().ToString();
+            lblRealChipSenderBufferSize.Text = sm.GetRealChipSenderBufferSize().ToString();
+
+            lblDataMakerIsRunning.Text = sm.IsRunningAtDataMaker() ? "Running" : "Stop";
+            lblDataSenderIsRunning.Text = sm.IsRunningAtDataSender() ? "Running" : "Stop";
+            lblEmuChipSenderIsRunning.Text = sm.IsRunningAtEmuChipSender() ? "Running" : "Stop";
+            lblRealChipSenderIsRunning.Text = sm.IsRunningAtRealChipSender() ? "Running" : "Stop";
+
+            lblInterrupt.Text = sm.GetInterrupt() ? "Enable" : "Disable";
         }
 
 
@@ -218,28 +233,28 @@ namespace test
         {
             sm = new SoundManager.SoundManager();
             DriverAction DriverAction = new DriverAction();
-            DriverAction.Main = ActionOfDriver;
-            DriverAction.Final = ActionOfDriverFinal;
+            DriverAction.Main = DriverActionMain;
+            DriverAction.Final = DriverActionFinal;
 
             if (rsc == null)
             {
-                sm.Setup(DriverAction, ActionOfEmuDevice, null, SoftInitYM2608(0x56), SoftResetYM2608(0x56));
+                sm.Setup(DriverAction, null, SoftInitYM2608(0x56), SoftResetYM2608(0x56));
             }
             else
             {
-                sm.Setup(DriverAction, null, ActionOfRealDevice, SoftInitYM2608(-1), SoftResetYM2608(-1));
+                sm.Setup(DriverAction, RealChipAction, SoftInitYM2608(-1), SoftResetYM2608(-1));
             }
 
             enq = sm.GetDriverDataEnqueue();
-            recvBuffer= sm.GetEmuRecvBuffer();
+            emuRecvBuffer = sm.GetEmuRecvBuffer();
         }
 
-        private void ActionOfDriver()
+        private void DriverActionMain()
         {
             OneFrameVGM();
         }
 
-        private void ActionOfDriverFinal()
+        private void DriverActionFinal()
         {
             Pack[] data;
 
@@ -254,6 +269,40 @@ namespace test
                 enq(DriverSeqCounter, -1, 0, -1, -1, data);
             }
         }
+
+        private void RealChipAction(long Counter, int Dev, int Typ, int Adr, int Val, object[] Ex)
+        {
+            if (Adr >= 0)
+            {
+                rsc.setRegister(Adr, Val);
+            }
+            else
+            {
+                sm.SetInterrupt();
+                try
+                {
+                    Pack[] data = (Pack[])Ex;
+                    foreach (Pack dat in data)
+                    {
+                        rsc.setRegister(dat.Adr, dat.Val);
+                    }
+                    rc.WaitOPNADPCMData(true);
+                }
+                finally
+                {
+                    sm.ResetInterrupt();
+                }
+            }
+        }
+
+        private void Unmount()
+        {
+            sm.RequestStop();
+            while (sm.IsRunningAsync()) ;
+            sm.Release();
+        }
+
+
 
         private static Pack[] SoftInitYM2608(int Dev)
         {
@@ -363,45 +412,6 @@ namespace test
 
             return data.ToArray();
         }
-
-        private static void ActionOfEmuDevice(long Counter, int Dev, int Typ, int Adr, int Val, object[] Ex)
-        {
-            //while (!recvBuffer.Enq(Counter, Dev, Typ, Adr, Val, Ex)) { }
-        }
-
-        private void ActionOfRealDevice(long Counter, int Dev, int Typ, int Adr, int Val, object[] Ex)
-        {
-            if (Adr >= 0)
-            {
-                rsc.setRegister(Adr, Val);
-            }
-            else
-            {
-                sm.SetInterrupt();
-                try
-                {
-                    Pack[] data = (Pack[])Ex;
-                    foreach (Pack dat in data)
-                    {
-                        rsc.setRegister(dat.Adr, dat.Val);
-                    }
-                    rc.WaitOPNADPCMData(true);
-                }
-                finally
-                {
-                    sm.ResetInterrupt();
-                }
-            }
-        }
-
-        private void Unmount()
-        {
-            sm.RequestStop();
-            while (sm.IsRunningAsync()) ;
-            sm.Release();
-        }
-
-
 
         private static void Play(string fileName)
         {
@@ -1051,7 +1061,7 @@ namespace test
             return;
         }
 
-        private static void Callback(IntPtr userData, IntPtr stream, int len)
+        private static void EmuCallback(IntPtr userData, IntPtr stream, int len)
         {
             long bufCnt = len / 4;
             long seqcnt = sm.GetSeqCounter();
@@ -1634,9 +1644,9 @@ namespace test
 
         private static void OneFrameVGMStream()
         {
-            while ((long)recvBuffer.LookUpCounter() <= EmuSeqCounter)//&& recvBuffer.LookUpCounter() != 0)
+            while ((long)emuRecvBuffer.LookUpCounter() <= EmuSeqCounter)//&& recvBuffer.LookUpCounter() != 0)
             {
-                bool ret = recvBuffer.Deq(ref PackCounter, ref Pack.Dev, ref Pack.Typ, ref Pack.Adr, ref Pack.Val, ref Pack.Ex);
+                bool ret = emuRecvBuffer.Deq(ref PackCounter, ref Pack.Dev, ref Pack.Typ, ref Pack.Adr, ref Pack.Val, ref Pack.Ex);
                 if (!ret) break;
                 SendEmuData(PackCounter, Pack.Dev, Pack.Typ, Pack.Adr, Pack.Val, Pack.Ex);
             }

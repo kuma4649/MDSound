@@ -12,42 +12,58 @@ namespace SoundManager
         public const int DATA_SEQUENCE_FREQUENCE = 44100;
 
         /// <summary>
-        /// ミュージックデータ解析(周期無し。データが来たら即送信)
+        /// ミュージックデータ解析
+        ///     処理周期 : 無し
+        ///     データ受取時 : DataSenderへ即送信
+        ///                  DataSenderが受け取ることができない状態の場合は、待ち合わせする
         /// </summary>
         private DataMaker dataMaker;
 
         /// <summary>
-        /// データ送信(指定周期(Def.44100Hz)によるループ)
+        /// データ送信
+        ///     処理周期 : 44100Hz(Default)
+        ///     SeqCounter値に合わせて各ChipSenderへデータを振り分けながら送信。
+        ///     ChipSenderが受け取ることができない状態の場合は、待ち合わせする
         /// </summary>
         private DataSender dataSender;
 
         /// <summary>
-        /// エミュチップ専門データ送信(周期無し。データが来たら即送信)
+        /// エミュチップ専門データ送信
+        ///     処理周期 : 無し
+        ///     データが来たら、エミュレーションむけリングバッファにEnqueue
+        ///     Enqueueできない場合は、待ち合わせする
         /// </summary>
         private EmuChipSender emuChipSender;
 
         /// <summary>
-        /// 実チップ専門データ送信(周期無し。データが来たら即送信)
+        /// 実チップ専門データ送信
+        ///     処理周期 : 無し
+        ///     データが来たら、実チップ向けコールバックを実施
+        ///     待ち合わせ無し
         /// </summary>
         private RealChipSender realChipSender;
 
-        private DriverAction OfDriver;
-        private Snd OfEmu;
-        private Snd OfReal;
-
-        private object lockObj = new object();
+        /// <summary>
+        /// 割り込み処理カウンタ
+        /// 割り込みが発生している(1以上の)間、DataSenderは各チップへデータを送信しない
+        /// </summary>
         private int interruptCounter = 0;
 
+        private volatile object lockObj = new object();
 
-        public void Setup(DriverAction ActionOfDriver, Snd ActionOfEmuDevice, Snd ActionOfRealDevice, Pack[] startData, Pack[] stopData)
+
+        /// <summary>
+        /// セットアップ
+        /// </summary>
+        /// <param name="DriverAction">ミュージックドライバーの1フレームあたりの処理を指定してください</param>
+        /// <param name="RealChipAction">実チップ向けデータ送信処理を指定してください</param>
+        /// <param name="startData">DataSenderが初期化を行うときに出力するデータを指定してください</param>
+        /// <param name="stopData">DataSenderが演奏停止を行うときに出力するデータを指定してください</param>
+        public void Setup(DriverAction DriverAction, Snd RealChipAction, Pack[] startData, Pack[] stopData)
         {
-            this.OfDriver = ActionOfDriver;
-            this.OfEmu = ActionOfEmuDevice;
-            this.OfReal = ActionOfRealDevice;
-
-            dataMaker = new DataMaker(OfDriver);
-            emuChipSender = new EmuChipSender(ActionOfEmuDevice, DATA_SEQUENCE_FREQUENCE);
-            realChipSender = new RealChipSender(ActionOfRealDevice, DATA_SEQUENCE_FREQUENCE);
+            dataMaker = new DataMaker(DriverAction);
+            emuChipSender = new EmuChipSender(DATA_SEQUENCE_FREQUENCE);
+            realChipSender = new RealChipSender(RealChipAction, DATA_SEQUENCE_FREQUENCE);
             dataSender = new DataSender(emuChipSender.Enq, realChipSender.Enq, startData, stopData);
 
             dataMaker.parent = this;
@@ -108,6 +124,11 @@ namespace SoundManager
         public bool IsRunningAtDataMaker()
         {
             return dataMaker.IsRunning();
+        }
+
+        public bool IsRunningAtDataSender()
+        {
+            return dataSender.IsRunning();
         }
 
         public bool IsRunningAtRealChipSender()
@@ -189,6 +210,26 @@ namespace SoundManager
         public long GetSeqCounter()
         {
             return dataSender.GetSeqCounter();
+        }
+
+        public long GetDataSenderBufferCounter()
+        {
+            return dataSender.GetRingBufferCounter();
+        }
+
+        public long GetDataSenderBufferSize()
+        {
+            return dataSender.GetRingBufferSize();
+        }
+
+        public long GetEmuChipSenderBufferSize()
+        {
+            return emuChipSender.GetRingBufferSize();
+        }
+
+        public long GetRealChipSenderBufferSize()
+        {
+            return realChipSender.GetRingBufferSize();
         }
 
         #region IDisposable Support

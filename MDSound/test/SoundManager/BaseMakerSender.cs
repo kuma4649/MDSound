@@ -21,6 +21,15 @@ namespace SoundManager
         public SoundManager parent = null;
 
 
+        public long GetRingBufferCounter()
+        {
+            return ringBuffer.LookUpCounter();
+        }
+
+        public long GetRingBufferSize()
+        {
+            return ringBuffer.GetDataSize();
+        }
 
         public bool Mount()
         {

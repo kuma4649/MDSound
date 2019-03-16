@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace SoundManager
 {
@@ -79,13 +80,7 @@ namespace SoundManager
                 {
                     enqPos = enqPos.next;
 
-                    PPack edbg = deqPos;
-                    //do
-                    //{
-                    //    Console.Write("{0}:", edbg.Counter);
-                    //    edbg = edbg.next;
-                    //} while (edbg != enqPos.next);
-                    //Console.WriteLine("");
+                    //debugDispBuffer();
 
                     return true;
                 }
@@ -118,13 +113,7 @@ namespace SoundManager
 
                 enqPos = lastPos.next;
 
-                //pPack dbg = deqPos;
-                //do
-                //{
-                //    Console.Write("{0}:", dbg.Counter);
-                //    dbg = dbg.next;
-                //} while (dbg != enqPos.next);
-                //Console.WriteLine ("");
+                //debugDispBuffer();
 
                 return true;
             }
@@ -148,6 +137,8 @@ namespace SoundManager
                 deqPos.Counter = 0;
                 deqPos = deqPos.next;
 
+                //debugDispBuffer();
+
                 return true;
             }
         }
@@ -167,6 +158,24 @@ namespace SoundManager
                 return deqPos.Counter;
             }
         }
+
+#if DEBUG
+
+        public void debugDispBuffer()
+        {
+            lock (lockObj)
+            {
+                PPack edbg = deqPos;
+                do
+                {
+                    Console.Write("[{0}:{1}]::", edbg.Counter, edbg.pack.Dev);
+                    edbg = edbg.next;
+                } while (edbg != enqPos.next);
+                Console.WriteLine("");
+            }
+        }
+
+#endif 
 
     }
 }
