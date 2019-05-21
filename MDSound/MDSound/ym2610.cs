@@ -39,7 +39,7 @@ namespace MDSound
         public override uint Start(byte ChipID, uint clock, uint FMClockValue, params object[] option)
         {
             chip[ChipID] = new fmgen.OPNB();
-            chip[ChipID].Init(FMClockValue, clock,false, new byte[0x20ffff], 0x20ffff, new byte[0xffff], 0xffff);
+            chip[ChipID].Init(FMClockValue, clock,false, new byte[0x20ffff], 0x20ffff, new byte[0x20ffff], 0x20ffff);
 
             return clock;
         }
