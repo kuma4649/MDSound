@@ -79,7 +79,7 @@ namespace MDSound
         //# include "c352.h"
 
 
-        public static ushort[][] flags = new ushort[2][] { new ushort[32], new ushort[32] };
+        public ushort[][] flags = new ushort[2][] { new ushort[32], new ushort[32] };
 
 
         private const int C352_VOICES = 32;

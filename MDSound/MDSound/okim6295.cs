@@ -159,7 +159,7 @@ namespace MDSound
 
 
 		private const int MAX_CHIPS = 0x02;
-		public static okim6295_state[] OKIM6295Data = new okim6295_state[MAX_CHIPS] { new okim6295_state(), new okim6295_state() };
+		public okim6295_state[] OKIM6295Data = new okim6295_state[MAX_CHIPS] { new okim6295_state(), new okim6295_state() };
 
 		/*INLINE okim6295_state *get_safe_token(running_device *device)
 		{

@@ -85,7 +85,7 @@ namespace MDSound
         private static int tables_computed = 0;
 
         private const int MAX_CHIPS = 0x02;
-        public static okim6258_state[] OKIM6258Data = new okim6258_state[MAX_CHIPS] { new okim6258_state(), new okim6258_state() };
+        public okim6258_state[] OKIM6258Data = new okim6258_state[MAX_CHIPS] { new okim6258_state(), new okim6258_state() };
         public static byte Iternal10Bit = 0x00;
 
         /*INLINE okim6258_state *get_safe_token(running_device *device)
@@ -468,7 +468,7 @@ namespace MDSound
 
         ***********************************************************************************************/
         //WRITE8_DEVICE_HANDLER( okim6258_data_w )
-        private static void okim6258_data_w(byte ChipID, /*offs_t offset, */byte data)
+        private void okim6258_data_w(byte ChipID, /*offs_t offset, */byte data)
         {
             //okim6258_state *info = get_safe_token(device);
             okim6258_state info = OKIM6258Data[ChipID];
@@ -503,7 +503,7 @@ namespace MDSound
         ***********************************************************************************************/
 
         //WRITE8_DEVICE_HANDLER( okim6258_ctrl_w )
-        private static void okim6258_ctrl_w(byte ChipID, /*offs_t offset, */byte data)
+        private void okim6258_ctrl_w(byte ChipID, /*offs_t offset, */byte data)
         {
             //okim6258_state *info = get_safe_token(device);
             okim6258_state info = OKIM6258Data[ChipID];
@@ -555,7 +555,7 @@ namespace MDSound
             }
         }
 
-        private static void okim6258_set_clock_byte(byte ChipID, byte Byte, byte val)
+        private void okim6258_set_clock_byte(byte ChipID, byte Byte, byte val)
         {
             okim6258_state info = OKIM6258Data[ChipID];
 
@@ -564,7 +564,7 @@ namespace MDSound
             return;
         }
 
-        private static void okim6258_pan_w(byte ChipID, byte data)
+        private void okim6258_pan_w(byte ChipID, byte data)
         {
             okim6258_state info = OKIM6258Data[ChipID];
 
