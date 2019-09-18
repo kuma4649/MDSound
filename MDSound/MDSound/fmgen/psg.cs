@@ -435,13 +435,13 @@ namespace MDSound.fmgen
         protected int volume;
         protected int mask;
 
-        protected static uint[][] enveloptable = new uint[16][] {
+        protected uint[][] enveloptable = new uint[16][] {
             new uint[64], new uint[64], new uint[64], new uint[64], new uint[64], new uint[64], new uint[64], new uint[64],
             new uint[64], new uint[64], new uint[64], new uint[64], new uint[64], new uint[64], new uint[64], new uint[64]
         };
 
-        protected static uint[] noisetable = new uint[noisetablesize];
-        protected static int[] EmitTable = new int[32] { -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+        protected uint[] noisetable = new uint[noisetablesize];
+        protected int[] EmitTable = new int[32] { -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 
     }
 }

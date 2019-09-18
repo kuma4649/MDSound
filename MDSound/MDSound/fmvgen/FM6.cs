@@ -31,17 +31,18 @@ namespace MDSound.fmvgen
         protected byte regtc;
         public fmvgen.Chip chip;
         public int wavetype = 0;
+        public int waveCh = 0;
         public int wavecounter = 0;
 
         protected uint[] lfotable = new uint[8];
 
-        public FM6()
+        public FM6(int n)
         {
             chip = new fmvgen.Chip();
 
             for (int i = 0; i < 6; i++)
             {
-                ch[i] = new fmvgen.Channel4();
+                ch[i] = new fmvgen.Channel4(i + n * 6);
                 ch[i].SetChip(chip);
                 ch[i].SetType(fmvgen.OpType.typeN);
             }
@@ -99,6 +100,8 @@ namespace MDSound.fmvgen
                 // WaveType -----------------------------------------------------------
                 case 0x2b:
                     wavetype = (int)(data & 0x3);
+                    waveCh = (int)((data >> 4) & 0xf);
+                    waveCh = Math.Max(Math.Min(waveCh, 11), 0);
                     wavecounter = 0;
                     break;
 
@@ -108,10 +111,10 @@ namespace MDSound.fmvgen
                     int d = wavecounter % 2;
                     uint s =
                         d == 0
-                        ? ((fmvgen.sinetable[wavetype][cnt] & 0xffff0000) | data)
-                        : ((fmvgen.sinetable[wavetype][cnt] & 0xffff) | ((data & 0x1f) << 8));
-                    fmvgen.sinetable[wavetype][cnt] = s * 2;
-                    fmvgen.sinetable[wavetype][fmvgen.FM_OPSINENTS / 2 + cnt] = s * 2 + 1;
+                        ? ((fmvgen.sinetable[waveCh][wavetype][cnt] & 0xffff0000) | data)
+                        : ((fmvgen.sinetable[waveCh][wavetype][cnt] & 0xffff) | ((data & 0x1f) << 8));
+                    fmvgen.sinetable[waveCh][wavetype][cnt] = s * 2;
+                    fmvgen.sinetable[waveCh][wavetype][fmvgen.FM_OPSINENTS / 2 + cnt] = s * 2 + 1;
                     wavecounter++;
                     if (fmvgen.FM_OPSINENTS / 2 <= wavecounter) wavecounter = 0;
                     break;
@@ -143,11 +146,13 @@ namespace MDSound.fmvgen
                 case 0x1a6:
                     c += 3;
                     fnum2[c] = (byte)(data);
+                    panL[c] = panTable[(data >> 6) & 3];
                     break;
                 case 0xa4:
                 case 0xa5:
                 case 0xa6:
                     fnum2[c] = (byte)(data);
+                    panL[c] = panTable[(data >> 6) & 3];
                     break;
 
                 case 0xa8:
@@ -160,14 +165,12 @@ namespace MDSound.fmvgen
                 case 0xad:
                 case 0xae:
                     fnum2[c + 6] = (byte)(data);
-                    panL[c] = panTable[(data >> 6) & 3];
                     break;
 
                 case 0x1ac:
                 case 0x1ad:
                 case 0x1ae:
                     c += 3;
-                    panL[c] = panTable[(data >> 6) & 3];
                     break;
 
                 // Algorithm -------------------------------------------------------------

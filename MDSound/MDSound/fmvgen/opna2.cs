@@ -15,8 +15,8 @@ namespace MDSound.fmvgen
         private int rhythmtvol;
         private byte rhythmkey;     // リズムのキー
 
-        protected FM6[] fm6 = new FM6[2] { new FM6(), new FM6() };
-        protected new PSG2[] psg = new PSG2[4] { new PSG2(), new PSG2(), new PSG2(), new PSG2() };
+        protected FM6[] fm6 = new FM6[2] { new FM6(0), new FM6(1) };
+        protected PSG2[] psg2 = new PSG2[4] { new PSG2(), new PSG2(), new PSG2(), new PSG2() };
         protected ADPCMB[] adpcmb = new ADPCMB[3] { new ADPCMB(), new ADPCMB(), new ADPCMB() };
 
         protected new byte prescale;
@@ -158,10 +158,10 @@ namespace MDSound.fmvgen
 
             fm6[0].Mix(buffer, nsamples, regtc);
             fm6[1].Mix(buffer, nsamples, regtc);
-            psg[0].Mix(buffer, nsamples);
-            psg[1].Mix(buffer, nsamples);
-            psg[2].Mix(buffer, nsamples);
-            psg[3].Mix(buffer, nsamples);
+            psg2[0].Mix(buffer, nsamples);
+            psg2[1].Mix(buffer, nsamples);
+            psg2[2].Mix(buffer, nsamples);
+            psg2[3].Mix(buffer, nsamples);
             adpcmb[0].Mix(buffer, nsamples);
             adpcmb[1].Mix(buffer, nsamples);
             adpcmb[2].Mix(buffer, nsamples);
@@ -184,10 +184,10 @@ namespace MDSound.fmvgen
             fm6[0].Reset();
             fm6[1].Reset();
 
-            psg[0].Reset();
-            psg[1].Reset();
-            psg[2].Reset();
-            psg[3].Reset();
+            psg2[0].Reset();
+            psg2[1].Reset();
+            psg2[2].Reset();
+            psg2[3].Reset();
 
             for (int i = 0; i < 3; i++)
             {
@@ -235,10 +235,10 @@ namespace MDSound.fmvgen
                 fm6[0].chip.SetRatio(ratio);
                 fm6[1].chip.SetRatio(ratio);
 
-                psg[0].SetClock((int)(clock / table[p][1]), (int)psgrate);
-                psg[1].SetClock((int)(clock / table[p][1]), (int)psgrate);
-                psg[2].SetClock((int)(clock / table[p][1]), (int)psgrate);
-                psg[3].SetClock((int)(clock / table[p][1]), (int)psgrate);
+                psg2[0].SetClock((int)(clock / table[p][1]), (int)psgrate);
+                psg2[1].SetClock((int)(clock / table[p][1]), (int)psgrate);
+                psg2[2].SetClock((int)(clock / table[p][1]), (int)psgrate);
+                psg2[3].SetClock((int)(clock / table[p][1]), (int)psgrate);
 
                 for (int i = 0; i < 8; i++)
                 {
@@ -256,7 +256,7 @@ namespace MDSound.fmvgen
 
             if (addr < 0x10)
             {
-                psg[0].SetReg(addr, (byte)data);
+                psg2[0].SetReg(addr, (byte)data);
                 return;
             }
             else if (addr >= 0x10 && addr < 0x20)
@@ -275,17 +275,17 @@ namespace MDSound.fmvgen
             }
             else if (addr >= 0x120 && addr < 0x130)
             {
-                psg[1].SetReg(addr - 0x120, (byte)data);
+                psg2[1].SetReg(addr - 0x120, (byte)data);
                 return;
             }
             else if (addr >= 0x200 && addr < 0x210)
             {
-                psg[2].SetReg(addr - 0x200, (byte)data);
+                psg2[2].SetReg(addr - 0x200, (byte)data);
                 return;
             }
             else if (addr >= 0x210 && addr < 0x220)
             {
-                psg[3].SetReg(addr - 0x210, (byte)data);
+                psg2[3].SetReg(addr - 0x210, (byte)data);
                 return;
             }
             else if (addr >= 0x300 && addr < 0x311)
@@ -386,10 +386,10 @@ namespace MDSound.fmvgen
 
         public new void SetVolumePSG(int db)
         {
-            psg[0].SetVolume(db);
-            psg[1].SetVolume(db);
-            psg[2].SetVolume(db);
-            psg[3].SetVolume(db);
+            psg2[0].SetVolume(db);
+            psg2[1].SetVolume(db);
+            psg2[2].SetVolume(db);
+            psg2[3].SetVolume(db);
         }
 
         public void SetVolumeADPCM(int db)
@@ -424,10 +424,10 @@ namespace MDSound.fmvgen
                 fm6[1].ch[i].Mute(!((mask & (1 << i)) == 0));
             }
 
-            psg[0].SetChannelMask((int)(mask >> 6));
-            psg[1].SetChannelMask((int)(mask >> 6));
-            psg[2].SetChannelMask((int)(mask >> 6));
-            psg[3].SetChannelMask((int)(mask >> 6));
+            psg2[0].SetChannelMask((int)(mask >> 6));
+            psg2[1].SetChannelMask((int)(mask >> 6));
+            psg2[2].SetChannelMask((int)(mask >> 6));
+            psg2[3].SetChannelMask((int)(mask >> 6));
 
             adpcmb[0].adpcmmask_ = (mask & (1 << 9)) != 0;
             adpcmb[1].adpcmmask_ = (mask & (1 << 9)) != 0;

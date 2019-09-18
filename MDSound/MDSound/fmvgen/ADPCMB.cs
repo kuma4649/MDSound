@@ -46,6 +46,9 @@ namespace MDSound.fmvgen
         protected byte control1;     // ADPCM コントロールレジスタ１
         public byte control2;     // ADPCM コントロールレジスタ２
         protected byte[] adpcmreg = new byte[8];  // ADPCM レジスタの一部分
+        protected float[] panTable = new float[4] { 1.0f, 0.75f, 0.5f, 0.25f };
+        protected float panL = 1.0f;
+        protected float panR = 1.0f;
 
         public void Mix(int[] dest, int count)
         {
@@ -72,8 +75,8 @@ namespace MDSound.fmvgen
                                 break;
                         }
                         int s = (adplc * apout0 + (8192 - adplc) * apout1) >> 13;
-                        fmvgen.StoreSample(ref dest[ptrDest + 0], (int)(s & maskl));
-                        fmvgen.StoreSample(ref dest[ptrDest + 1], (int)(s & maskr));
+                        fmvgen.StoreSample(ref dest[ptrDest + 0], (int)((int)(s & maskl) * panL));
+                        fmvgen.StoreSample(ref dest[ptrDest + 1], (int)((int)(s & maskr) * panR));
                         //visAPCMVolume[0] = (int)(s & maskl);
                         //visAPCMVolume[1] = (int)(s & maskr);
                         ptrDest += 2;
@@ -88,8 +91,8 @@ namespace MDSound.fmvgen
                             adplc += 8192;
                         }
                         int s = (adplc * apout1) >> 13;
-                        fmvgen.StoreSample(ref dest[ptrDest + 0], (int)(s & maskl));
-                        fmvgen.StoreSample(ref dest[ptrDest + 1], (int)(s & maskr));
+                        fmvgen.StoreSample(ref dest[ptrDest + 0], (int)((int)(s & maskl) * panL));
+                        fmvgen.StoreSample(ref dest[ptrDest + 1], (int)((int)(s & maskr) * panR));
                         //visAPCMVolume[0] = (int)(s & maskl);
                         //visAPCMVolume[1] = (int)(s & maskr);
                         ptrDest += 2;
@@ -112,13 +115,13 @@ namespace MDSound.fmvgen
                         }
                         adplc -= 8192;
                         s >>= 13;
-                        fmvgen.StoreSample(ref dest[ptrDest + 0], (int)(s & maskl));
-                        fmvgen.StoreSample(ref dest[ptrDest + 1], (int)(s & maskr));
+                        fmvgen.StoreSample(ref dest[ptrDest + 0], (int)((int)(s & maskl) * panL));
+                        fmvgen.StoreSample(ref dest[ptrDest + 1], (int)((int)(s & maskr) * panR));
                         //visAPCMVolume[0] = (int)(s & maskl);
                         //visAPCMVolume[1] = (int)(s & maskr);
                         ptrDest += 2;
                     }
-                    stop:
+                stop:
                     ;
                 }
             }
@@ -167,6 +170,11 @@ namespace MDSound.fmvgen
                     adpcmreg[addr - 0x04 + 2] = (byte)data;
                     stopaddr = (uint)((adpcmreg[3] * 256 + adpcmreg[2] + 1) << shiftBit);
                     //		LOG1("  stopaddr %.6x", stopaddr);
+                    break;
+
+                case 0x07:
+                    panL = panTable[(data >> 6) & 0x3];
+                    panR = panTable[(data >> 4) & 0x3];
                     break;
 
                 case 0x08:      // ADPCM data

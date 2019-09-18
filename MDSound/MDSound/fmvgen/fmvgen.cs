@@ -13,7 +13,20 @@ namespace MDSound.fmvgen
             typeM = 1
         };
 
-        public static uint[][] sinetable = new uint[4][] { new uint[1024], new uint[1024], new uint[1024], new uint[1024] };
+        public static uint[][][] sinetable = new uint[12][][]{
+            new uint[4][] { new uint[1024], new uint[1024], new uint[1024], new uint[1024] },
+            new uint[4][] { new uint[1024], new uint[1024], new uint[1024], new uint[1024] },
+            new uint[4][] { new uint[1024], new uint[1024], new uint[1024], new uint[1024] },
+            new uint[4][] { new uint[1024], new uint[1024], new uint[1024], new uint[1024] },
+            new uint[4][] { new uint[1024], new uint[1024], new uint[1024], new uint[1024] },
+            new uint[4][] { new uint[1024], new uint[1024], new uint[1024], new uint[1024] },
+            new uint[4][] { new uint[1024], new uint[1024], new uint[1024], new uint[1024] },
+            new uint[4][] { new uint[1024], new uint[1024], new uint[1024], new uint[1024] },
+            new uint[4][] { new uint[1024], new uint[1024], new uint[1024], new uint[1024] },
+            new uint[4][] { new uint[1024], new uint[1024], new uint[1024], new uint[1024] },
+            new uint[4][] { new uint[1024], new uint[1024], new uint[1024], new uint[1024] },
+            new uint[4][] { new uint[1024], new uint[1024], new uint[1024], new uint[1024] }
+        };
 
         //	Operator -------------------------------------------------------------
         public new class Operator
@@ -323,14 +336,17 @@ namespace MDSound.fmvgen
                     double q = -256 * Math.Log(Math.Sin(r)) / log2;
                     uint s = (uint)((int)(Math.Floor(q + 0.5)) + 1);
                     //		printf("%d, %d\n", s, cltable[s * 2] / 8);
-                    sinetable[0][i] = s * 2;
-                    sinetable[0][FM_OPSINENTS / 2 + i] = s * 2 + 1;
-                    sinetable[1][i] = s * 2;
-                    sinetable[1][FM_OPSINENTS / 2 + i] = s * 2 + 1;
-                    sinetable[2][i] = s * 2;
-                    sinetable[2][FM_OPSINENTS / 2 + i] = s * 2 + 1;
-                    sinetable[3][i] = s * 2;
-                    sinetable[3][FM_OPSINENTS / 2 + i] = s * 2 + 1;
+                    for (int j = 0; j < 12; j++)
+                    {
+                        sinetable[j][0][i] = s * 2;
+                        sinetable[j][0][FM_OPSINENTS / 2 + i] = s * 2 + 1;
+                        sinetable[j][1][i] = s * 2;
+                        sinetable[j][1][FM_OPSINENTS / 2 + i] = s * 2 + 1;
+                        sinetable[j][2][i] = s * 2;
+                        sinetable[j][2][FM_OPSINENTS / 2 + i] = s * 2 + 1;
+                        sinetable[j][3][i] = s * 2;
+                        sinetable[j][3][FM_OPSINENTS / 2 + i] = s * 2 + 1;
+                    }
                 }
 
                 fmvgen.MakeLFOTable();
@@ -508,14 +524,14 @@ namespace MDSound.fmvgen
             }
 
             // 入力: s = 20+FM_PGBITS = 29
-            public uint Sine(int s)
+            public uint Sine(int c,int s)
             {
-                return sinetable[wt_][((s) >> (20 + FM_PGBITS - FM_OPSINBITS)) & (FM_OPSINENTS - 1)];
+                return sinetable[c][wt_][((s) >> (20 + FM_PGBITS - FM_OPSINBITS)) & (FM_OPSINENTS - 1)];
             }
 
-            public int SINE(int s)
+            public int SINE(int c,int s)
             {
-                return (int)sinetable[wt_][(s) & (FM_OPSINENTS - 1)];
+                return (int)sinetable[c][wt_][(s) & (FM_OPSINENTS - 1)];
             }
 
 
@@ -624,7 +640,7 @@ namespace MDSound.fmvgen
 
             //	OP 計算
             //	in: ISample (最大 8π)
-            public int Calc(int In)
+            public int Calc(int ch,int In)
             {
                 EGStep();
                 out2_ = out_;
@@ -639,13 +655,13 @@ namespace MDSound.fmvgen
                 {
                     pgin += In >> (20 + FM_PGBITS - FM_OPSINBITS - (2 + IS2EC_SHIFT));
                 }
-                out_ = LogToLin((uint)(eg_out_ + SINE(pgin)));
+                out_ = LogToLin((uint)(eg_out_ + SINE(ch,pgin)));
 
                 dbgopout_ = out_;
                 return out_;
             }
 
-            public int CalcL(int In)
+            public int CalcL(int ch,int In)
             {
                 EGStep();
 
@@ -661,7 +677,7 @@ namespace MDSound.fmvgen
                     //                                      1
                     pgin += In >> (20 + FM_PGBITS - FM_OPSINBITS - (2 + IS2EC_SHIFT));
                 }
-                out_ = LogToLin((uint)(eg_out_ + SINE(pgin) + ams_[chip_.GetAML()]));
+                out_ = LogToLin((uint)(eg_out_ + SINE(ch,pgin) + ams_[chip_.GetAML()]));
 
                 dbgopout_ = out_;
                 return out_;
@@ -683,7 +699,7 @@ namespace MDSound.fmvgen
 
             //	OP (FB) 計算
             //	Self Feedback の変調最大 = 4π
-            public int CalcFB(uint fb)
+            public int CalcFB(int ch,uint fb)
             {
                 EGStep();
 
@@ -695,13 +711,13 @@ namespace MDSound.fmvgen
                 {
                     pgin += ((In << (int)(1 + IS2EC_SHIFT)) >> (int)fb) >> (20 + FM_PGBITS - FM_OPSINBITS);
                 }
-                out_ = LogToLin((uint)(eg_out_ + SINE(pgin)));
+                out_ = LogToLin((uint)(eg_out_ + SINE(ch,pgin)));
                 dbgopout_ = out2_;
 
                 return out2_;
             }
 
-            public int CalcFBL(uint fb)
+            public int CalcFBL(int ch,uint fb)
             {
                 EGStep();
 
@@ -714,7 +730,7 @@ namespace MDSound.fmvgen
                     pgin += ((In << (int)(1 + IS2EC_SHIFT)) >> (int)fb) >> (20 + FM_PGBITS - FM_OPSINBITS);
                 }
 
-                out_ = LogToLin((uint)(eg_out_ + SINE(pgin) + ams_[chip_.GetAML()]));
+                out_ = LogToLin((uint)(eg_out_ + SINE(ch,pgin) + ams_[chip_.GetAML()]));
                 dbgopout_ = out_;
 
                 return out_;
@@ -953,9 +969,9 @@ namespace MDSound.fmvgen
                 return cltable;
             }
 
-            public uint[] dbgGetSineTable(int t)
+            public uint[] dbgGetSineTable(int c,int t)
             {
-                return sinetable[t];
+                return sinetable[c][t];
             }
         };
 
@@ -978,19 +994,21 @@ namespace MDSound.fmvgen
             private bool ac = false;
             private byte carrier;
             private List<int> oAlg = new List<int>();
+            private int ch = 0;
 
             public Operator[] op = new Operator[4] {
                 new Operator(),new Operator(),new Operator(),new Operator()
             };
 
 
-            public Channel4()
+            public Channel4(int ch)
             {
                 if (!tablehasmade)
                     MakeTable();
 
                 SetAlgorithm(0);
                 pms = pmtable[0][0];
+                this.ch = ch;
             }
 
             public void MakeTable()
@@ -1115,52 +1133,52 @@ namespace MDSound.fmvgen
                     switch (algo_)
                     {
                         case 0:
-                            op[2].Calc(op[1].Out());
-                            op[1].Calc(op[0].Out());
-                            r = op[3].Calc(op[2].Out());
-                            op[0].CalcFB(fb);
+                            op[2].Calc(ch,op[1].Out());
+                            op[1].Calc(ch, op[0].Out());
+                            r = op[3].Calc(ch, op[2].Out());
+                            op[0].CalcFB(ch, fb);
                             break;
                         case 1:
-                            op[2].Calc(op[0].Out() + op[1].Out());
-                            op[1].Calc(0);
-                            r = op[3].Calc(op[2].Out());
-                            op[0].CalcFB(fb);
+                            op[2].Calc(ch, op[0].Out() + op[1].Out());
+                            op[1].Calc(ch, 0);
+                            r = op[3].Calc(ch, op[2].Out());
+                            op[0].CalcFB(ch, fb);
                             break;
                         case 2:
-                            op[2].Calc(op[1].Out());
-                            op[1].Calc(0);
-                            r = op[3].Calc(op[0].Out() + op[2].Out());
-                            op[0].CalcFB(fb);
+                            op[2].Calc(ch, op[1].Out());
+                            op[1].Calc(ch, 0);
+                            r = op[3].Calc(ch, op[0].Out() + op[2].Out());
+                            op[0].CalcFB(ch, fb);
                             break;
                         case 3:
-                            op[2].Calc(0);
-                            op[1].Calc(op[0].Out());
-                            r = op[3].Calc(op[1].Out() + op[2].Out());
-                            op[0].CalcFB(fb);
+                            op[2].Calc(ch, 0);
+                            op[1].Calc(ch, op[0].Out());
+                            r = op[3].Calc(ch, op[1].Out() + op[2].Out());
+                            op[0].CalcFB(ch, fb);
                             break;
                         case 4:
-                            op[2].Calc(0);
-                            r = op[1].Calc(op[0].Out());
-                            r += op[3].Calc(op[2].Out());
-                            op[0].CalcFB(fb);
+                            op[2].Calc(ch, 0);
+                            r = op[1].Calc(ch, op[0].Out());
+                            r += op[3].Calc(ch, op[2].Out());
+                            op[0].CalcFB(ch, fb);
                             break;
                         case 5:
-                            r = op[2].Calc(op[0].Out());
-                            r += op[1].Calc(op[0].Out());
-                            r += op[3].Calc(op[0].Out());
-                            op[0].CalcFB(fb);
+                            r = op[2].Calc(ch, op[0].Out());
+                            r += op[1].Calc(ch, op[0].Out());
+                            r += op[3].Calc(ch, op[0].Out());
+                            op[0].CalcFB(ch, fb);
                             break;
                         case 6:
-                            r = op[2].Calc(0);
-                            r += op[1].Calc(op[0].Out());
-                            r += op[3].Calc(0);
-                            op[0].CalcFB(fb);
+                            r = op[2].Calc(ch, 0);
+                            r += op[1].Calc(ch, op[0].Out());
+                            r += op[3].Calc(ch, 0);
+                            op[0].CalcFB(ch, fb);
                             break;
                         case 7:
-                            r = op[2].Calc(0);
-                            r += op[1].Calc(0);
-                            r += op[3].Calc(0);
-                            r += op[0].CalcFB(fb);
+                            r = op[2].Calc(ch, 0);
+                            r += op[1].Calc(ch, 0);
+                            r += op[3].Calc(ch, 0);
+                            r += op[0].CalcFB(ch, fb);
                             break;
                     }
                 }
@@ -1170,7 +1188,7 @@ namespace MDSound.fmvgen
                     {
                         if (n == 0)
                         {
-                            op[n].CalcFB(fb);
+                            op[n].CalcFB(ch, fb);
                             continue;
                         }
                         int v = 0;
@@ -1178,7 +1196,7 @@ namespace MDSound.fmvgen
                         v += ((op[n].algLink_ & 0x2) != 0) ? op[1].Out() : 0;
                         v += ((op[n].algLink_ & 0x4) != 0) ? op[2].Out() : 0;
                         v += ((op[n].algLink_ & 0x8) != 0) ? op[3].Out() : 0;
-                        op[n].Calc(v);
+                        op[n].Calc(ch, v);
                     }
                     r += ((carrier & 0x1) != 0) ? op[0].Out() : 0;
                     r += ((carrier & 0x2) != 0) ? op[1].Out() : 0;
@@ -1200,52 +1218,52 @@ namespace MDSound.fmvgen
                     switch (algo_)
                     {
                         case 0:
-                            op[2].CalcL(op[1].Out());
-                            op[1].CalcL(op[0].Out());
-                            r = op[3].CalcL(op[2].Out());
-                            op[0].CalcFBL(fb);
+                            op[2].CalcL(ch, op[1].Out());
+                            op[1].CalcL(ch, op[0].Out());
+                            r = op[3].CalcL(ch, op[2].Out());
+                            op[0].CalcFBL(ch, fb);
                             break;
                         case 1:
-                            op[2].CalcL(op[0].Out() + op[1].Out());
-                            op[1].CalcL(0);
-                            r = op[3].CalcL(op[2].Out());
-                            op[0].CalcFBL(fb);
+                            op[2].CalcL(ch, op[0].Out() + op[1].Out());
+                            op[1].CalcL(ch, 0);
+                            r = op[3].CalcL(ch, op[2].Out());
+                            op[0].CalcFBL(ch, fb);
                             break;
                         case 2:
-                            op[2].CalcL(op[1].Out());
-                            op[1].CalcL(0);
-                            r = op[3].CalcL(op[0].Out() + op[2].Out());
-                            op[0].CalcFBL(fb);
+                            op[2].CalcL(ch, op[1].Out());
+                            op[1].CalcL(ch, 0);
+                            r = op[3].CalcL(ch, op[0].Out() + op[2].Out());
+                            op[0].CalcFBL(ch, fb);
                             break;
                         case 3:
-                            op[2].CalcL(0);
-                            op[1].CalcL(op[0].Out());
-                            r = op[3].CalcL(op[1].Out() + op[2].Out());
-                            op[0].CalcFBL(fb);
+                            op[2].CalcL(ch, 0);
+                            op[1].CalcL(ch, op[0].Out());
+                            r = op[3].CalcL(ch, op[1].Out() + op[2].Out());
+                            op[0].CalcFBL(ch, fb);
                             break;
                         case 4:
-                            op[2].CalcL(0);
-                            r = op[1].CalcL(op[0].Out());
-                            r += op[3].CalcL(op[2].Out());
-                            op[0].CalcFBL(fb);
+                            op[2].CalcL(ch, 0);
+                            r = op[1].CalcL(ch, op[0].Out());
+                            r += op[3].CalcL(ch, op[2].Out());
+                            op[0].CalcFBL(ch, fb);
                             break;
                         case 5:
-                            r = op[2].CalcL(op[0].Out());
-                            r += op[1].CalcL(op[0].Out());
-                            r += op[3].CalcL(op[0].Out());
-                            op[0].CalcFBL(fb);
+                            r = op[2].CalcL(ch, op[0].Out());
+                            r += op[1].CalcL(ch, op[0].Out());
+                            r += op[3].CalcL(ch, op[0].Out());
+                            op[0].CalcFBL(ch, fb);
                             break;
                         case 6:
-                            r = op[2].CalcL(0);
-                            r += op[1].CalcL(op[0].Out());
-                            r += op[3].CalcL(0);
-                            op[0].CalcFBL(fb);
+                            r = op[2].CalcL(ch, 0);
+                            r += op[1].CalcL(ch, op[0].Out());
+                            r += op[3].CalcL(ch, 0);
+                            op[0].CalcFBL(ch, fb);
                             break;
                         case 7:
-                            r = op[2].CalcL(0);
-                            r += op[1].CalcL(0);
-                            r += op[3].CalcL(0);
-                            r += op[0].CalcFBL(fb);
+                            r = op[2].CalcL(ch, 0);
+                            r += op[1].CalcL(ch, 0);
+                            r += op[3].CalcL(ch, 0);
+                            r += op[0].CalcFBL(ch, fb);
                             break;
                     }
                 }
@@ -1255,7 +1273,7 @@ namespace MDSound.fmvgen
                     {
                         if (n == 0)
                         {
-                            op[n].CalcFBL(fb);
+                            op[n].CalcFBL(ch, fb);
                             continue;
                         }
                         int v = 0;
@@ -1263,7 +1281,7 @@ namespace MDSound.fmvgen
                         v += ((op[n].algLink_ & 0x2) != 0) ? op[1].Out() : 0;
                         v += ((op[n].algLink_ & 0x4) != 0) ? op[2].Out() : 0;
                         v += ((op[n].algLink_ & 0x8) != 0) ? op[3].Out() : 0;
-                        op[n].CalcL(v);
+                        op[n].CalcL(ch, v);
                     }
                     r += ((carrier & 0x1) != 0) ? op[0].Out() : 0;
                     r += ((carrier & 0x2) != 0) ? op[1].Out() : 0;
@@ -1279,9 +1297,9 @@ namespace MDSound.fmvgen
             {
                 buf[1] = buf[2] = buf[3] = 0;
 
-                buf[0] = op[0].out_; op[0].CalcFB(fb);
-                Out[0] += op[1].Calc(buf[In[0]]);
-                Out[1] += op[2].Calc(buf[In[1]]);
+                buf[0] = op[0].out_; op[0].CalcFB(ch, fb);
+                Out[0] += op[1].Calc(ch, buf[In[0]]);
+                Out[1] += op[2].Calc(ch, buf[In[1]]);
                 int o = op[3].out_;
                 op[3].CalcN(noise);
                 return buf[Out[2]] + o;
@@ -1293,9 +1311,9 @@ namespace MDSound.fmvgen
                 chip_.SetPMV(pms[chip_.GetPML()]);
                 buf[1] = buf[2] = buf[3] = 0;
 
-                buf[0] = op[0].out_; op[0].CalcFBL(fb);
-                Out[0] += op[1].CalcL(buf[In[0]]);
-                Out[1] += op[2].CalcL(buf[In[1]]);
+                buf[0] = op[0].out_; op[0].CalcFBL(ch, fb);
+                Out[0] += op[1].CalcL(ch, buf[In[0]]);
+                Out[1] += op[2].CalcL(ch, buf[In[1]]);
                 int o = op[3].out_;
                 op[3].CalcN(noise);
                 return buf[Out[2]] + o;

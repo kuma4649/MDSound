@@ -537,6 +537,8 @@ namespace MDSound
         public override string Name { get { return "C140"; } set { } }
         public override string ShortName { get { return "C140"; } set { } }
 
+        //private int debugCnt = 0;
+
         public override void Update(byte ChipID, int[][] outputs, int samples)
         {
 
@@ -626,6 +628,8 @@ namespace MDSound
                         /* Check for the end of the sample */
                         if (pos >= sz)
                         {
+                            //Console.WriteLine("c140 pos[{0:x}]",pos);
+                            //debugCnt = 20;
                             /* Check if its a looping sample, either stop or loop */
                             if ((v.mode & 0x10) != 0)
                             {
@@ -670,6 +674,8 @@ namespace MDSound
                         /* Check for the end of the sample */
                         if (pos >= sz)
                         {
+                            //Console.WriteLine("c140 pos[{0:x}]", pos);
+                            //debugCnt = 20;
                             /* Check if its a looping sample, either stop or loop */
                             if ((v.mode & 0x10) != 0)
                             {
@@ -735,6 +741,11 @@ namespace MDSound
                 {
                     dest1[i] = lmix[i] << 3;
                     dest2[i] = rmix[i] << 3;
+                    //if (debugCnt > 0)
+                    //{
+                    //    debugCnt--;
+                    //    Console.WriteLine("{0:x}  {0:d}", lmix[i]);
+                    //}
                 }
             }
 
