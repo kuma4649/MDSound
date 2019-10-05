@@ -329,25 +329,28 @@ namespace MDSound.fmvgen
                 //		printf("%4d, %d, %d\n", i, cltable[i*2], cltable[i*2+1]);
 
                 // サインテーブルの作成
-                double log2 = Math.Log(2.0);
-                for (i = 0; i < FM_OPSINENTS / 2; i++)
+                //double log2 = Math.Log(2.0);
+                //for (i = 0; i < FM_OPSINENTS / 2; i++)
+                //{
+                //double r = (i * 2 + 1) * FM_PI / FM_OPSINENTS;
+                //double q = -256 * Math.Log(Math.Sin(r)) / log2;
+                //uint s = (uint)((int)(Math.Floor(q + 0.5)) + 1);
+                //Console.WriteLine("{0}, {1}", s, cltable[s * 2] / 8);
+                //Console.WriteLine("{0:d6} , {1:d6} , {2:d6} , {3:X4} , {4:X4}"
+                //    , s
+                //    , cltable[s * 2]
+                //    , ((s * 2) % 2 == 0 ? 1 : -1) * (4095 - Math.Abs((s * 2) / 2))
+                //    , ((s * 2) % 2 == 0 ? 1 : -1) * (4095 - Math.Abs((s * 2) / 2))
+                //    , ((s * 2 + 1 ) % 2 == 0 ? 1 : -1) * (4095 - Math.Abs((s * 2+1) / 2))
+                //    );
+                for (int j = 0; j < 12; j++)
                 {
-                    double r = (i * 2 + 1) * FM_PI / FM_OPSINENTS;
-                    double q = -256 * Math.Log(Math.Sin(r)) / log2;
-                    uint s = (uint)((int)(Math.Floor(q + 0.5)) + 1);
-                    //		printf("%d, %d\n", s, cltable[s * 2] / 8);
-                    for (int j = 0; j < 12; j++)
-                    {
-                        sinetable[j][0][i] = s * 2;
-                        sinetable[j][0][FM_OPSINENTS / 2 + i] = s * 2 + 1;
-                        sinetable[j][1][i] = s * 2;
-                        sinetable[j][1][FM_OPSINENTS / 2 + i] = s * 2 + 1;
-                        sinetable[j][2][i] = s * 2;
-                        sinetable[j][2][FM_OPSINENTS / 2 + i] = s * 2 + 1;
-                        sinetable[j][3][i] = s * 2;
-                        sinetable[j][3][FM_OPSINENTS / 2 + i] = s * 2 + 1;
-                    }
+                    fmvgen.waveReset(j, 0);
+                    fmvgen.waveReset(j, 1);
+                    fmvgen.waveReset(j, 2);
+                    fmvgen.waveReset(j, 3);
                 }
+                //}
 
                 fmvgen.MakeLFOTable();
 
@@ -974,6 +977,19 @@ namespace MDSound.fmvgen
                 return sinetable[c][t];
             }
         };
+
+        public static void waveReset(int waveCh, int wavetype)
+        {
+            double log2 = Math.Log(2.0);
+            for (int i = 0; i < FM_OPSINENTS / 2; i++)
+            {
+                double r = (i * 2 + 1) * FM_PI / FM_OPSINENTS;
+                double q = -256 * Math.Log(Math.Sin(r)) / log2;
+                uint s = (uint)((int)(Math.Floor(q + 0.5)) + 1);
+                sinetable[waveCh][wavetype][i] = s * 2;
+                sinetable[waveCh][wavetype][FM_OPSINENTS / 2 + i] = s * 2 + 1;
+            }
+        }
 
         public new class Channel4
         {

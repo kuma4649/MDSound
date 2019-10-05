@@ -160,11 +160,11 @@ Virtual Instrument YM2609(Register Map)
            |                                |
      2A    |================================|
            |________________________________|  __________________________
-           |                |        |      |
-     2B    | Wave Write Ch  |========|WavTyp|  WaveWriteCh(0-12) / Wave Type(0-3)
-           |________________|________|______|  __________________________
+           |                |   |    |      |
+     2B    | Wave Write Ch  |===|WRst|WavTyp|  WaveWriteCh(0-11) / Wave Reset / Wave Type(0-3)
+           |________________|___|____|______|  __________________________
            |                                |
-     2C    |      Wave data(L/H)            |  Write Wave data( 512 * 2 count (L:8bit H:5bit))
+     2C    |      Wave data(L/H)            |  Write Wave data( 1024 * 2 count (L:8bit H:5bit))
            |________________________________|  __________________________
            |                                |
     2D-2F  |      Prescaler                 |  Prescaler
@@ -224,3 +224,19 @@ Virtual Instrument YM2609(Register Map)
    AC
       ALG Construction Switch.
 
+  s = Wave data
+  s : Range 0 ... 8191
+  実際(j) : -4095 ... +4095
+  jからsを算出するには↓
+   s = ( 4095 - abs( j ) ) * 2 + ( j < 0 ? 1 : 0 )
+  sからjを算出するには↓
+   j = ( s % 2 == 0 ? 1 : -1 ) * ( 4095 - abs( s / 2 ) )
+  wave tableの配列の大きさは1024
+  データは8bit(low) 5bit(high)の順で送信するため 1024 * 2 = 2048 回送信する必要がある
+  以上から
+  1. ユーザーは-4095～+4095のデータを1024個用意する必要がある
+  2. アプリケーションはユーザーの用意したデータjからsを算出後
+     ２回に分けてデータを送信する
+  MDSound(YM2609)はそれを受け取りwave tableに設定する
+  channel毎に4つwave tableを定義できる
+  12ch * 4 * 2048 = 98304 byte

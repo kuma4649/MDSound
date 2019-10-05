@@ -46,7 +46,7 @@ namespace MDSound.fmvgen
         protected byte control1;     // ADPCM コントロールレジスタ１
         public byte control2;     // ADPCM コントロールレジスタ２
         protected byte[] adpcmreg = new byte[8];  // ADPCM レジスタの一部分
-        protected float[] panTable = new float[4] { 1.0f, 0.75f, 0.5f, 0.25f };
+        protected float[] panTable = new float[4] { 1.0f, 0.5012f, 0.2512f, 0.1000f };
         protected float panL = 1.0f;
         protected float panR = 1.0f;
 

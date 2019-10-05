@@ -21,7 +21,7 @@ namespace MDSound.fmvgen
         protected byte reg22;
         protected uint reg29;     // OPNA only?
         protected byte[] pan = new byte[6];
-        protected float[] panTable = new float[4] { 1.0f, 0.75f, 0.5f, 0.25f };
+        protected float[] panTable = new float[4] { 1.0f, 0.5012f, 0.2512f, 0.1000f };
         protected float[] panL = new float[6];
         protected float[] panR = new float[6];
         //protected bool[] ac = new bool[6];
@@ -103,20 +103,27 @@ namespace MDSound.fmvgen
                     waveCh = (int)((data >> 4) & 0xf);
                     waveCh = Math.Max(Math.Min(waveCh, 11), 0);
                     wavecounter = 0;
+                    if ((data & 0x4) != 0) fmvgen.waveReset(waveCh, wavetype);
                     break;
 
                 // Write WaveData -----------------------------------------------------------
                 case 0x2c:
+
                     int cnt = wavecounter / 2;
                     int d = wavecounter % 2;
-                    uint s =
-                        d == 0
-                        ? ((fmvgen.sinetable[waveCh][wavetype][cnt] & 0xffff0000) | data)
-                        : ((fmvgen.sinetable[waveCh][wavetype][cnt] & 0xffff) | ((data & 0x1f) << 8));
-                    fmvgen.sinetable[waveCh][wavetype][cnt] = s * 2;
-                    fmvgen.sinetable[waveCh][wavetype][fmvgen.FM_OPSINENTS / 2 + cnt] = s * 2 + 1;
+
+                    uint s;
+                    if (d == 0) {
+                        s = (byte)data;
+                    }
+                    else {
+                        s = ((fmvgen.sinetable[waveCh][wavetype][cnt] & 0xff) | ((data & 0x1f) << 8));
+                    }
+
+                    fmvgen.sinetable[waveCh][wavetype][cnt] = s;
                     wavecounter++;
-                    if (fmvgen.FM_OPSINENTS / 2 <= wavecounter) wavecounter = 0;
+
+                    if (fmvgen.FM_OPSINENTS * 2 <= wavecounter) wavecounter = 0;
                     break;
 
                 // Prescaler -------------------------------------------------------------
