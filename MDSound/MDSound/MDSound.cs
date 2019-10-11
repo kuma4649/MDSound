@@ -120,7 +120,8 @@ namespace MDSound
             YM3438,
             mpcmX68k,
             YM3812,
-            YM3526
+            YM3526,
+            ZelMusic
         }
 
         public class Chip
@@ -2160,6 +2161,33 @@ namespace MDSound
         }
 
         #endregion
+
+
+
+        #region ZelMusic
+
+        public void WriteZM1(byte ChipID, byte Port, byte Adr, byte Data)
+        {
+            lock (lockobj)
+            {
+                if (!dicInst.ContainsKey(enmInstrumentType.ZelMusic)) return;
+
+                ((ZelMusic)(dicInst[enmInstrumentType.ZelMusic][0])).Write(ChipID, 0, (Port * 0x100 + Adr), Data);
+            }
+        }
+
+        public void WriteZM1(int ChipIndex, byte ChipID, byte Port, byte Adr, byte Data)
+        {
+            lock (lockobj)
+            {
+                if (!dicInst.ContainsKey(enmInstrumentType.ZelMusic)) return;
+
+                ((ZelMusic)(dicInst[enmInstrumentType.ZelMusic][ChipIndex])).Write(ChipID, 0, (Port * 0x100 + Adr), Data);
+            }
+        }
+
+        #endregion
+
 
 
 
