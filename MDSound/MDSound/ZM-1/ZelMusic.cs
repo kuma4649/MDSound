@@ -11,10 +11,11 @@ namespace MDSound.ZM_1
         public override string ShortName { get { return "ZM-1"; } set { } }
 
         public const int MAX_OPERATOR = 48;
-        private Operator[][] ope = null;
+        public const long MAX_PCMDATASIZE = 0x1_0000_0000;
 
-        private const long MAX_PCMDATASIZE = 0x1_0000_0000;
+        private Operator[][] ope = null;
         private List<byte>[] PCMData = null;
+
 
         public override void Reset(byte ChipID)
         {
@@ -64,6 +65,12 @@ namespace MDSound.ZM_1
             }
             return 0;
         }
+
+        public void SetPCMData(byte chipID, byte[] data)
+        {
+            PCMData[chipID] = new List<byte>(data);
+        }
+
 
         private void WriteBankA(byte chipID, int adr, int data)
         {

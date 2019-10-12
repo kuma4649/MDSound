@@ -49,27 +49,6 @@ namespace MDSound.ZM_1
             set { _PCMConfig = value; }
         }
 
-        private long _LoopFeedBack = 0;
-        public long LoopFeedBack
-        {
-            get { return _LoopFeedBack; }
-            set { _LoopFeedBack = value; }
-        }
-
-        private byte _LeftVolume = 0;
-        public byte LeftVolume
-        {
-            get { return _LeftVolume; }
-            set { _LeftVolume = value; }
-        }
-
-        private byte _RightVolume = 0;
-        public byte RightVolume
-        {
-            get { return _RightVolume; }
-            set { _RightVolume = value; }
-        }
-
         private byte _LPFFilter = 0;
         public byte LPFFilter
         {
@@ -118,40 +97,24 @@ namespace MDSound.ZM_1
                 case 0x0d:
                     KeyOffAddress = (ushort)data;
                     break;
-                case 0x15:
+                case 0x12:
                     PCMConfig = (byte)data;
                     break;
-                case 0x1e:
-                    LeftVolume = (byte)data;
-                    break;
-                case 0x1f:
-                    RightVolume = (byte)data;
-                    break;
-                case 0x20:
+                case 0x13:
                     LPFFilter = (byte)data;
                     break;
-                case 0x21:
+                case 0x14:
                     HPFFilter = (byte)data;
                     break;
-                case 0x22:
+                case 0x15:
                     EffectConfiguration = (byte)data;
                     break;
+
                 default:
                     throw new ArgumentOutOfRangeException("アドレス指定が異常です");
             }
         }
 
-        public void Write(byte adress, long data)
-        {
-            switch (adress)
-            {
-                case 0x16:
-                    LoopFeedBack = data;
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException("アドレス指定が異常です");
-            }
-        }
     }
 
 }

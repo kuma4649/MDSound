@@ -133,6 +133,7 @@ namespace MDSound.ZM_1
                 case 0x0b:
                     PmdAmd = data;
                     break;
+
                 default:
                     throw new ArgumentOutOfRangeException("アドレス指定が異常です");
             }
