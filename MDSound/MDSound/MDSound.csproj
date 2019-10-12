@@ -127,6 +127,10 @@
     <Compile Include="ymf271.cs" />
     <Compile Include="ymf278b.cs" />
     <Compile Include="ymz280b.cs" />
+    <Compile Include="ZM-1\Fm.cs" />
+    <Compile Include="ZM-1\Operator.cs" />
+    <Compile Include="ZM-1\Pcm.cs" />
+    <Compile Include="ZM-1\SlotConfiguration.cs" />
     <Compile Include="ZM-1\ZelMusic.cs" />
   </ItemGroup>
   <ItemGroup>

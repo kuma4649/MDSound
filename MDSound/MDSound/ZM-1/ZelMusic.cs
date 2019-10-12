@@ -3,16 +3,20 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace MDSound
+namespace MDSound.ZM_1
 {
     public class ZelMusic : Instrument
     {
         public override string Name { get { return "ZelMusic"; } set { } }
         public override string ShortName { get { return "ZM-1"; } set { } }
 
+        public const int MAX_OPERATOR = 48;
+        private Operator[] ope = null;
+
         public override void Reset(byte ChipID)
         {
-            throw new NotImplementedException();
+            ope = new Operator[MAX_OPERATOR];
+            for (int i = 0; i < MAX_OPERATOR; i++) ope[i] = new Operator();
         }
 
         public override uint Start(byte ChipID, uint clock)
@@ -39,5 +43,6 @@ namespace MDSound
         {
             throw new NotImplementedException();
         }
+
     }
 }
