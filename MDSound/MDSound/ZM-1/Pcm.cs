@@ -91,60 +91,50 @@ namespace MDSound.ZM_1
             set { _EffectConfiguration = value; }
         }
 
-        public void Write(byte adress, byte data)
+        private List<byte>[] pCMData;
+
+        public Pcm(List<byte>[] pCMData)
         {
-            switch (adress)
+            this.pCMData = pCMData;
+        }
+
+
+        public void Write(byte address,int data)
+        {
+            switch (address)
             {
                 case 0x00:
-                    PCMMode = data;
+                    PCMMode = (byte)data;
                     break;
-                case 0x15:
-                    PCMConfig = data;
-                    break;
-                case 0x1e:
-                    LeftVolume = data;
-                    break;
-                case 0x1f:
-                    RightVolume = data;
-                    break;
-                case 0x20:
-                    LPFFilter = data;
-                    break;
-                case 0x21:
-                    HPFFilter = data;
-                    break;
-                case 0x22:
-                    EffectConfiguration = data;
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException("アドレス指定が異常です");
-            }
-        }
-
-        public void Write(byte adress, ushort data)
-        {
-            switch (adress)
-            {
-                case 0x0d:
-                    KeyOffAddress = data;
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException("アドレス指定が異常です");
-            }
-        }
-
-        public void Write(byte adress, uint data)
-        {
-            switch (adress)
-            {
                 case 0x01:
-                    PlayAddress = data;
+                    PlayAddress = (uint)data;
                     break;
                 case 0x05:
-                    StopAddress = data;
+                    StopAddress = (uint)data;
                     break;
                 case 0x09:
-                    LoopAddress = data;
+                    LoopAddress = (uint)data;
+                    break;
+                case 0x0d:
+                    KeyOffAddress = (ushort)data;
+                    break;
+                case 0x15:
+                    PCMConfig = (byte)data;
+                    break;
+                case 0x1e:
+                    LeftVolume = (byte)data;
+                    break;
+                case 0x1f:
+                    RightVolume = (byte)data;
+                    break;
+                case 0x20:
+                    LPFFilter = (byte)data;
+                    break;
+                case 0x21:
+                    HPFFilter = (byte)data;
+                    break;
+                case 0x22:
+                    EffectConfiguration = (byte)data;
                     break;
                 default:
                     throw new ArgumentOutOfRangeException("アドレス指定が異常です");

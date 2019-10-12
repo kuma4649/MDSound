@@ -77,6 +77,22 @@ namespace MDSound.ZM_1
             set { _PmsAms = (byte)(value & 0x1f); }
         }
 
+        private byte _Ws = 0;
+        public byte Ws
+        {
+            get { return _Ws; }
+            set { _Ws = (byte)(value & 0x0f); }
+        }
+
+        private byte _PmdAmd = 0;
+        public byte PmdAmd
+        {
+            get { return _PmdAmd; }
+            set { _PmdAmd = (byte)(value & 0xff); }
+        }
+
+
+
         public void Write(byte adress ,byte data)
         {
             switch (adress)
@@ -110,6 +126,12 @@ namespace MDSound.ZM_1
                     break;
                 case 0x09:
                     PmsAms = data;
+                    break;
+                case 0x0a:
+                    Ws = data;
+                    break;
+                case 0x0b:
+                    PmdAmd = data;
                     break;
                 default:
                     throw new ArgumentOutOfRangeException("アドレス指定が異常です");
