@@ -49,20 +49,6 @@ namespace MDSound.ZM_1
             set { _PCMConfig = value; }
         }
 
-        private byte _LPFFilter = 0;
-        public byte LPFFilter
-        {
-            get { return _LPFFilter; }
-            set { _LPFFilter = value; }
-        }
-
-        private byte _HPFFilter = 0;
-        public byte HPFFilter
-        {
-            get { return _HPFFilter; }
-            set { _HPFFilter = value; }
-        }
-
         private byte _EffectConfiguration = 0;
         public byte EffectConfiguration
         {
@@ -101,12 +87,6 @@ namespace MDSound.ZM_1
                     PCMConfig = (byte)data;
                     break;
                 case 0x13:
-                    LPFFilter = (byte)data;
-                    break;
-                case 0x14:
-                    HPFFilter = (byte)data;
-                    break;
-                case 0x15:
                     EffectConfiguration = (byte)data;
                     break;
 

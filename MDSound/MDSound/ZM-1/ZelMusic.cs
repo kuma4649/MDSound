@@ -111,7 +111,11 @@ namespace MDSound.ZM_1
 
         private void WriteBankD(byte chipID, int adr, int data)
         {
-            throw new NotImplementedException();
+            int opNum = adr % 0x30;
+            int opTyp = adr / 0x30;
+
+            if (opTyp == 0) ope[chipID][opNum].NoteByteMatrix = (byte)data;
+            else ope[chipID][opNum].KeyFraction = (byte)data;
         }
 
     }

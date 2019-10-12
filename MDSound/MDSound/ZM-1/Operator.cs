@@ -20,6 +20,32 @@ namespace MDSound.ZM_1
             pcm = new Pcm(pCMData);
             sc = new SlotConfiguration();
         }
+
+        private byte _NoteByteMatrix = 0;
+        public byte NoteByteMatrix
+        {
+            get
+            {
+                return _NoteByteMatrix;
+            }
+            set
+            {
+                _NoteByteMatrix = value;
+            }
+        }
+
+        private byte _KeyFraction = 0;
+        public byte KeyFraction
+        {
+            get
+            {
+                return _KeyFraction;
+            }
+            set
+            {
+                _KeyFraction = value;
+            }
+        }
     }
 
 }
