@@ -10,6 +10,11 @@ namespace MDSound.ZM_1
         private bool oldKeyOn = false;
         private uint playPtr;
         private bool play;
+        private uint adplbase;
+
+        private int adplc;          // 周波数変換用変数
+        private int adpld;
+        private uint deltan;
 
         private byte _PCMMode = 0;
         public byte PCMMode
@@ -67,6 +72,15 @@ namespace MDSound.ZM_1
             this.pCMData = pCMData;
             oldKeyOn = false;
             play = false;
+
+            deltan = 4768;// 5049;// 4768;// 256;
+        }
+
+        //fmgen
+        public void SetRate(uint chipClock, uint playClock)
+        {
+            adplbase = (uint)((int)(8192.0 * (chipClock / 72.0) / playClock));
+            adpld = (int)(deltan * adplbase >> 16);
         }
 
         public override void Write(int address,int data)
@@ -154,23 +168,53 @@ namespace MDSound.ZM_1
 
                 if (!play) continue;
 
-                byte d = pCMData[(int)playPtr];
-                spd++;
-                if (spd == 6)
+                if (adpld <= 8192)      // fplay < fsamp
                 {
-                    playPtr++;
-                    spd = 0;
+                    //for (; count > 0; count--)
+                    {
+                        byte d = (byte)(playPtr >= pCMData.Count ? 0 : pCMData[(int)playPtr]);
+                        if (adplc < 0)
+                        {
+                            adplc += 8192;
+                            playPtr++;
+                            if (playPtr > StopAddress)
+                            {
+                                if (LoopAddress != 0)
+                                    playPtr = LoopAddress;
+                                else play = false;
+                            }
+                        }
+                        int s = d;// apout;
+                        outputs[0][i] += s << 4;
+                        outputs[1][i] += s << 4;
+                        adplc -= adpld;
+                    }
                 }
-                if (playPtr > StopAddress)
+                else    // fplay > fsamp	(adpld = fplay/famp*8192)
                 {
-                    if (LoopAddress != 0)
-                        playPtr = LoopAddress;
-                    else play = false;
+                //    int t = (-8192 * 8192) / adpld;
+                //    for (; count > 0; count--)
+                //    {
+                //        int s = apout0 * (8192 + adplc);
+                //        while (adplc < 0)
+                //        {
+                //            DecodeADPCMB();
+                //            if (!adpcmplay)
+                //                goto stop;
+                //            s -= apout0 * Math.Max(adplc, t);
+                //            adplc -= t;
+                //        }
+                //        adplc -= 8192;
+                //        s >>= 13;
+                //        fmvgen.StoreSample(ref dest[ptrDest + 0], (int)((int)(s & maskl) * panL));
+                //        fmvgen.StoreSample(ref dest[ptrDest + 1], (int)((int)(s & maskr) * panR));
+                //        //visAPCMVolume[0] = (int)(s & maskl);
+                //        //visAPCMVolume[1] = (int)(s & maskr);
+                //        ptrDest += 2;
+                //    }
+                //stop:
+                //    ;
                 }
-
-                outputs[0][i] += d << 4;
-                outputs[1][i] += d << 4;
-
             }
         }
 

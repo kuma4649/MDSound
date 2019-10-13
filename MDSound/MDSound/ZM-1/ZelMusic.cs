@@ -15,7 +15,8 @@ namespace MDSound.ZM_1
 
         private Operator[][] ope = null;
         private List<byte>[] PCMData = null;
-
+        private uint playClock;
+        private uint chipClock;
 
         public override void Reset(byte ChipID)
         {
@@ -23,7 +24,7 @@ namespace MDSound.ZM_1
             ope = new Operator[2][] { new Operator[MAX_OPERATOR], new Operator[MAX_OPERATOR] };
             for (int j = 0; j < 2; j++)
                 for (int i = 0; i < MAX_OPERATOR; i++)
-                    ope[j][i] = new Operator(i, PCMData[ChipID]);
+                    ope[j][i] = new Operator(i, PCMData[ChipID], playClock, chipClock);
         }
 
         public override uint Start(byte chipID, uint clock)
@@ -33,6 +34,8 @@ namespace MDSound.ZM_1
 
         public override uint Start(byte chipID, uint clock, uint ClockValue, params object[] option)
         {
+            playClock = clock;
+            chipClock = ClockValue;
             return clock;
         }
 
@@ -121,6 +124,7 @@ namespace MDSound.ZM_1
             if (opTyp == 0) ope[chipID][opNum].NoteByteMatrix = (byte)data;
             else ope[chipID][opNum].KeyFraction = (byte)data;
         }
+
 
     }
 }

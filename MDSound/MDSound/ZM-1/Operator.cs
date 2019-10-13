@@ -14,12 +14,13 @@ namespace MDSound.ZM_1
 
         private List<byte> pCMData;
 
-        public Operator(int number,List<byte> pCMData)
+        public Operator(int number, List<byte> pCMData, uint playClock, uint chipClock)
         {
             this.number = number;
             this.pCMData = pCMData;
             fm = new Fm(this);
             pcm = new Pcm(this, pCMData);
+            pcm.SetRate(chipClock, playClock);
             sc = new SlotConfiguration(this);
         }
 
