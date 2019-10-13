@@ -58,6 +58,11 @@ namespace MDSound.ZM_1
         }
 
         private byte _EFF2VAL = 0;
+
+        public SlotConfiguration(Operator @operator):base(@operator)
+        {
+        }
+
         public byte EFF2VAL
         {
             get { return _EFF2VAL; }

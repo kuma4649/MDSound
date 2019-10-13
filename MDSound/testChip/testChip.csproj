@@ -95,6 +95,9 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Guitar_8bit_8kHz_mono.raw">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="lib\c86ctl.dll" />
     <Content Include="lib\RealChipCtlWrap.dll" />
     <Content Include="lib\scci.dll" />

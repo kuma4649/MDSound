@@ -10,15 +10,17 @@ namespace MDSound.ZM_1
         public Fm fm;
         public Pcm pcm;
         public SlotConfiguration sc;
+        public int number;
 
-        private List<byte>[] pCMData;
+        private List<byte> pCMData;
 
-        public Operator(List<byte>[] pCMData)
+        public Operator(int number,List<byte> pCMData)
         {
+            this.number = number;
             this.pCMData = pCMData;
-            fm = new Fm();
-            pcm = new Pcm(pCMData);
-            sc = new SlotConfiguration();
+            fm = new Fm(this);
+            pcm = new Pcm(this, pCMData);
+            sc = new SlotConfiguration(this);
         }
 
         private byte _NoteByteMatrix = 0;
@@ -45,6 +47,11 @@ namespace MDSound.ZM_1
             {
                 _KeyFraction = value;
             }
+        }
+
+        public void Update(int[][] outputs, int samples)
+        {
+            pcm.Update(outputs, samples);
         }
     }
 

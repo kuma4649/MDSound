@@ -85,6 +85,11 @@ namespace MDSound.ZM_1
         }
 
         private byte _PmdAmd = 0;
+
+        public Fm(Operator @operator) : base(@operator)
+        {
+        }
+
         public byte PmdAmd
         {
             get { return _PmdAmd; }

@@ -23,7 +23,7 @@ namespace MDSound.ZM_1
             ope = new Operator[2][] { new Operator[MAX_OPERATOR], new Operator[MAX_OPERATOR] };
             for (int j = 0; j < 2; j++)
                 for (int i = 0; i < MAX_OPERATOR; i++)
-                    ope[j][i] = new Operator(PCMData);
+                    ope[j][i] = new Operator(i, PCMData[ChipID]);
         }
 
         public override uint Start(byte chipID, uint clock)
@@ -33,7 +33,7 @@ namespace MDSound.ZM_1
 
         public override uint Start(byte chipID, uint clock, uint ClockValue, params object[] option)
         {
-            return ClockValue;
+            return clock;
         }
 
         public override void Stop(byte chipID)
@@ -44,7 +44,10 @@ namespace MDSound.ZM_1
 
         public override void Update(byte chipID, int[][] outputs, int samples)
         {
-            ;
+            for(int op = 0; op < MAX_OPERATOR; op++)
+            {
+                ope[chipID][op].Update(outputs, samples);
+            }
         }
 
         public override int Write(byte chipID, int bank, int adr, int data)

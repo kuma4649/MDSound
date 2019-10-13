@@ -7,6 +7,10 @@ namespace MDSound.ZM_1
 {
     public class Pcm : ChipElement
     {
+        private bool oldKeyOn = false;
+        private uint playPtr;
+        private bool play;
+
         private byte _PCMMode = 0;
         public byte PCMMode
         {
@@ -35,8 +39,8 @@ namespace MDSound.ZM_1
             set { _LoopAddress = value; }
         }
 
-        private ushort _KeyOffAddress = 0;
-        public ushort KeyOffAddress
+        private uint _KeyOffAddress = 0;
+        public uint KeyOffAddress
         {
             get { return _KeyOffAddress; }
             set { _KeyOffAddress = value; }
@@ -56,13 +60,14 @@ namespace MDSound.ZM_1
             set { _EffectConfiguration = value; }
         }
 
-        private List<byte>[] pCMData;
+        private List<byte> pCMData;
 
-        public Pcm(List<byte>[] pCMData)
+        public Pcm(Operator @operator, List<byte> pCMData) : base(@operator)
         {
             this.pCMData = pCMData;
+            oldKeyOn = false;
+            play = false;
         }
-
 
         public override void Write(int address,int data)
         {
@@ -72,16 +77,32 @@ namespace MDSound.ZM_1
                     PCMMode = (byte)data;
                     break;
                 case 0x01:
-                    PlayAddress = (uint)data;
+                case 0x02:
+                case 0x03:
+                case 0x04:
+                    PlayAddress &= (uint)~(0x0000_00ff << ((address - 1) * 8));
+                    PlayAddress |= (uint)(data << ((address - 1) * 8));
                     break;
                 case 0x05:
-                    StopAddress = (uint)data;
+                case 0x06:
+                case 0x07:
+                case 0x08:
+                    StopAddress &= (uint)~(0x0000_00ff << ((address - 5) * 8));
+                    StopAddress |= (uint)(data << ((address - 5) * 8));
                     break;
                 case 0x09:
-                    LoopAddress = (uint)data;
+                case 0x0a:
+                case 0x0b:
+                case 0x0c:
+                    LoopAddress &= (uint)~(0x0000_00ff << ((address - 9) * 8));
+                    LoopAddress |= (uint)(data << ((address - 9) * 8));
                     break;
                 case 0x0d:
-                    KeyOffAddress = (ushort)data;
+                case 0x0e:
+                case 0x0f:
+                case 0x10:
+                    KeyOffAddress &= (uint)~(0x0000_00ff << ((address - 13) * 8));
+                    KeyOffAddress |= (uint)(data << ((address - 13) * 8));
                     break;
                 case 0x12:
                     PCMConfig = (byte)data;
@@ -94,6 +115,65 @@ namespace MDSound.ZM_1
                     throw new ArgumentOutOfRangeException("アドレス指定が異常です");
             }
         }
+
+        int spd = 0;
+
+        public void Update(int[][] outputs, int samples)
+        {
+            for (int i = 0; i < samples; i++)
+            {
+                bool ko = (@operator.NoteByteMatrix & 0x80) != 0;
+                if (ko)
+                {
+                    if (!oldKeyOn)
+                    {
+                        //キーが押された
+                        oldKeyOn = ko;
+                        playPtr = PlayAddress;
+                        play = true;
+                    }
+                    else
+                    {
+                        //押されている最中
+                    }
+                }
+                else
+                {
+                    if (oldKeyOn)
+                    {
+                        //キーが離された
+                        oldKeyOn = ko;
+                        if (KeyOffAddress != 0) playPtr = KeyOffAddress;
+                        else play = false;
+                    }
+                    else
+                    {
+                        //離されている最中
+                    }
+                }
+
+                if (!play) continue;
+
+                byte d = pCMData[(int)playPtr];
+                spd++;
+                if (spd == 6)
+                {
+                    playPtr++;
+                    spd = 0;
+                }
+                if (playPtr > StopAddress)
+                {
+                    if (LoopAddress != 0)
+                        playPtr = LoopAddress;
+                    else play = false;
+                }
+
+                outputs[0][i] += d << 4;
+                outputs[1][i] += d << 4;
+
+            }
+        }
+
 
     }
 

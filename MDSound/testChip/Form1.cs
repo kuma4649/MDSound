@@ -32,7 +32,6 @@ namespace testChip
         private short[] emuRenderBuf = new short[2];
 
 
-
         public Form1()
         {
             InitializeComponent();
@@ -132,6 +131,8 @@ namespace testChip
                 //        testCnt = 40;
                 //    }
                 //}
+
+                //Console.WriteLine("{0} {1}", emuRenderBuf[0], emuRenderBuf[1]);
             }
 
             Marshal.Copy(frames, 0, stream, len / 2);
@@ -168,16 +169,35 @@ namespace testChip
         private static void vInit()
         {
             System.Diagnostics.Debug.WriteLine("初期化");
+
+            byte[] dat=System.IO.File.ReadAllBytes("Guitar_8bit_8kHz_mono.raw");
+            for (int i = 0; i < dat.Length; i++)
+                //のこぎり波をPCMとしてセット
+                mds.WriteZM1(0, 2, i, dat[i]);
         }
 
         private static void vKeyon()
         {
             System.Diagnostics.Debug.WriteLine("キーオン");
+            mds.WriteZM1(0, 1, 0x80 + 0x00, 0); //PCM Mode : 0
+            mds.WriteZM1(0, 1, 0x80 + 0x01, 0x00); //Play Address : 0
+            mds.WriteZM1(0, 1, 0x80 + 0x02, 0x00);
+            mds.WriteZM1(0, 1, 0x80 + 0x03, 0x00);
+            mds.WriteZM1(0, 1, 0x80 + 0x04, 0x00);
+            mds.WriteZM1(0, 1, 0x80 + 0x05, 0x80); //Stop Address : 7999 ($0000_1f3f)
+            mds.WriteZM1(0, 1, 0x80 + 0x06, 0x3e);
+            mds.WriteZM1(0, 1, 0x80 + 0x07, 0x00);
+            mds.WriteZM1(0, 1, 0x80 + 0x08, 0x00);
+            mds.WriteZM1(0, 1, 0x80 + 0x12, 0x00);//PCM Config : 0
+
+            mds.WriteZM1(0, 3, 0x00 + 0x00, 0x80 | 0x30 | 0x00); // keyon | o4 | c
+            mds.WriteZM1(0, 3, 0x00 + 0x30, 0x00); //KF 0
         }
 
         private static void vEnd()
         {
             System.Diagnostics.Debug.WriteLine("終わったよ");
+            mds.WriteZM1(0, 3, 0x00 + 0x00, 0x00 | 0x30 | 0x00); // keyon | o4 | c
         }
 
     }
