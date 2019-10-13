@@ -131,6 +131,7 @@
     <Compile Include="ZM-1\Operator.cs" />
     <Compile Include="ZM-1\Pcm.cs" />
     <Compile Include="ZM-1\SlotConfiguration.cs" />
+    <Compile Include="ZM-1\ChipElement.cs" />
     <Compile Include="ZM-1\ZelMusic.cs" />
   </ItemGroup>
   <ItemGroup>

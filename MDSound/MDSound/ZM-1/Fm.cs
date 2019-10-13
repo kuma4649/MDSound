@@ -5,7 +5,7 @@ using System.Text;
 
 namespace MDSound.ZM_1
 {
-    public class Fm
+    public class Fm : ChipElement
     {
         private byte _AR = 0;
         public byte AR
@@ -93,45 +93,45 @@ namespace MDSound.ZM_1
 
 
 
-        public void Write(byte adress ,byte data)
+        public override void Write(int adress ,int data)
         {
             switch (adress)
             {
                 case 0x00:
-                    AR = data;
+                    AR = (byte)data;
                     break;
                 case 0x01:
-                    D1R = data;
+                    D1R = (byte)data;
                     break;
                 case 0x02:
-                    D2R = data;
+                    D2R = (byte)data;
                     break;
                 case 0x03:
-                    D1L = data;
+                    D1L = (byte)data;
                     break;
                 case 0x04:
-                    RR = data;
+                    RR = (byte)data;
                     break;
                 case 0x05:
-                    TL = data;
+                    TL = (byte)data;
                     break;
                 case 0x06:
-                    MUL = data;
+                    MUL = (byte)data;
                     break;
                 case 0x07:
-                    DT12 = data;
+                    DT12 = (byte)data;
                     break;
                 case 0x08:
-                    KsAmsen = data;
+                    KsAmsen = (byte)data;
                     break;
                 case 0x09:
-                    PmsAms = data;
+                    PmsAms = (byte)data;
                     break;
                 case 0x0a:
-                    Ws = data;
+                    Ws = (byte)data;
                     break;
                 case 0x0b:
-                    PmdAmd = data;
+                    PmdAmd = (byte)data;
                     break;
 
                 default:

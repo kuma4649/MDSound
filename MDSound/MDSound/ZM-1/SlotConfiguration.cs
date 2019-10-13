@@ -5,7 +5,7 @@ using System.Text;
 
 namespace MDSound.ZM_1
 {
-    public class SlotConfiguration
+    public class SlotConfiguration: ChipElement
     {
 
         private byte _LeftVolume = 0;
@@ -67,7 +67,7 @@ namespace MDSound.ZM_1
 
 
         //TBD
-        public void Write(byte address, byte data)
+        public override void Write(int address, int data)
         {
             switch (address)
             {

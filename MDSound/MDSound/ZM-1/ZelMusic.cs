@@ -33,17 +33,18 @@ namespace MDSound.ZM_1
 
         public override uint Start(byte chipID, uint clock, uint ClockValue, params object[] option)
         {
-            throw new NotImplementedException();
+            return ClockValue;
         }
 
         public override void Stop(byte chipID)
         {
-            throw new NotImplementedException();
+            ope[chipID] = null;
+            PCMData[chipID].Clear();
         }
 
         public override void Update(byte chipID, int[][] outputs, int samples)
         {
-            throw new NotImplementedException();
+            ;
         }
 
         public override int Write(byte chipID, int bank, int adr, int data)

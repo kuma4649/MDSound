@@ -5,7 +5,7 @@ using System.Text;
 
 namespace MDSound.ZM_1
 {
-    public class Pcm
+    public class Pcm : ChipElement
     {
         private byte _PCMMode = 0;
         public byte PCMMode
@@ -64,7 +64,7 @@ namespace MDSound.ZM_1
         }
 
 
-        public void Write(byte address,int data)
+        public override void Write(int address,int data)
         {
             switch (address)
             {

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MDSound.ZM_1;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -2166,23 +2167,23 @@ namespace MDSound
 
         #region ZelMusic
 
-        public void WriteZM1(byte ChipID, byte Port, byte Adr, byte Data)
+        public void WriteZM1(byte ChipID, byte Port, int Adr, int Data)
         {
             lock (lockobj)
             {
                 if (!dicInst.ContainsKey(enmInstrumentType.ZelMusic)) return;
 
-                ((ZelMusic)(dicInst[enmInstrumentType.ZelMusic][0])).Write(ChipID, 0, (Port * 0x100 + Adr), Data);
+                ((ZelMusic)(dicInst[enmInstrumentType.ZelMusic][0])).Write(ChipID, Port, Adr, Data);
             }
         }
 
-        public void WriteZM1(int ChipIndex, byte ChipID, byte Port, byte Adr, byte Data)
+        public void WriteZM1(int ChipIndex, byte ChipID, byte Port, int Adr, int Data)
         {
             lock (lockobj)
             {
                 if (!dicInst.ContainsKey(enmInstrumentType.ZelMusic)) return;
 
-                ((ZelMusic)(dicInst[enmInstrumentType.ZelMusic][ChipIndex])).Write(ChipID, 0, (Port * 0x100 + Adr), Data);
+                ((ZelMusic)(dicInst[enmInstrumentType.ZelMusic][ChipIndex])).Write(ChipID, Port ,Adr, Data);
             }
         }
 
