@@ -24,8 +24,8 @@ namespace MDSound.ZM_1
             sc = new SlotConfiguration(this);
         }
 
-        private byte _NoteByteMatrix = 0;
-        public byte NoteByteMatrix
+        private uint _NoteByteMatrix = 0;
+        public uint NoteByteMatrix
         {
             get
             {
@@ -37,16 +37,16 @@ namespace MDSound.ZM_1
             }
         }
 
-        private byte _KeyFraction = 0;
-        public byte KeyFraction
+        private byte _KeyFrqmode = 0;
+        public byte KeyFrqmode
         {
             get
             {
-                return _KeyFraction;
+                return _KeyFrqmode;
             }
             set
             {
-                _KeyFraction = value;
+                _KeyFrqmode = value;
             }
         }
 

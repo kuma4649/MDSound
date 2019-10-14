@@ -23,6 +23,7 @@ namespace testChip
         private static AudioCallback sdlCb = null;
         private static IntPtr sdlCbPtr;
         private static GCHandle sdlCbHandle;
+        private static Action<string> dispMsg;
 
         private short testD = 0xff;
         private int testCnt = 40;
@@ -35,6 +36,7 @@ namespace testChip
         public Form1()
         {
             InitializeComponent();
+            dispMsg = dispMessage;
         }
 
         private void button1_Click(object sender, EventArgs e)
@@ -66,6 +68,8 @@ namespace testChip
 
             //割り込み開始
             sdl.Paused = false;
+            textBox1.Text = "";
+            dispMsg?.Invoke("合成開始");
         }
 
         private void button2_Click(object sender, EventArgs e)
@@ -75,7 +79,7 @@ namespace testChip
 
             //割り込み停止
             sdl.Paused = true;
-            
+            dispMsg?.Invoke("合成停止");
 
         }
 
@@ -154,6 +158,21 @@ namespace testChip
             }
         }
 
+        public void dispMessage(string msg)
+        {
+            try
+            {
+                Action<string> act = textBox1.AppendText;
+                if (this.Created)
+                {
+                    this.BeginInvoke(act, String.Format("{0:yyyy-MM-dd(ddd)HH:mm:ss.fff} : {1}\r\n", System.DateTime.Now, msg));
+                }
+            }
+            catch
+            {
+                ;//握りつぶす
+            }
+        }
 
 
 
@@ -162,13 +181,17 @@ namespace testChip
         {
             //                             frameCounter   実行する処理
             new KeyValuePair<int, Action>( 0            , vInit )// 開始時に初期化処理
-            , new KeyValuePair<int, Action>( 44100*1    , vKeyon ) //1秒後に vKeyonを実行
+            , new KeyValuePair<int, Action>( 44100*1    , vKeyonC ) //1秒後に vKeyonを実行
             , new KeyValuePair<int, Action>( 44100*2    , vEnd ) //2秒後に vEndを実行
+            , new KeyValuePair<int, Action>( 44100*3    , vKeyonD ) //1秒後に vKeyonを実行
+            , new KeyValuePair<int, Action>( 44100*4    , vEnd ) //2秒後に vEndを実行
+            , new KeyValuePair<int, Action>( 44100*5    , vKeyonE ) //1秒後に vKeyonを実行
+            , new KeyValuePair<int, Action>( 44100*6    , vEnd ) //2秒後に vEndを実行
         };
 
         private static void vInit()
         {
-            System.Diagnostics.Debug.WriteLine("初期化");
+            dispMsg?.Invoke("初期化");
 
             byte[] dat=System.IO.File.ReadAllBytes("Guitar_8bit_8kHz_mono.raw");
             for (int i = 0; i < dat.Length; i++)
@@ -176,10 +199,10 @@ namespace testChip
                 mds.WriteZM1(0, 2, i, dat[i]);
         }
 
-        private static void vKeyon()
+        private static void vKeyonC()
         {
-            System.Diagnostics.Debug.WriteLine("キーオン");
-            mds.WriteZM1(0, 1, 0x80 + 0x00, 0); //PCM Mode : 0
+            dispMsg?.Invoke("キーオン C");
+            mds.WriteZM1(0, 1, 0x80 + 0x00, 0x00); //PCM Mode : 0
             mds.WriteZM1(0, 1, 0x80 + 0x01, 0x00); //Play Address : 0
             mds.WriteZM1(0, 1, 0x80 + 0x02, 0x00);
             mds.WriteZM1(0, 1, 0x80 + 0x03, 0x00);
@@ -188,16 +211,39 @@ namespace testChip
             mds.WriteZM1(0, 1, 0x80 + 0x06, 0x3e);
             mds.WriteZM1(0, 1, 0x80 + 0x07, 0x00);
             mds.WriteZM1(0, 1, 0x80 + 0x08, 0x00);
-            mds.WriteZM1(0, 1, 0x80 + 0x12, 0x00);//PCM Config : 0
+            mds.WriteZM1(0, 1, 0x80 + 0x12, 0x00); //PCM Config : 0
 
-            mds.WriteZM1(0, 3, 0x00 + 0x00, 0x80 | 0x30 | 0x00); // keyon | o4 | c
-            mds.WriteZM1(0, 3, 0x00 + 0x30, 0x00); //KF 0
+            mds.WriteZM1(0, 3, 0x00 + 0x00, 0x00); // key fraction : 0
+            mds.WriteZM1(0, 3, 0x00 + 0x01, 0x00); // note : c
+            mds.WriteZM1(0, 3, 0x00 + 0x02, 0x03); // octave : 4
+            mds.WriteZM1(0, 3, 0x00 + 0x90, 0x80 | 0x00); //NoteOn | FreqMode:OPM(0) | KeyFraction:0
+            // 0x00  144  O)ctave | N)ote | key (f)raction      00000OOO 0000NNNN 00ffffff
+            //            or F)requency number               or FFFFFFFF FFFFFFFF FFFFFFFF
+            // 0x90   48  N)ote on / frequency (M)ode           NM000000
+        }
+
+        private static void vKeyonD()
+        {
+            dispMsg?.Invoke("キーオン D");
+            mds.WriteZM1(0, 3, 0x00 + 0x00, 0x00); // key fraction : 0
+            mds.WriteZM1(0, 3, 0x00 + 0x01, 0x02); // note : D
+            mds.WriteZM1(0, 3, 0x00 + 0x02, 0x03); // octave : 4
+            mds.WriteZM1(0, 3, 0x00 + 0x90, 0x80 | 0x00); //NoteOn | FreqMode:OPM(0) | KeyFraction:0
+        }
+
+        private static void vKeyonE()
+        {
+            dispMsg?.Invoke("キーオン E");
+            mds.WriteZM1(0, 3, 0x00 + 0x00, 0x00); // key fraction : 0
+            mds.WriteZM1(0, 3, 0x00 + 0x01, 0x05); // note : D
+            mds.WriteZM1(0, 3, 0x00 + 0x02, 0x03); // octave : 4
+            mds.WriteZM1(0, 3, 0x00 + 0x90, 0x80 | 0x00); //NoteOn | FreqMode:OPM(0) | KeyFraction:0
         }
 
         private static void vEnd()
         {
-            System.Diagnostics.Debug.WriteLine("終わったよ");
-            mds.WriteZM1(0, 3, 0x00 + 0x00, 0x00 | 0x30 | 0x00); // keyon | o4 | c
+            dispMsg?.Invoke("キーオフ");
+            mds.WriteZM1(0, 3, 0x00 + 0x90, 0x00 | 0x00); // NoteOff | FreqMode:OPM(0)
         }
 
     }

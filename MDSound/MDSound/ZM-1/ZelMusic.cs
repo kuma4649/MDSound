@@ -118,11 +118,20 @@ namespace MDSound.ZM_1
 
         private void WriteBankD(byte chipID, int adr, int data)
         {
-            int opNum = adr % 0x30;
-            int opTyp = adr / 0x30;
+            int opNum = adr % 0x90;
+            int opTyp = adr / 0x90;
 
-            if (opTyp == 0) ope[chipID][opNum].NoteByteMatrix = (byte)data;
-            else ope[chipID][opNum].KeyFraction = (byte)data;
+            if (opTyp == 0)
+            {
+                uint d = ope[chipID][opNum / 3].NoteByteMatrix;
+                d &= (uint)~(0x0000_00ff << ((adr % 3) * 8));
+                d |= (uint)((byte)data << ((adr % 3) * 8));
+                ope[chipID][opNum / 3].NoteByteMatrix = d;
+            }
+            else
+            {
+                ope[chipID][opNum % 48].KeyFrqmode = (byte)data;
+            }
         }
 
 
