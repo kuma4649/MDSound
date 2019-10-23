@@ -11,16 +11,18 @@ namespace MDSound.ZM_1
         public Pcm pcm;
         public SlotConfiguration sc;
         public int number;
+        public ZelMusic.commonParam cp;
 
         private List<byte> pCMData;
 
-        public Operator(int number, List<byte> pCMData, uint playClock, uint chipClock)
+        public Operator(int number,ZelMusic.commonParam cp)//, List<byte> pCMData, uint playClock, uint chipClock)
         {
+            this.cp = cp;
             this.number = number;
-            this.pCMData = pCMData;
+            this.pCMData = cp.PCMData;
             fm = new Fm(this);
             pcm = new Pcm(this, pCMData);
-            pcm.SetRate(chipClock, playClock);
+            pcm.SetRate(cp.chipClock, cp.playClock);
             sc = new SlotConfiguration(this);
         }
 
@@ -47,6 +49,16 @@ namespace MDSound.ZM_1
             set
             {
                 _KeyFrqmode = value;
+            }
+        }
+        private bool _KeyOnFlg = false;
+        public bool KeyOnFlg
+        {
+            get {
+                return _KeyOnFlg;
+            }
+            set {
+                _KeyOnFlg = value;
             }
         }
 

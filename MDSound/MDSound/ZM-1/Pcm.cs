@@ -141,7 +141,7 @@ namespace MDSound.ZM_1
             bool ko = (@operator.KeyFrqmode & 0x80) != 0;
             if (ko)
             {
-                if (!oldKeyOn)
+                if (!oldKeyOn || @operator.KeyOnFlg)
                 {
                     //キーが押された
                     oldKeyOn = ko;
@@ -167,6 +167,7 @@ namespace MDSound.ZM_1
                 //離されている最中
                 //}
             }
+            @operator.KeyOnFlg = false;
 
             if (!play) return;
 
@@ -199,9 +200,9 @@ namespace MDSound.ZM_1
                             else play = false;
                         }
                     }
-                    int s = d;// apout;
-                    outputs[0][i] += s << 4;
-                    outputs[1][i] += s << 4;
+
+                    outputs[0][i] += (d * ((@operator.cp.sysPcmVol * @operator.sc.LeftVolume) >> 12)) >> 5;
+                    outputs[1][i] += (d * ((@operator.cp.sysPcmVol * @operator.sc.RightVolume) >> 12)) >> 5;
                     adplc -= adpld;
                 }
                 return;
@@ -231,8 +232,8 @@ namespace MDSound.ZM_1
                 adplc -= 8192;
                 s >>= 13;
 
-                outputs[0][i] += s << 4;
-                outputs[1][i] += s << 4;
+                outputs[0][i] += (s * ((@operator.cp.sysPcmVol * @operator.sc.LeftVolume) >> 12)) >> 5;
+                outputs[1][i] += (s * ((@operator.cp.sysPcmVol * @operator.sc.RightVolume) >> 12)) >> 5;
             }
 
         }

@@ -183,10 +183,10 @@ namespace testChip
             new KeyValuePair<int, Action>( 0            , vInit )// 開始時に初期化処理
             , new KeyValuePair<int, Action>( 44100*1    , vKeyonC ) //1秒後に vKeyonを実行
             , new KeyValuePair<int, Action>( 44100*2    , vEnd ) //2秒後に vEndを実行
-            , new KeyValuePair<int, Action>( 44100*3    , vKeyonD ) //1秒後に vKeyonを実行
+            , new KeyValuePair<int, Action>( 44100*2    , vKeyonD ) //1秒後に vKeyonを実行
+            , new KeyValuePair<int, Action>( 44100*3    , vEnd ) //2秒後に vEndを実行
+            , new KeyValuePair<int, Action>( 44100*3    , vKeyonE ) //1秒後に vKeyonを実行
             , new KeyValuePair<int, Action>( 44100*4    , vEnd ) //2秒後に vEndを実行
-            , new KeyValuePair<int, Action>( 44100*5    , vKeyonE ) //1秒後に vKeyonを実行
-            , new KeyValuePair<int, Action>( 44100*6    , vEnd ) //2秒後に vEndを実行
         };
 
         private static void vInit()
@@ -195,7 +195,6 @@ namespace testChip
 
             byte[] dat=System.IO.File.ReadAllBytes("Guitar_8bit_8kHz_mono.raw");
             for (int i = 0; i < dat.Length; i++)
-                //のこぎり波をPCMとしてセット
                 mds.WriteZM1(0, 2, i, dat[i]);
         }
 
@@ -213,6 +212,9 @@ namespace testChip
             mds.WriteZM1(0, 1, 0x80 + 0x08, 0x00);
             mds.WriteZM1(0, 1, 0x80 + 0x12, 0x00); //PCM Config : 0
 
+            mds.WriteZM1(0, 1, 0xf0 + 0x00, 0xff); // LEft  Volume:256
+            mds.WriteZM1(0, 1, 0xf0 + 0x01, 0xff); // Right Volume:256
+
             mds.WriteZM1(0, 3, 0x00 + 0x00, 0x00); // key fraction : 0
             mds.WriteZM1(0, 3, 0x00 + 0x01, 0x00); // note : c
             mds.WriteZM1(0, 3, 0x00 + 0x02, 0x03); // octave : 4
@@ -225,6 +227,10 @@ namespace testChip
         private static void vKeyonD()
         {
             dispMsg?.Invoke("キーオン D");
+            
+            mds.WriteZM1(0, 1, 0xf0 + 0x00, 0x7f); // LEft  Volume:127
+            mds.WriteZM1(0, 1, 0xf0 + 0x01, 0x7f); // Right Volume:127
+
             mds.WriteZM1(0, 3, 0x00 + 0x00, 0x00); // key fraction : 0
             mds.WriteZM1(0, 3, 0x00 + 0x01, 0x02); // note : D
             mds.WriteZM1(0, 3, 0x00 + 0x02, 0x03); // octave : 4
@@ -234,6 +240,10 @@ namespace testChip
         private static void vKeyonE()
         {
             dispMsg?.Invoke("キーオン E");
+
+            mds.WriteZM1(0, 1, 0xf0 + 0x00, 0x3f); // LEft  Volume:63
+            mds.WriteZM1(0, 1, 0xf0 + 0x01, 0x3f); // Right Volume:63
+
             mds.WriteZM1(0, 3, 0x00 + 0x00, 0x00); // key fraction : 0
             mds.WriteZM1(0, 3, 0x00 + 0x01, 0x05); // note : D
             mds.WriteZM1(0, 3, 0x00 + 0x02, 0x03); // octave : 4

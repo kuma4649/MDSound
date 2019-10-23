@@ -14,17 +14,26 @@ namespace MDSound.ZM_1
         public const long MAX_PCMDATASIZE = 0x1_0000_0000;
 
         private Operator[][] ope = null;
-        private List<byte>[] PCMData = null;
-        private uint playClock;
-        private uint chipClock;
+
+        private commonParam[] cp = new commonParam[2] { new commonParam(), new commonParam() };
+
+        public class commonParam
+        {
+            public List<byte> PCMData = null;
+            public uint playClock;
+            public uint chipClock;
+            public int sysPcmVol;
+        }
 
         public override void Reset(byte ChipID)
         {
-            PCMData = new List<byte>[2] { new List<byte>(), new List<byte>() };
+            SetSystemVolumePCM(ChipID, 0);
+
+            cp[ChipID].PCMData = new List<byte>();
             ope = new Operator[2][] { new Operator[MAX_OPERATOR], new Operator[MAX_OPERATOR] };
             for (int j = 0; j < 2; j++)
                 for (int i = 0; i < MAX_OPERATOR; i++)
-                    ope[j][i] = new Operator(i, PCMData[ChipID], playClock, chipClock);
+                    ope[j][i] = new Operator(i, cp[ChipID]);//, commonParam.PCMData[ChipID], commonParam.playClock, commonParam.chipClock);
         }
 
         public override uint Start(byte chipID, uint clock)
@@ -34,15 +43,15 @@ namespace MDSound.ZM_1
 
         public override uint Start(byte chipID, uint clock, uint ClockValue, params object[] option)
         {
-            playClock = clock;
-            chipClock = ClockValue;
+            cp[chipID].playClock = clock;
+            cp[chipID].chipClock = ClockValue;
             return clock;
         }
 
         public override void Stop(byte chipID)
         {
             ope[chipID] = null;
-            PCMData[chipID].Clear();
+            cp[chipID].PCMData.Clear();
         }
 
         public override void Update(byte chipID, int[][] outputs, int samples)
@@ -75,9 +84,21 @@ namespace MDSound.ZM_1
 
         public void SetPCMData(byte chipID, byte[] data)
         {
-            PCMData[chipID] = new List<byte>(data);
+            cp[chipID].PCMData = new List<byte>(data);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="db"></param>
+        public void SetSystemVolumePCM(byte chipID, int db)
+        {
+            db = Math.Min(db, 20);
+            if (db > -192)
+                cp[chipID].sysPcmVol = (int)(65536.0 * Math.Pow(10.0, db / 40.0));
+            else
+                cp[chipID].sysPcmVol = 0;
+        }
 
         private void WriteBankA(byte chipID, int adr, int data)
         {
@@ -106,14 +127,14 @@ namespace MDSound.ZM_1
 
         private void WriteBankC(byte chipID, int adr, int data)
         {
-            if (adr >= PCMData[chipID].Count)
+            if (adr >= cp[chipID].PCMData.Count)
             {
-                long size = adr - PCMData[chipID].Count + 1;
+                long size = adr - cp[chipID].PCMData.Count + 1;
                 for (int i = 0; i < size; i++)
-                    PCMData[chipID].Add(0);
+                    cp[chipID].PCMData.Add(0);
             }
 
-            PCMData[chipID][adr] = (byte)data;
+            cp[chipID].PCMData[adr] = (byte)data;
         }
 
         private void WriteBankD(byte chipID, int adr, int data)
@@ -130,7 +151,21 @@ namespace MDSound.ZM_1
             }
             else
             {
-                ope[chipID][opNum % 48].KeyFrqmode = (byte)data;
+                Operator o = ope[chipID][opNum % 48];
+                o.KeyFrqmode = (byte)data;
+                if (!o.KeyOnFlg)
+                {
+                    // off > on  --> true
+                    // off > off --> false
+                    o.KeyOnFlg = ((data & 0x80) != 0);
+                }
+                else
+                {
+                    // on > on  --> false
+                    // on > off --> false
+                    o.KeyOnFlg = false;
+                }
+
             }
         }
 
