@@ -1,16 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net40</TargetFramework>
+    <TargetFramework>net462</TargetFramework>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <AssemblyTitle>test</AssemblyTitle>
     <Product>test</Product>
     <Copyright>Copyright ©  2016</Copyright>
     <OutputPath>bin\$(Configuration)\</OutputPath>
     <PlatformTarget>x86</PlatformTarget>
-    <PostBuildEvent>copy "$(ProjectDir)lib"\*.dll "$(TargetDir)"</PostBuildEvent>
-    <PostBuildEvent>copy "$(ProjectDir)lib"\*.dll "$(TargetDir)"</PostBuildEvent>
-    <PostBuildEvent>copy "$(ProjectDir)lib"\*.dll "$(TargetDir)"</PostBuildEvent>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugType>full</DebugType>
@@ -19,9 +16,9 @@
     <DebugType>pdbonly</DebugType>
     <DefineConstants />
   </PropertyGroup>
-  <PropertyGroup>
-    <PostBuildEvent>copy "$(ProjectDir)lib"\*.dll "$(TargetDir)"</PostBuildEvent>
-  </PropertyGroup>
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="copy &quot;$(ProjectDir)lib\*.dll&quot; &quot;$(TargetDir)&quot;" />
+  </Target>
   <ItemGroup>
     <Reference Include="RealChipCtlWrap, Version=0.0.0.0, Culture=neutral, processorArchitecture=x86">
       <HintPath>lib\RealChipCtlWrap.dll</HintPath>
