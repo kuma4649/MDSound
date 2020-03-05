@@ -3,12 +3,13 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29306.81
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MDSound", "MDSound\MDSound.csproj", "{87A99ABD-5F5F-4221-83E3-741BD8D3692E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MDSound", "MDSound\MDSound.csproj", "{87A99ABD-5F5F-4221-83E3-741BD8D3692E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "test", "test\test.csproj", "{5A99E426-0920-499E-A293-7ECBFFF39008}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "test", "test\test.csproj", "{5A99E426-0920-499E-A293-7ECBFFF39008}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "document", "document", "{5C3DE18E-159F-4DF8-8296-624E72623F7F}"
 	ProjectSection(SolutionItems) = preProject
+		CHANGE.txt = CHANGE.txt
 		..\LICENSE.txt = ..\LICENSE.txt
 		..\PSG2.txt = ..\PSG2.txt
 		..\README.md = ..\README.md

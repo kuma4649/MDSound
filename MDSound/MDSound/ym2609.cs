@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 
@@ -38,7 +39,15 @@ namespace MDSound
         public override uint Start(byte ChipID, uint clock, uint FMClockValue, params object[] option)
         {
             chip[ChipID] = new fmvgen.OPNA2();
-            chip[ChipID].Init(FMClockValue, clock);
+
+            if (option != null && option.Length > 0 && option[0] is Func<string, Stream>)
+            {
+                chip[ChipID].Init(FMClockValue, clock, false, (Func<string, Stream>)option[0]);
+            }
+            else
+            {
+                chip[ChipID].Init(FMClockValue, clock);
+            }
 
             return clock;
         }

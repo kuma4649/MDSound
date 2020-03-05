@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 
 namespace MDSound
 {
@@ -46,9 +47,9 @@ namespace MDSound
         {
             chip[ChipID] = new fmgen.OPNA();
             //chip[ChipID] = new fmgen.OPNA2();
-            if (option != null && option.Length > 0 && option[0] is string)
+            if (option != null && option.Length > 0 && option[0] is Func<string, Stream>)
             {
-                chip[ChipID].Init(FMClockValue, clock, false, (string)option[0]);
+                chip[ChipID].Init(FMClockValue, clock, false, (Func<string, Stream>)option[0]);
             }
             else
             {

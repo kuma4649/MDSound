@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 
@@ -1473,14 +1474,14 @@ namespace MDSound.fmgen
             }
         }
 
-        public bool Init(uint c, uint r, bool ipflag = false, string path = "")
+        public bool Init(uint c, uint r, bool ipflag = false, Func<string, Stream> appendFileReaderCallback = null)
         {
             rate = 8000;
-            LoadRhythmSample(path);
+            LoadRhythmSample(appendFileReaderCallback);
 
-            if (adpcmbuf==null)
+            if (adpcmbuf == null)
                 adpcmbuf = new byte[0x40000];
-            if (adpcmbuf==null)
+            if (adpcmbuf == null)
                 return false;
 
             if (!SetRate(c, r, ipflag))
@@ -1512,7 +1513,7 @@ namespace MDSound.fmgen
         // ---------------------------------------------------------------------------
         //	リズム音を読みこむ
         //
-        public bool LoadRhythmSample(string path)
+        public bool LoadRhythmSample(Func<string, Stream> appendFileReaderCallback)
         {
             string[] rhythmname = new string[6]
             {
@@ -1525,27 +1526,32 @@ namespace MDSound.fmgen
 
             for (i = 0; i < 6; i++)
             {
-                FileIO file = new FileIO();
                 try
                 {
                     uint fsize;
-                    string buf = "";
-                    if (path != null && path != "")
-                        buf = path;
-                    buf = buf + "2608_";
-                    buf = buf + rhythmname[i];
-                    buf = buf + ".WAV";
-
                     bool f = true;
+                    string buf = string.Format("2608_{0}.WAV", rhythmname[i]);
                     string rymBuf = "2608_RYM.WAV";
-                    if (path != null && path != "") rymBuf = path+rymBuf;
+                    byte[] file;
 
-                    if (!System.IO.File.Exists(buf))
+                    using (Stream st = appendFileReaderCallback?.Invoke(buf))
+                    {
+                        file = ReadAllBytes(st);
+                    }
+
+                    if (file == null)
                     {
                         f = false;
-                        if (i==5 && System.IO.File.Exists(rymBuf))
+                        if (i == 5)
                         {
-                            f = true;
+                            using (Stream st = appendFileReaderCallback?.Invoke(rymBuf))
+                            {
+                                file = ReadAllBytes(st);
+                            }
+                            if (file != null)
+                            {
+                                f = true;
+                            }
                         }
                     }
 
@@ -1554,19 +1560,12 @@ namespace MDSound.fmgen
                         continue;
                     }
 
-                    if (!file.Open(buf, (uint)FileIO.Flags.Readonly))
-                    {
-                        if (i != 5)
-                            break;
-                        if (!file.Open(rymBuf, (uint)FileIO.Flags.Readonly))
-                            break;
-                    }
-
                     whdr whdr = new whdr();
 
-                    file.Seek(0x10, FileIO.SeekMethod.begin);
+                    uint fInd = 0x10;
                     byte[] bufWhdr = new byte[4 + 2 + 2 + 4 + 4 + 2 + 2 + 2];
-                    file.Read(bufWhdr, 4 + 2 + 2 + 4 + 4 + 2 + 2 + 2);
+                    for (int j = 0; j < 4 + 2 + 2 + 4 + 4 + 2 + 2 + 2; j++) bufWhdr[j] = file[fInd++];
+
                     whdr.chunksize = (uint)(bufWhdr[0] + bufWhdr[1] * 0x100 + bufWhdr[2] * 0x10000 + bufWhdr[3] * 0x10000);
                     whdr.tag = (uint)(bufWhdr[4] + bufWhdr[5] * 0x100);
                     whdr.nch = (uint)(bufWhdr[6] + bufWhdr[7] * 0x100);
@@ -1580,9 +1579,10 @@ namespace MDSound.fmgen
                     fsize = 4 + whdr.chunksize - (4 + 2 + 2 + 4 + 4 + 2 + 2 + 2);
                     do
                     {
-                        file.Seek((int)fsize, FileIO.SeekMethod.current);
-                        file.Read(subchunkname, 4);
-                        file.Read(bufWhdr, 4);
+                        fInd += fsize;
+                        for (int j = 0; j < 4; j++) subchunkname[j] = file[fInd++];
+                        for (int j = 0; j < 4; j++) bufWhdr[j] = file[fInd++];
+
                         fsize = (uint)(bufWhdr[0] + bufWhdr[1] * 0x100 + bufWhdr[2] * 0x10000 + bufWhdr[3] * 0x10000);
                     } while ('d' != subchunkname[0] || 'a' != subchunkname[1] || 't' != subchunkname[2] || 'a' != subchunkname[3]);
 
@@ -1596,7 +1596,7 @@ namespace MDSound.fmgen
                     if (rhythm[i].sample == null)
                         break;
                     byte[] bufSample = new byte[fsize * 2];
-                    file.Read(bufSample, (int)(fsize * 2));
+                    for (int j = 0; j < fsize * 2; j++) bufSample[j] = file[fInd++];
                     for (int si = 0; si < fsize; si++)
                     {
                         rhythm[i].sample[si] = (short)(bufSample[si * 2] + bufSample[si * 2 + 1] * 0x100);
@@ -1608,10 +1608,7 @@ namespace MDSound.fmgen
                 }
                 catch 
                 {
-                }
-                finally
-                {
-                    file.Close();
+                    //無視
                 }
             }
             if (i != 6)
@@ -1623,6 +1620,29 @@ namespace MDSound.fmgen
                 return false;
             }
             return true;
+        }
+
+        /// <summary>
+        /// ストリームから一括でバイナリを読み込む
+        /// </summary>
+        private byte[] ReadAllBytes(Stream stream)
+        {
+            if (stream == null) return null;
+
+            var buf = new byte[8192];
+            using (var ms = new MemoryStream())
+            {
+                while (true)
+                {
+                    var r = stream.Read(buf, 0, buf.Length);
+                    if (r < 1)
+                    {
+                        break;
+                    }
+                    ms.Write(buf, 0, r);
+                }
+                return ms.ToArray();
+            }
         }
 
         // ---------------------------------------------------------------------------

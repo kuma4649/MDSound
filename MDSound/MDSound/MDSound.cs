@@ -26,6 +26,7 @@ namespace MDSound
         private List<int[]> ym2612Mask = new List<int[]>(new int[][] { new int[] { 0, 0 } });
         private List<int[]> ym2203Mask = new List<int[]>(new int[][] { new int[] { 0, 0 } });
         private List<uint[]> segapcmMask = new List<uint[]>(new uint[][] { new uint[] { 0, 0 } });
+        private List<uint[]> okim6295Mask = new List<uint[]>(new uint[][] { new uint[] { 0, 0 } });
         private List<uint[]> c140Mask = new List<uint[]>(new uint[][] { new uint[] { 0, 0 } });
         private List<int[]> ay8910Mask = new List<int[]>(new int[][] { new int[] { 0, 0 } });
         private List<int[]> huc6280Mask = new List<int[]>(new int[][] { new int[] { 0, 0 } });
@@ -303,6 +304,63 @@ namespace MDSound
             }
         }
 
+
+        //public int Update(short[] buf, int offset, int sampleCount, Action frame)
+        //{
+        //    lock (lockobj)
+        //    {
+        //        int a, b;
+
+        //        for (int i = 0; i < sampleCount; i += 2)
+        //        {
+
+        //            frame?.Invoke();
+
+        //            a = 0;
+        //            b = 0;
+
+        //            buffer[0][0] = 0;
+        //            buffer[1][0] = 0;
+        //            ResampleChipStream(insts, buffer, 1);
+
+        //            if (insts != null && insts.Length > 0)
+        //            {
+        //                for (int j = 0; j < insts.Length; j++)
+        //                {
+        //                    buff[0][0] = 0;
+        //                    buff[1][0] = 0;
+
+        //                    int mul = insts[j].Volume;
+        //                    mul = (int)(16384.0 * Math.Pow(10.0, mul / 40.0));
+
+        //                    insts[j].Update?.Invoke(insts[j].ID, buff, 1);
+
+        //                    buffer[0][0] += (short)((Limit(buff[0][0], 0x7fff, -0x8000) * mul) >> 14);
+        //                    buffer[1][0] += (short)((Limit(buff[1][0], 0x7fff, -0x8000) * mul) >> 14);
+        //                }
+        //            }
+
+        //            a += buffer[0][0];
+        //            b += buffer[1][0];
+
+        //            if (incFlag)
+        //            {
+        //                a += buf[offset + i + 0];
+        //                b += buf[offset + i + 1];
+        //            }
+
+        //            Clip(ref a, ref b);
+
+        //            buf[offset + i + 0] = (short)a;
+        //            buf[offset + i + 1] = (short)b;
+
+        //        }
+
+        //        return sampleCount;
+
+        //    }
+        //}
+
         private void Clip(ref int a, ref int b)
         {
             if ((uint)(a + 32767) > (uint)(32767 * 2))
@@ -334,6 +392,8 @@ namespace MDSound
             return v > max ? max : (v < min ? min : v);
         }
 
+        int[][] StreamPnt = new int[0x02][] { new int[0x100], new int[0x100] };
+
         private void ResampleChipStream(Chip[] insts, int[][] RetSample, uint Length)
         {
             if (insts == null || insts.Length < 1) return;
@@ -345,7 +405,7 @@ namespace MDSound
             Chip inst;
             int[] CurBufL;
             int[] CurBufR;
-            int[][] StreamPnt = new int[0x02][] { new int[0x100], new int[0x100] };
+            //int[][] StreamPnt = new int[0x02][] { new int[0x100], new int[0x100] };
             uint InBase;
             uint InPos;
             uint InPosNext;
@@ -362,11 +422,13 @@ namespace MDSound
             int CurSmpl;
             ulong ChipSmpRate;
 
-            for (int i = 0; i < 0x100; i++)
-            {
-                StreamBufs[0][i] = 0;
-                StreamBufs[1][i] = 0;
-            }
+            //for (int i = 0; i < 0x100; i++)
+            //{
+            //    StreamBufs[0][i] = 0;
+            //    StreamBufs[1][i] = 0;
+            //}
+            Array.Clear(StreamBufs[0], 0, 0x100);
+            Array.Clear(StreamBufs[1], 0, 0x100);
             CurBufL = StreamBufs[0x00];
             CurBufR = StreamBufs[0x01];
 
@@ -380,6 +442,7 @@ namespace MDSound
                 if (inst.type == enmInstrumentType.Nes) mul = 0;
                 mul = (int)(16384.0 * Math.Pow(10.0, mul / 40.0));
 
+                //Console.WriteLine("{0}", inst.Resampler);
                 switch (inst.Resampler)
                 {
                     case 0x00:  // old, but very fast resampler
@@ -641,7 +704,6 @@ namespace MDSound
                 }
 
                 inst.AdditionalUpdate?.Invoke(inst, inst.ID, tempSample, (int)Length);
-
                 for (int j = 0; j < Length; j++)
                 {
                     RetSample[0][j] += tempSample[0][j];
@@ -3318,13 +3380,32 @@ namespace MDSound
             }
         }
 
-        public void setSegaPcmMask(int ChipIndex,int chipID, int ch)
+        public void setSegaPcmMask(int ChipIndex, int chipID, int ch)
         {
             lock (lockobj)
             {
                 segapcmMask[ChipIndex][chipID] |= (uint)ch;
                 if (!dicInst.ContainsKey(enmInstrumentType.SEGAPCM)) return;
                 ((segapcm)(dicInst[enmInstrumentType.SEGAPCM][ChipIndex])).segapcm_set_mute_mask((byte)chipID, segapcmMask[ChipIndex][chipID]);
+            }
+        }
+
+        public void setOKIM6295Mask(int ChipIndex, int chipID, int ch)
+        {
+            lock (lockobj)
+            {
+                okim6295Mask[ChipIndex][chipID] |= (uint)ch;
+                if (!dicInst.ContainsKey(enmInstrumentType.OKIM6295)) return;
+                ((okim6295)(dicInst[enmInstrumentType.OKIM6295][ChipIndex])).okim6295_set_mute_mask((byte)chipID, okim6295Mask[ChipIndex][chipID]);
+            }
+        }
+
+        public okim6295.okim6295Info GetOKIM6295Info(int ChipIndex, int chipID)
+        {
+            lock (lockobj)
+            {
+                if (!dicInst.ContainsKey(enmInstrumentType.OKIM6295)) return null;
+                return ((okim6295)(dicInst[enmInstrumentType.OKIM6295][ChipIndex])).ReadChInfo((byte)chipID);
             }
         }
 
@@ -3506,6 +3587,16 @@ namespace MDSound
                 segapcmMask[ChipIndex][chipID] &= ~(uint)ch;
                 if (!dicInst.ContainsKey(enmInstrumentType.SEGAPCM)) return;
                 ((segapcm)(dicInst[enmInstrumentType.SEGAPCM][ChipIndex])).segapcm_set_mute_mask((byte)chipID, segapcmMask[ChipIndex][chipID]);
+            }
+        }
+
+        public void resetOKIM6295Mask(int ChipIndex, int chipID, int ch)
+        {
+            lock (lockobj)
+            {
+                okim6295Mask[ChipIndex][chipID] &= ~(uint)ch;
+                if (!dicInst.ContainsKey(enmInstrumentType.OKIM6295)) return;
+                ((okim6295)(dicInst[enmInstrumentType.OKIM6295][ChipIndex])).okim6295_set_mute_mask((byte)chipID, okim6295Mask[ChipIndex][chipID]);
             }
         }
 

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 
@@ -89,10 +90,10 @@ namespace MDSound.fmvgen
             }
         }
 
-        public bool Init(uint c, uint r, bool ipflag = false, string path = "")
+        public bool Init(uint c, uint r, bool ipflag = false, Func<string, Stream> appendFileReaderCallback = null)
         {
             rate = 8000;
-            LoadRhythmSample(path);
+            LoadRhythmSample(appendFileReaderCallback);
 
             if (adpcmb[0].adpcmbuf == null)
                 adpcmb[0].adpcmbuf = new byte[0x40000];
@@ -483,7 +484,7 @@ namespace MDSound.fmvgen
         // ---------------------------------------------------------------------------
         //	リズム音を読みこむ
         //
-        public bool LoadRhythmSample(string path)
+        public bool LoadRhythmSample(Func<string, Stream> appendFileReaderCallback)
         {
             string[] rhythmname = new string[6]
             {
@@ -498,37 +499,23 @@ namespace MDSound.fmvgen
             {
                 byte[] buf = null;
                 int filePtr = 0;
-                uint fsize;
-                string fileName = "";
-                if (path != null && path != "")
-                    fileName = path;
-                fileName = fileName + "2608_";
-                fileName = fileName + rhythmname[i];
-                fileName = fileName + ".WAV";
 
-                try
+                uint fsize;
+                string fileName = string.Format("2608_{0}.WAV", rhythmname[i]);
+
+                using (Stream st = appendFileReaderCallback?.Invoke(fileName))
                 {
-                    buf = System.IO.File.ReadAllBytes(fileName);
-                }
-                catch
-                {
-                    buf = null;
+                    buf = ReadAllBytes(st);
                 }
 
                 if (buf == null)
                 {
                     if (i != 5)
                         break;
-                    if (path != null && path != "")
-                        fileName = path;
-                    fileName = fileName + "2608_RYM.WAV";
-                    try
+                    string fileNameRym = "2608_RYM.WAV";
+                    using (Stream st = appendFileReaderCallback?.Invoke(fileNameRym))
                     {
-                        buf = System.IO.File.ReadAllBytes(fileName);
-                    }
-                    catch
-                    {
-                        break;
+                        buf = ReadAllBytes(st);
                     }
                 }
 
@@ -598,6 +585,29 @@ namespace MDSound.fmvgen
                 return false;
             }
             return true;
+        }
+
+        /// <summary>
+        /// ストリームから一括でバイナリを読み込む
+        /// </summary>
+        private byte[] ReadAllBytes(Stream stream)
+        {
+            if (stream == null) return null;
+
+            var buf = new byte[8192];
+            using (var ms = new MemoryStream())
+            {
+                while (true)
+                {
+                    var r = stream.Read(buf, 0, buf.Length);
+                    if (r < 1)
+                    {
+                        break;
+                    }
+                    ms.Write(buf, 0, r);
+                }
+                return ms.ToArray();
+            }
         }
 
         // ---------------------------------------------------------------------------

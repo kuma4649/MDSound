@@ -1064,6 +1064,8 @@ namespace test
             return;
         }
 
+        static int dummy = 0;
+
         private static void EmuCallback(IntPtr userData, IntPtr stream, int len)
         {
             long bufCnt = len / 4;
@@ -1078,6 +1080,9 @@ namespace test
                 frames[i * 2 + 0] = emuRenderBuf[0];
                 frames[i * 2 + 1] = emuRenderBuf[1];
                 //Console.Write("Adr[{0:x8}] : Wait[{1:d8}] : [{2:d8}]/[{3:d8}]\r\n", vgmAdr, vgmWait, buf[0], buf[1]);
+                dummy++;
+                dummy %= 2000;
+                frames[i * 2 + 0] = (short)dummy;// (dummy < 100 ? 0xfff : 0x000);
             }
 
             Marshal.Copy(frames, 0, stream, len / 2);
@@ -1256,11 +1261,11 @@ namespace test
                     uint bAdr = vgmAdr + 7;
                     byte bType = vgmBuf[vgmAdr + 2];
                     uint bLen = GetLE32(vgmAdr + 3);
-                    byte chipID = 0;
+                    //byte chipID = 0;
                     if ((bLen & 0x80000000) != 0)
                     {
                         bLen &= 0x7fffffff;
-                        chipID = 1;
+                        //chipID = 1;
                     }
 
                     switch (bType & 0xc0)

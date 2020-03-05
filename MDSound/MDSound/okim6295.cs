@@ -407,6 +407,7 @@ namespace MDSound
 			//    for (i = 0; i < 1; i++)
 			{
 				ADPCMVoice voice = chip.voice[i];
+				infos[ChipID].chInfo[i].mask = voice.Muted == 0;
 				if (voice.Muted == 0)
 				{
 					int[][] buffer = outputs;
@@ -521,13 +522,15 @@ namespace MDSound
 
 			//info->master_clock = device->clock;
 			info.initial_clock = (uint)clock;
-			info.master_clock = (uint)clock & 0x7FFFFFFF;
+			info.master_clock = (uint)clock & 0x7FFF_FFFF;
 			info.pin7_state = (byte)(((uint)clock & 0x80000000) >> 31);
-            //ここでnullは不要
-            //info.SmpRateFunc=null;
+			infos[ChipID].masterClock = info.master_clock;
+			infos[ChipID].pin7State = info.pin7_state;
+			//ここでnullは不要
+			//info.SmpRateFunc=null;
 
-            /* generate the name and create the stream */
-            divisor = info.pin7_state != 0 ? 132 : 165;
+			/* generate the name and create the stream */
+			divisor = info.pin7_state != 0 ? 132 : 165;
 			//info->stream = stream_create(device, 0, 1, device->clock/divisor, info, okim6295_update);
 
 			// moved to device_reset
@@ -578,7 +581,9 @@ namespace MDSound
 				info.nmk_bank[i] = 0x00;
 			}
 			info.master_clock = info.initial_clock & 0x7FFFFFFF;
+			infos[ChipID].masterClock = info.master_clock;
 			info.pin7_state = (byte)((info.initial_clock & 0x80000000) >> 31);
+			infos[ChipID].pin7State = (byte)((info.initial_clock & 0x80000000) >> 31);
 
 			for (voice = 0; voice < okim6295_state.OKIM6295_VOICES; voice++)
 			{
@@ -638,11 +643,12 @@ namespace MDSound
         }
 
 		//void okim6295_set_pin7(running_device *device, int pin7)
-		private static void okim6295_set_pin7(okim6295_state info, int pin7)
+		private static void okim6295_set_pin7(okim6295_state info, int pin7,okim6295Info Info)
 		{
 			//okim6295_state *info = get_safe_token(device);
 			//int divisor = pin7 ? 132 : 165;
 
+			Info.pin7State = (byte)pin7;			
 			info.pin7_state = (byte)pin7;
 			//stream_set_sample_rate(info->stream, info->master_clock/divisor);
 			okim6295_clock_changed(info);
@@ -687,7 +693,7 @@ namespace MDSound
 		***********************************************************************************************/
 
 		//WRITE8_DEVICE_HANDLER( okim6295_w )
-		private void okim6295_write_command(okim6295_state info, byte data)
+		private void okim6295_write_command(okim6295_state info, byte data,okim6295Info Info)
 		{
 			//okim6295_state *info = get_safe_token(device);
 
@@ -719,11 +725,13 @@ namespace MDSound
 						start |= memory_raw_read_byte(info, iBase + 1) << 8;
 						start |= memory_raw_read_byte(info, iBase + 2) << 0;
 						start &= 0x3ffff;
+						Info.chInfo[i].stAdr = start;
 
 						stop = memory_raw_read_byte(info, iBase + 3) << 16;
 						stop |= memory_raw_read_byte(info, iBase + 4) << 8;
 						stop |= memory_raw_read_byte(info, iBase + 5) << 0;
 						stop &= 0x3ffff;
+						Info.chInfo[i].edAdr = stop;
 
 						/* set up the voice to play this sample */
 						if (start < stop)
@@ -738,6 +746,7 @@ namespace MDSound
 								/* also reset the ADPCM parameters */
 								reset_adpcm(voice.adpcm);
 								voice.volume = (uint)volume_table[data & 0x0f];
+								Info.keyon[i] = true;
 							}
 							else
 							{
@@ -794,28 +803,32 @@ namespace MDSound
 			switch (offset)
 			{
 				case 0x00:
-					okim6295_write_command(chip, data);
+					okim6295_write_command(chip, data, infos[ChipID]);
 					break;
 				case 0x08:
 					chip.master_clock &= ~((uint)0x000000FF);
 					chip.master_clock |= (uint)(data << 0);
+					infos[ChipID].masterClock = chip.master_clock;
 					break;
 				case 0x09:
 					chip.master_clock &= ~((uint)0x0000FF00);
 					chip.master_clock |= (uint)(data << 8);
+					infos[ChipID].masterClock = chip.master_clock;
 					break;
 				case 0x0A:
 					chip.master_clock &= ~((uint)0x00FF0000);
 					chip.master_clock |= (uint)(data << 16);
+					infos[ChipID].masterClock = chip.master_clock;
 					break;
 				case 0x0B:
                     data &= 0x7F;
                     chip.master_clock &= ~((uint)0xFF000000);
 					chip.master_clock |= (uint)(data << 24);
 					okim6295_clock_changed(chip);
+					infos[ChipID].masterClock = chip.master_clock;
 					break;
 				case 0x0C:
-					okim6295_set_pin7(chip, data);
+					okim6295_set_pin7(chip, data,infos[ChipID]);
 					break;
 				case 0x0E:  // NMK112 bank switch enable
 					chip.nmk_mode = data;
@@ -828,6 +841,7 @@ namespace MDSound
 				case 0x12:
 				case 0x13:
 					chip.nmk_bank[offset & 0x03] = data;
+					infos[ChipID].nmkBank[offset & 0x03] = data;
 					break;
 			}
 
@@ -925,6 +939,45 @@ namespace MDSound
             return 0;
         }
 
+		public okim6295Info ReadChInfo(byte ChipID)
+		{
+			retInfo.masterClock = infos[ChipID].masterClock;
+			retInfo.pin7State = infos[ChipID].pin7State;
+			retInfo.nmkBank = infos[ChipID].nmkBank;
+			retInfo.chInfo = infos[ChipID].chInfo;
+			retInfo.nmkBank[0] = infos[ChipID].nmkBank[0];
+			retInfo.nmkBank[1] = infos[ChipID].nmkBank[1];
+			retInfo.nmkBank[2] = infos[ChipID].nmkBank[2];
+			retInfo.nmkBank[3] = infos[ChipID].nmkBank[3];
+			retInfo.keyon[0] = infos[ChipID].keyon[0];
+			retInfo.keyon[1] = infos[ChipID].keyon[1];
+			retInfo.keyon[2] = infos[ChipID].keyon[2];
+			retInfo.keyon[3] = infos[ChipID].keyon[3];
+			infos[ChipID].keyon[0] = false;
+			infos[ChipID].keyon[1] = false;
+			infos[ChipID].keyon[2] = false;
+			infos[ChipID].keyon[3] = false;
+			return retInfo;
+		}
+
+		private okim6295Info[] infos = new okim6295Info[2] { new okim6295Info(), new okim6295Info() };
+		private okim6295Info retInfo = new okim6295Info();
+
+		public class okim6295ChInfo
+		{
+			public bool mask = false;
+			public int stAdr = 0;
+			public int edAdr = 0;
+		}
+
+		public class okim6295Info
+		{
+			public uint masterClock = 0;
+			public byte pin7State = 0;
+			public byte[] nmkBank = new byte[4];
+			public bool[] keyon = new bool[4];
+			public okim6295ChInfo[] chInfo = new okim6295ChInfo[4] { new okim6295ChInfo(), new okim6295ChInfo(), new okim6295ChInfo(), new okim6295ChInfo() };
+		}
 
         /**************************************************************************
 		 * Generic get_info
