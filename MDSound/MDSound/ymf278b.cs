@@ -292,10 +292,11 @@ namespace MDSound
 
         // decay level table (3dB per step)
         // 0 - 15: 0, 3, 6, 9,12,15,18,21,24,27,30,33,36,39,42,93 (dB)
-        private static UInt32 SC(UInt32 db) { return (UInt32)(db * (2.0 / ENV_STEP)); }
+        // private static UInt32 SC(UInt32 db) { return (UInt32)(db * (2.0 / ENV_STEP)); }
+        private static UInt32 SC(UInt32 db) { return (UInt32)(db / 3 * 0x20); }
         private UInt32[] dl_tab = new UInt32[16]{
-            SC( 0), SC( 1), SC( 2), SC(3 ), SC(4 ), SC(5 ), SC(6 ), SC( 7),
-            SC( 8), SC( 9), SC(10), SC(11), SC(12), SC(13), SC(14), SC(31)
+             SC( 0), SC( 3), SC( 6), SC( 9), SC(12), SC(15), SC(18), SC(21),
+             SC(24), SC(27), SC(30), SC(33), SC(36), SC(39), SC(42), SC(93)
         };
         //#undef SC
 
