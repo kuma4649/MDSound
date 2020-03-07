@@ -1474,7 +1474,17 @@ namespace MDSound.fmgen
             }
         }
 
-        public bool Init(uint c, uint r, bool ipflag = false, Func<string, Stream> appendFileReaderCallback = null)
+        public new bool Init(uint c, uint r)
+        {
+            return Init(c, r, false, "");
+        }
+
+        public bool Init(uint c, uint r, bool ipflag, string path)
+        {
+            return Init(c, r, ipflag, fname => CreateRhythmFileStream(path, fname));
+        }
+
+        public bool Init(uint c, uint r, bool ipflag, Func<string, Stream> appendFileReaderCallback = null)
         {
             rate = 8000;
             LoadRhythmSample(appendFileReaderCallback);
@@ -1508,6 +1518,17 @@ namespace MDSound.fmgen
             public uint align;
             public uint bps;
             public uint size;
+        }
+
+        private FileStream CreateRhythmFileStream(string dir, string fname)
+        {
+            string path = string.IsNullOrEmpty(dir) ? fname : Path.Combine(dir, fname);
+            return File.Exists(path) ? new FileStream(path, FileMode.Open, FileAccess.Read) : null;
+        }
+
+        public bool LoadRhythmSample(string path)
+        {
+            return LoadRhythmSample(fname => CreateRhythmFileStream(path, fname));
         }
 
         // ---------------------------------------------------------------------------

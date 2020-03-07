@@ -1,4 +1,8 @@
 更新履歴
+TAG026 2020/03/07
+  OPNA/OPNA2
+  ・TAG025の件、再修正しました。調整なしで使用できます(TAN-Yさんより)
+
 TAG025 2020/03/06
   OPNA/OPNA2
   ・LoadRhythmSample をファイルシステムに依存しないようにした(TAN-Yさんより)
