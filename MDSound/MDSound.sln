@@ -11,6 +11,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "document", "document", "{5C
 	ProjectSection(SolutionItems) = preProject
 		CHANGE.txt = CHANGE.txt
 		..\LICENSE.txt = ..\LICENSE.txt
+		..\makeZip.bat = ..\makeZip.bat
 		..\PSG2.txt = ..\PSG2.txt
 		..\README.md = ..\README.md
 		..\YM2609.txt = ..\YM2609.txt
