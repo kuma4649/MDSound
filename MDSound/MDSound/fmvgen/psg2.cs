@@ -5,9 +5,13 @@
 
         protected byte[] panpot = new byte[3];
         protected byte[] duty = new byte[3];
+        private rev rev;
+        private int revStartCh;
 
-        public PSG2()
+        public PSG2(rev rev, int revStartCh)
         {
+            this.rev = rev;
+            this.revStartCh = revStartCh;
         }
 
         ~PSG2()
@@ -102,7 +106,7 @@
                 p[1] = ((mask & 2) != 0 && (reg[9] & 0x10) != 0) ? (uint?)null : 1;
                 p[2] = ((mask & 4) != 0 && (reg[10] & 0x10) != 0) ? (uint?)null : 2;
 
-                int noise, sample, sampleL, sampleR;
+                int noise, sample, sampleL, sampleR,revSample;
                 uint env;
                 int nv = 0;
 
@@ -117,6 +121,7 @@
                         {
                             sampleL = 0;
                             sampleR = 0;
+                            revSample = 0;
                             sample = 0;
 
                             for (int j = 0; j < (1 << oversampling); j++)
@@ -147,14 +152,17 @@
 
                                     sampleL += (panpot[k] & 2) != 0 ? sample : 0;
                                     sampleR += (panpot[k] & 1) != 0 ? sample : 0;
+                                    revSample += (int)((sampleL + sampleR) / 2 * rev.SendLevel[revStartCh + k]);
                                     scount[k] += speriod[k];
                                 }
 
                             }
                             sampleL /= (1 << oversampling);
                             sampleR /= (1 << oversampling);
+                            revSample/= (1 << oversampling);
                             StoreSample(ref dest[ptrDest + 0], sampleL);
                             StoreSample(ref dest[ptrDest + 1], sampleR);
+                            rev.StoreData(revSample);
                             ptrDest += 2;
 
                             visVolume = sampleL;

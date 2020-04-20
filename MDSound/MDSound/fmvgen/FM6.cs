@@ -35,9 +35,14 @@ namespace MDSound.fmvgen
         public int wavecounter = 0;
 
         protected uint[] lfotable = new uint[8];
+        private rev rev;
+        private int revStartCh;
 
-        public FM6(int n)
+        public FM6(int n,rev rev,int revStartCh)
         {
+            this.rev = rev;
+            this.revStartCh = revStartCh;
+
             chip = new fmvgen.Chip();
 
             for (int i = 0; i < 6; i++)
@@ -349,13 +354,16 @@ namespace MDSound.fmvgen
                     MixSubS(activech, idest, ibuf);
                 }
 
-                int v = ((fmvgen.Limit(ibuf[2] + ibuf[3], 0x7fff, -0x8000) * fmvolume) >> 14);
-                fmvgen.StoreSample(ref buffer[dest + 0], v);// ((fmgen.Limit(ibuf[2] + ibuf[3], 0x7fff, -0x8000) * fmvolume) >> 14));
-                visVolume[0] = v;
+                int v1 = ((fmvgen.Limit(ibuf[2] + ibuf[3], 0x7fff, -0x8000) * fmvolume) >> 14);
+                fmvgen.StoreSample(ref buffer[dest + 0], v1);// ((fmgen.Limit(ibuf[2] + ibuf[3], 0x7fff, -0x8000) * fmvolume) >> 14));
+                visVolume[0] = v1;
 
-                v = ((fmvgen.Limit(ibuf[1] + ibuf[3], 0x7fff, -0x8000) * fmvolume) >> 14);
-                fmvgen.StoreSample(ref buffer[dest + 1], v);// ((fmgen.Limit(ibuf[1] + ibuf[3], 0x7fff, -0x8000) * fmvolume) >> 14));
-                visVolume[1] = v;
+                int v2 = ((fmvgen.Limit(ibuf[1] + ibuf[3], 0x7fff, -0x8000) * fmvolume) >> 14);
+                fmvgen.StoreSample(ref buffer[dest + 1], v2);// ((fmgen.Limit(ibuf[1] + ibuf[3], 0x7fff, -0x8000) * fmvolume) >> 14));
+                visVolume[1] = v2;
+
+                int r = ((fmvgen.Limit(ibuf[0], 0x7fff, -0x8000) * fmvolume) >> 14);
+                rev.StoreData(r);
             }
         }
 
@@ -367,36 +375,48 @@ namespace MDSound.fmvgen
                 v = ch[0].Calc();
                 buf[2] = (int)((dest[0] >> 1) * v * panL[0]);
                 buf[1] = (int)((dest[0] & 0x1) * v * panR[0]);
+
+                buf[0] = (int)((buf[2] + buf[1]) / 2 * rev.SendLevel[revStartCh + 0]);
             }
             if ((activech & 0x004) != 0)
             {
                 v = ch[1].Calc();
                 buf[2] += (int)((dest[1] >> 1) * v * panL[1]);
                 buf[1] += (int)((dest[1] & 0x1) * v * panR[1]);
+
+                buf[0] += (int)((buf[2] + buf[1]) / 2 * rev.SendLevel[revStartCh + 1]);
             }
             if ((activech & 0x010) != 0)
             {
                 v = ch[2].Calc();
                 buf[2] += (int)((dest[2] >> 1) * v * panL[2]);
                 buf[1] += (int)((dest[2] & 0x1) * v * panR[2]);
+
+                buf[0] += (int)((buf[2] + buf[1]) / 2 * rev.SendLevel[revStartCh + 2]);
             }
             if ((activech & 0x040) != 0)
             {
                 v = ch[3].Calc();
                 buf[2] += (int)((dest[3] >> 1) * v * panL[3]);
                 buf[1] += (int)((dest[3] & 0x1) * v * panR[3]);
+
+                buf[0] += (int)((buf[2] + buf[1]) / 2 * rev.SendLevel[revStartCh + 3]);
             }
             if ((activech & 0x100) != 0)
             {
                 v = ch[4].Calc();
                 buf[2] += (int)((dest[4] >> 1) * v * panL[4]);
                 buf[1] += (int)((dest[4] & 0x1) * v * panR[4]);
+
+                buf[0] += (int)((buf[2] + buf[1]) / 2 * rev.SendLevel[revStartCh + 4]);
             }
             if ((activech & 0x400) != 0)
             {
                 v = ch[5].Calc();
                 buf[2] += (int)((dest[5] >> 1) * v * panL[5]);
                 buf[1] += (int)((dest[5] & 0x1) * v * panR[5]);
+
+                buf[0] += (int)((buf[2] + buf[1]) / 2 * rev.SendLevel[revStartCh + 5]);
             }
         }
 
@@ -408,36 +428,48 @@ namespace MDSound.fmvgen
                 v = ch[0].CalcL();
                 buf[2] = (int)((dest[0] >> 1) * v * panL[0]);
                 buf[1] = (int)((dest[0] & 0x1) * v * panR[0]);
+
+                buf[0] = (int)((buf[2] + buf[1]) / 2 * rev.SendLevel[revStartCh + 0]);
             }
             if ((activech & 0x004) != 0)
             {
                 v = ch[1].CalcL();
                 buf[2] += (int)((dest[1] >> 1) * v * panL[1]);
                 buf[1] += (int)((dest[1] & 0x1) * v * panR[1]);
+
+                buf[0] += (int)((buf[2] + buf[1]) / 2 * rev.SendLevel[revStartCh + 1]);
             }
             if ((activech & 0x010) != 0)
             {
                 v = ch[2].CalcL();
                 buf[2] += (int)((dest[2] >> 1) * v * panL[2]);
                 buf[1] += (int)((dest[2] & 0x1) * v * panR[2]);
+
+                buf[0] += (int)((buf[2] + buf[1]) / 2 * rev.SendLevel[revStartCh + 2]);
             }
             if ((activech & 0x040) != 0)
             {
                 v = ch[3].CalcL();
                 buf[2] += (int)((dest[3] >> 1) * v * panL[3]);
                 buf[1] += (int)((dest[3] & 0x1) * v * panR[3]);
+
+                buf[0] += (int)((buf[2] + buf[1]) / 2 * rev.SendLevel[revStartCh + 3]);
             }
             if ((activech & 0x100) != 0)
             {
                 v = ch[4].CalcL();
                 buf[2] += (int)((dest[4] >> 1) * v * panL[4]);
                 buf[1] += (int)((dest[4] & 0x1) * v * panR[4]);
+
+                buf[0] += (int)((buf[2] + buf[1]) / 2 * rev.SendLevel[revStartCh + 4]);
             }
             if ((activech & 0x400) != 0)
             {
                 v = ch[5].CalcL();
                 buf[2] += (int)((dest[5] >> 1) * v * panL[5]);
                 buf[1] += (int)((dest[5] & 0x1) * v * panR[5]);
+
+                buf[0] += (int)((buf[2] + buf[1]) / 2 * rev.SendLevel[revStartCh + 5]);
             }
         }
 

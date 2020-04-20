@@ -6,10 +6,92 @@ using System.Text;
 
 namespace MDSound
 {
+    public class rev
+    {
+        private int[] Buf = null;
+        private int Pos = 0;
+        private int Delta = 0;
+        public double[] SendLevel = null;
+        private int currentCh = 0;
+
+        public rev(int bufSize, int ch)
+        {
+            this.Buf = new int[bufSize];
+            this.Pos = 0;
+            this.currentCh = 0;
+            SetDelta(64);
+
+            this.SendLevel = new double[ch];
+            for (int i = 0; i < ch; i++)
+            {
+                SetSendLevel(i, 13);
+            }
+        }
+
+        public void SetDelta(int n)
+        {
+            this.Delta = (int)Buf.Length / 128 * (127 - Math.Max(Math.Min(n, 127), 0));
+        }
+
+        public void SetSendLevel(int ch, int n)
+        {
+            if (n == 0)
+            {
+                SendLevel[ch] = 0;
+                return;
+            }
+            SendLevel[ch] = 1.0 / (2 << Math.Max(Math.Min((15 - n), 15), 0));
+        }
+
+        public int GetDataFromPos()
+        {
+            return Buf[Pos];
+        }
+
+        public void ClearDataAtPos()
+        {
+            Buf[Pos] = 0;
+        }
+
+        public void UpdatePos()
+        {
+            Pos = (1 + Pos) % Buf.Length;
+        }
+
+        //public void StoreData(int ch, int v)
+        //{
+            //int ptr = (Delta + Pos) % Buf.Length;
+            //Buf[ptr] += (int)(v * SendLevel[ch]);
+        //}
+
+        public void StoreData(int v)
+        {
+            int ptr = (Delta + Pos) % Buf.Length;
+            Buf[ptr] += (int)(v);
+        }
+
+        public void SetReg(uint adr, byte data)
+        {
+            if (adr == 0)
+            {
+                SetDelta(data & 0x7f);
+            }
+            else if (adr == 1)
+            {
+                currentCh = Math.Max(Math.Min(data & 0x3f, 30), 0);
+            }
+            else if (adr == 2)
+            {
+                SetSendLevel(currentCh, data & 0xf);
+            }
+        }
+    }
+
     public class ym2609 : Instrument
     {
         private fmvgen.OPNA2[] chip = new fmvgen.OPNA2[2];
         private const uint DefaultYM2609ClockValue = 8000000;
+        private rev[] rev = new rev[2];
 
         public override string Name { get { return "YM2609"; } set { } }
         public override string ShortName { get { return "OPNA2"; } set { } }
@@ -30,7 +112,8 @@ namespace MDSound
 
         public override uint Start(byte ChipID, uint clock)
         {
-            chip[ChipID] = new fmvgen.OPNA2();
+            rev[ChipID] = new rev((int)clock, 31);
+            chip[ChipID] = new fmvgen.OPNA2(rev[ChipID]);
             chip[ChipID].Init(DefaultYM2609ClockValue, clock);
 
             return clock;
@@ -38,7 +121,8 @@ namespace MDSound
 
         public override uint Start(byte ChipID, uint clock, uint FMClockValue, params object[] option)
         {
-            chip[ChipID] = new fmvgen.OPNA2();
+            rev[ChipID] = new rev((int)clock, 31);
+            chip[ChipID] = new fmvgen.OPNA2(rev[ChipID]);
 
             if (option != null && option.Length > 0 && option[0] is Func<string, Stream>)
             {
@@ -60,14 +144,21 @@ namespace MDSound
         public override void Update(byte ChipID, int[][] outputs, int samples)
         {
             int[] buffer = new int[2];
-            buffer[0] = 0;
-            buffer[1] = 0;
+            buffer[0] = rev[ChipID].GetDataFromPos()/2;
+            buffer[1] = rev[ChipID].GetDataFromPos()/2;
+
+            rev[ChipID].StoreData(rev[ChipID].GetDataFromPos() / 2);
+            rev[ChipID].ClearDataAtPos();
+
             chip[ChipID].Mix(buffer, 1);
             for (int i = 0; i < 1; i++)
             {
                 outputs[0][i] = buffer[i * 2 + 0];
                 outputs[1][i] = buffer[i * 2 + 1];
+
+                //rev[ChipID].StoreData(0, (outputs[0][i] + outputs[1][i]) / 2);
             }
+            rev[ChipID].UpdatePos();
 
             visVolume[ChipID][0][0] = outputs[0][0];
             visVolume[ChipID][0][1] = outputs[1][0];

@@ -10,17 +10,18 @@ namespace MDSound.fmvgen
     public class OPNA2 : fmgen.OPNABase
     {
         // リズム音源関係
-        private Rhythm[] rhythm = new Rhythm[6] { new Rhythm(), new Rhythm(), new Rhythm(), new Rhythm(), new Rhythm(), new Rhythm() };
+        private Rhythm[] rhythm = null;
 
         private sbyte rhythmtl;      // リズム全体の音量
         private int rhythmtvol;
         private byte rhythmkey;     // リズムのキー
 
-        protected FM6[] fm6 = new FM6[2] { new FM6(0), new FM6(1) };
-        protected PSG2[] psg2 = new PSG2[4] { new PSG2(), new PSG2(), new PSG2(), new PSG2() };
-        protected ADPCMB[] adpcmb = new ADPCMB[3] { new ADPCMB(), new ADPCMB(), new ADPCMB() };
+        protected FM6[] fm6 = null;
+        protected PSG2[] psg2 = null;
+        protected ADPCMB[] adpcmb = null;
 
         protected new byte prescale;
+        private rev rev;
 
         public class Rhythm
         {
@@ -32,6 +33,14 @@ namespace MDSound.fmvgen
             public uint pos;       // いち
             public uint step;      // すてっぷち
             public uint rate;      // さんぷるのれーと
+            public rev rev;
+            public int revCh;
+
+            public Rhythm(rev rev, int revCh)
+            {
+                this.rev = rev;
+                this.revCh = revCh;
+            }
         };
 
         public class whdr
@@ -50,8 +59,16 @@ namespace MDSound.fmvgen
         // ---------------------------------------------------------------------------
         //	構築
         //
-        public OPNA2()
+        public OPNA2(rev rev)
         {
+            this.rev = rev;
+            fm6 = new FM6[2] { new FM6(0, rev, 0), new FM6(1, rev, 6) };
+            psg2 = new PSG2[4] { new PSG2(rev,12), new PSG2(rev, 15), new PSG2(rev, 18), new PSG2(rev, 21) };
+            adpcmb = new ADPCMB[3] { new ADPCMB(rev, 22), new ADPCMB(rev,23), new ADPCMB(rev,24) };
+            rhythm = new Rhythm[6] { 
+                new Rhythm(rev, 25), new Rhythm(rev, 26), new Rhythm(rev, 27),
+                new Rhythm(rev, 28), new Rhythm(rev, 29), new Rhythm(rev, 30) };
+
             for (int i = 0; i < 6; i++)
             {
                 rhythm[i].sample = null;
@@ -177,6 +194,9 @@ namespace MDSound.fmvgen
             adpcmb[1].Mix(buffer, nsamples);
             adpcmb[2].Mix(buffer, nsamples);
             RhythmMix(buffer, nsamples);
+
+            //for (int i = 0; i < nsamples; i++)
+                //rev.StoreData(0, (buffer[i * 2 + 0] + buffer[i * 2 + 1]) / 2);
 
         }
 
@@ -307,6 +327,11 @@ namespace MDSound.fmvgen
             else if (addr >= 0x311 && addr < 0x322)
             {
                 AdpcmbSetReg(2, addr - 0x311, (byte)data);
+                return;
+            }
+            else if (addr >= 0x322 && addr < 0x325)
+            {
+                rev.SetReg(addr - 0x322, (byte)data);
                 return;
             }
             else if (addr >= 0x322 && addr < 0x330)
@@ -481,8 +506,12 @@ namespace MDSound.fmvgen
                         {
                             int sample = (r.sample[r.pos / 1024] * vol) >> 12;
                             r.pos += r.step;
-                            fmvgen.StoreSample(ref buffer[dest + 0], sample & maskl);
-                            fmvgen.StoreSample(ref buffer[dest + 1], sample & maskr);
+                            int sL = sample & maskl;
+                            int sR = sample & maskr;
+                            int revSample = (int)((sL + sR) / 2 * rev.SendLevel[r.revCh]);
+                            fmvgen.StoreSample(ref buffer[dest + 0], sL);
+                            fmvgen.StoreSample(ref buffer[dest + 1], sR);
+                            rev.StoreData(revSample);
                             visRtmVolume[0] += sample & maskl;
                             visRtmVolume[1] += sample & maskr;
                         }
