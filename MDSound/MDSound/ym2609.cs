@@ -24,13 +24,13 @@ namespace MDSound
             this.SendLevel = new double[ch];
             for (int i = 0; i < ch; i++)
             {
-                SetSendLevel(i, 13);
+                SetSendLevel(i, 0);
             }
         }
 
         public void SetDelta(int n)
         {
-            this.Delta = (int)Buf.Length / 128 * (127 - Math.Max(Math.Min(n, 127), 0));
+            this.Delta = (int)Buf.Length / 128 * Math.Max(Math.Min(n, 127), 0);
         }
 
         public void SetSendLevel(int ch, int n)
@@ -40,8 +40,18 @@ namespace MDSound
                 SendLevel[ch] = 0;
                 return;
             }
-            SendLevel[ch] = 1.0 / (2 << Math.Max(Math.Min((15 - n), 15), 0));
+            //SendLevel[ch] = 1.0 / (2 << Math.Max(Math.Min((15 - n), 15), 0));
+            n = Math.Max(Math.Min(n, 15), 0);
+            SendLevel[ch] = 1.0 * sl[n];
+            Console.WriteLine("{0} {1}", ch, SendLevel[ch]);
         }
+
+        private double[] sl = new double[16] {
+            0.0050000 , 0.0150000 , 0.0300000 , 0.0530000 ,
+            0.0680000 , 0.0800000 , 0.0960000 , 0.1300000 ,
+            0.2000000 , 0.3000000 , 0.4000000 , 0.5000000 ,
+            0.6000000 , 0.7000000 , 0.8000000 , 0.9000000
+        };
 
         public int GetDataFromPos()
         {
@@ -206,6 +216,12 @@ namespace MDSound
             if (chip[ChipID] == null) return;
 
             chip[ChipID].SetVolumeADPCM(db);
+        }
+
+        public void SetAdpcmA(byte ChipID, byte[] _adpcma, int _adpcma_size)
+        {
+            if (chip[ChipID] == null) return;
+            chip[ChipID].setAdpcmA(_adpcma, _adpcma_size);
         }
 
         public override int Write(byte ChipID, int port, int adr, int data)

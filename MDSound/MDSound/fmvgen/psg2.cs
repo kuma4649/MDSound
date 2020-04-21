@@ -152,7 +152,7 @@
 
                                     sampleL += (panpot[k] & 2) != 0 ? sample : 0;
                                     sampleR += (panpot[k] & 1) != 0 ? sample : 0;
-                                    revSample += (int)((sampleL + sampleR) / 2 * rev.SendLevel[revStartCh + k]);
+                                    revSample += (int)((sampleL + sampleR) / 2.0 * rev.SendLevel[revStartCh + k] * 0.6);
                                     scount[k] += speriod[k];
                                 }
 

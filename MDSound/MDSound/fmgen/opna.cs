@@ -1176,7 +1176,7 @@ namespace MDSound.fmgen
 
         public static int[] amtable = new int[fmgen.FM_LFOENTS];
         public static int[] pmtable = new int[fmgen.FM_LFOENTS];
-        protected static int[] tltable = new int[fmgen.FM_TLENTS + fmgen.FM_TLPOS];
+        public static int[] tltable = new int[fmgen.FM_TLENTS + fmgen.FM_TLPOS];
         protected static bool tablehasmade;
     };
 
@@ -2237,16 +2237,17 @@ namespace MDSound.fmgen
             return -1;
         }
 
+        int[] decode_tableA1 = new int[16]
+        {
+        -1*16, -1*16, -1*16, -1*16, 2*16, 5*16, 7*16, 9*16,
+        -1*16, -1*16, -1*16, -1*16, 2*16, 5*16, 7*16, 9*16
+        };
+
         // ---------------------------------------------------------------------------
         //	ADPCMA 合成
         //
         public void ADPCMAMix(int[] buffer, uint count)
         {
-            int[] decode_tableA1 = new int[16]
-            {
-        -1*16, -1*16, -1*16, -1*16, 2*16, 5*16, 7*16, 9*16,
-        -1*16, -1*16, -1*16, -1*16, 2*16, 5*16, 7*16, 9*16
-            };
 
             if (adpcmatvol < 128 && (adpcmakey & 0x3f)!=0)
             {
@@ -2309,14 +2310,15 @@ namespace MDSound.fmgen
             }
         }
 
-        public static void InitADPCMATable()
+        static sbyte[] table2 = new sbyte[]
         {
-            sbyte[] table2 = new sbyte[]
-            {
          1,  3,  5,  7,  9, 11, 13, 15,
         -1, -3, -5, -7, -9,-11,-13,-15,
-            };
+        };
 
+
+        public static void InitADPCMATable()
+        {
             for (int i = 0; i <= 48; i++)
             {
                 int s = (int)(16.0 * Math.Pow(1.1, i) * 3);

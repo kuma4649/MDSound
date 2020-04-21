@@ -19,6 +19,7 @@ namespace MDSound.fmvgen
         protected FM6[] fm6 = null;
         protected PSG2[] psg2 = null;
         protected ADPCMB[] adpcmb = null;
+        protected ADPCMA adpcma = null;
 
         protected new byte prescale;
         private rev rev;
@@ -68,6 +69,7 @@ namespace MDSound.fmvgen
             rhythm = new Rhythm[6] { 
                 new Rhythm(rev, 25), new Rhythm(rev, 26), new Rhythm(rev, 27),
                 new Rhythm(rev, 28), new Rhythm(rev, 29), new Rhythm(rev, 30) };
+            adpcma = new ADPCMA(rev, 31);
 
             for (int i = 0; i < 6; i++)
             {
@@ -114,10 +116,12 @@ namespace MDSound.fmvgen
 
         public bool Init(uint c, uint r, bool ipflag, string path)
         {
-            return Init(c, r, ipflag, fname => CreateRhythmFileStream(path, fname));
+            return Init(c, r, ipflag, fname => CreateRhythmFileStream(path, fname), null, 0);
         }
 
-        public bool Init(uint c, uint r, bool ipflag, Func<string, Stream> appendFileReaderCallback = null)
+        public bool Init(uint c, uint r, bool ipflag,
+            Func<string, Stream> appendFileReaderCallback = null,
+            byte[] _adpcma = null, int _adpcma_size = 0)
         {
             rate = 8000;
             LoadRhythmSample(appendFileReaderCallback);
@@ -135,6 +139,8 @@ namespace MDSound.fmvgen
             if (adpcmb[2].adpcmbuf == null)
                 return false;
 
+            setAdpcmA(_adpcma, _adpcma_size);
+
             if (!SetRate(c, r, ipflag))
                 return false;
             if (!base.Init(c, r, ipflag))
@@ -151,6 +157,12 @@ namespace MDSound.fmvgen
             SetChannelMask(0);
 
             return true;
+        }
+
+        public void setAdpcmA(byte[] _adpcma, int _adpcma_size)
+        {
+            adpcma.buf = _adpcma;
+            adpcma.size = _adpcma_size;
         }
 
         // ---------------------------------------------------------------------------
@@ -173,6 +185,7 @@ namespace MDSound.fmvgen
                 adpcmb[i].adpld = (int)(adpcmb[i].deltan * adpcmb[i].adplbase >> 16);
             }
 
+            adpcma.step = (int)((double)(c) / 54 * 8192 / r);
             return true;
         }
 
@@ -194,9 +207,9 @@ namespace MDSound.fmvgen
             adpcmb[1].Mix(buffer, nsamples);
             adpcmb[2].Mix(buffer, nsamples);
             RhythmMix(buffer, nsamples);
-
+            adpcma.Mix(buffer, (uint)nsamples);
             //for (int i = 0; i < nsamples; i++)
-                //rev.StoreData(0, (buffer[i * 2 + 0] + buffer[i * 2 + 1]) / 2);
+            //rev.StoreData(0, (buffer[i * 2 + 0] + buffer[i * 2 + 1]) / 2);
 
         }
 
@@ -300,7 +313,12 @@ namespace MDSound.fmvgen
                 AdpcmbSetReg(0, addr - 0x100, (byte)data);
                 return;
             }
-            else if (addr >= 0x111 && addr < 0x120)
+            else if (addr >= 0x111 && addr < 0x118)
+            {
+                adpcma.SetReg(addr - 0x111, (byte)data);
+                return;
+            }
+            else if (addr >= 0x118 && addr < 0x120)
             {
                 return;
             }
@@ -334,7 +352,7 @@ namespace MDSound.fmvgen
                 rev.SetReg(addr - 0x322, (byte)data);
                 return;
             }
-            else if (addr >= 0x322 && addr < 0x330)
+            else if (addr >= 0x325 && addr < 0x330)
             {
                 return;
             }
@@ -452,7 +470,7 @@ namespace MDSound.fmvgen
         // ---------------------------------------------------------------------------
         //	チャンネルマスクの設定
         //
-        public new void SetChannelMask(uint mask)
+        public void SetChannelMask(int mask)
         {
             for (int i = 0; i < 6; i++)
             {
