@@ -1,4 +1,7 @@
 更新履歴
+TAG030 2020/04/23
+  ・OPNA2 ADPCM-A PANとリバーブの修正
+
 TAG029 2020/04/21
   ・OPNA2にADPCM-A追加実装
 

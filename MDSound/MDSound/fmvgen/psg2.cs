@@ -5,12 +5,12 @@
 
         protected byte[] panpot = new byte[3];
         protected byte[] duty = new byte[3];
-        private rev rev;
+        private reverb reverb;
         private int revStartCh;
 
-        public PSG2(rev rev, int revStartCh)
+        public PSG2(reverb reverb, int revStartCh)
         {
-            this.rev = rev;
+            this.reverb = reverb;
             this.revStartCh = revStartCh;
         }
 
@@ -152,7 +152,7 @@
 
                                     sampleL += (panpot[k] & 2) != 0 ? sample : 0;
                                     sampleR += (panpot[k] & 1) != 0 ? sample : 0;
-                                    revSample += (int)((sampleL + sampleR) / 2.0 * rev.SendLevel[revStartCh + k] * 0.6);
+                                    revSample += (int)((sampleL + sampleR) / 2.0 * reverb.SendLevel[revStartCh + k] * 0.6);
                                     scount[k] += speriod[k];
                                 }
 
@@ -162,7 +162,7 @@
                             revSample/= (1 << oversampling);
                             StoreSample(ref dest[ptrDest + 0], sampleL);
                             StoreSample(ref dest[ptrDest + 1], sampleR);
-                            rev.StoreData(revSample);
+                            reverb.StoreData(revSample);
                             ptrDest += 2;
 
                             visVolume = sampleL;

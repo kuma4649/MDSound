@@ -49,12 +49,12 @@ namespace MDSound.fmvgen
         protected float[] panTable = new float[4] { 1.0f, 0.5012f, 0.2512f, 0.1000f };
         protected float panL = 1.0f;
         protected float panR = 1.0f;
-        private rev rev;
+        private reverb reverb;
         private int revCh;
 
-        public ADPCMB(rev rev, int revCh)
+        public ADPCMB(reverb reverb, int revCh)
         {
-            this.rev = rev;
+            this.reverb = reverb;
             this.revCh = revCh;
         }
 
@@ -85,10 +85,10 @@ namespace MDSound.fmvgen
                         int s = (adplc * apout0 + (8192 - adplc) * apout1) >> 13;
                         int sL = (int)((int)(s & maskl) * panL);
                         int sR = (int)((int)(s & maskr) * panR);
-                        int revSample = (int)((sL + sR) / 2 * rev.SendLevel[revCh]);
+                        int revSample = (int)((sL + sR) / 2 * reverb.SendLevel[revCh]);
                         fmvgen.StoreSample(ref dest[ptrDest + 0], sL);
                         fmvgen.StoreSample(ref dest[ptrDest + 1], sR);
-                        rev.StoreData(revSample);
+                        reverb.StoreData(revSample);
                         //visAPCMVolume[0] = (int)(s & maskl);
                         //visAPCMVolume[1] = (int)(s & maskr);
                         ptrDest += 2;
@@ -105,10 +105,10 @@ namespace MDSound.fmvgen
                         int s = (adplc * apout1) >> 13;
                         int sL = (int)((int)(s & maskl) * panL);
                         int sR = (int)((int)(s & maskr) * panR);
-                        int revSample = (int)((sL + sR) / 2 * rev.SendLevel[revCh]);
+                        int revSample = (int)((sL + sR) / 2 * reverb.SendLevel[revCh]);
                         fmvgen.StoreSample(ref dest[ptrDest + 0], sL);
                         fmvgen.StoreSample(ref dest[ptrDest + 1], sR);
-                        rev.StoreData(revSample);
+                        reverb.StoreData(revSample);
                         //visAPCMVolume[0] = (int)(s & maskl);
                         //visAPCMVolume[1] = (int)(s & maskr);
                         ptrDest += 2;
@@ -133,10 +133,10 @@ namespace MDSound.fmvgen
                         s >>= 13;
                         int sL = (int)((int)(s & maskl) * panL);
                         int sR = (int)((int)(s & maskr) * panR);
-                        int revSample = (int)((sL + sR) / 2 * rev.SendLevel[revCh]);
+                        int revSample = (int)((sL + sR) / 2 * reverb.SendLevel[revCh]);
                         fmvgen.StoreSample(ref dest[ptrDest + 0], sL);
                         fmvgen.StoreSample(ref dest[ptrDest + 1], sR);
-                        rev.StoreData(revSample);
+                        reverb.StoreData(revSample);
                         //visAPCMVolume[0] = (int)(s & maskl);
                         //visAPCMVolume[1] = (int)(s & maskr);
                         ptrDest += 2;

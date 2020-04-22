@@ -6,102 +6,13 @@ using System.Text;
 
 namespace MDSound
 {
-    public class rev
-    {
-        private int[] Buf = null;
-        private int Pos = 0;
-        private int Delta = 0;
-        public double[] SendLevel = null;
-        private int currentCh = 0;
-
-        public rev(int bufSize, int ch)
-        {
-            this.Buf = new int[bufSize];
-            this.Pos = 0;
-            this.currentCh = 0;
-            SetDelta(64);
-
-            this.SendLevel = new double[ch];
-            for (int i = 0; i < ch; i++)
-            {
-                SetSendLevel(i, 0);
-            }
-        }
-
-        public void SetDelta(int n)
-        {
-            this.Delta = (int)Buf.Length / 128 * Math.Max(Math.Min(n, 127), 0);
-        }
-
-        public void SetSendLevel(int ch, int n)
-        {
-            if (n == 0)
-            {
-                SendLevel[ch] = 0;
-                return;
-            }
-            //SendLevel[ch] = 1.0 / (2 << Math.Max(Math.Min((15 - n), 15), 0));
-            n = Math.Max(Math.Min(n, 15), 0);
-            SendLevel[ch] = 1.0 * sl[n];
-            Console.WriteLine("{0} {1}", ch, SendLevel[ch]);
-        }
-
-        private double[] sl = new double[16] {
-            0.0050000 , 0.0150000 , 0.0300000 , 0.0530000 ,
-            0.0680000 , 0.0800000 , 0.0960000 , 0.1300000 ,
-            0.2000000 , 0.3000000 , 0.4000000 , 0.5000000 ,
-            0.6000000 , 0.7000000 , 0.8000000 , 0.9000000
-        };
-
-        public int GetDataFromPos()
-        {
-            return Buf[Pos];
-        }
-
-        public void ClearDataAtPos()
-        {
-            Buf[Pos] = 0;
-        }
-
-        public void UpdatePos()
-        {
-            Pos = (1 + Pos) % Buf.Length;
-        }
-
-        //public void StoreData(int ch, int v)
-        //{
-            //int ptr = (Delta + Pos) % Buf.Length;
-            //Buf[ptr] += (int)(v * SendLevel[ch]);
-        //}
-
-        public void StoreData(int v)
-        {
-            int ptr = (Delta + Pos) % Buf.Length;
-            Buf[ptr] += (int)(v);
-        }
-
-        public void SetReg(uint adr, byte data)
-        {
-            if (adr == 0)
-            {
-                SetDelta(data & 0x7f);
-            }
-            else if (adr == 1)
-            {
-                currentCh = Math.Max(Math.Min(data & 0x3f, 30), 0);
-            }
-            else if (adr == 2)
-            {
-                SetSendLevel(currentCh, data & 0xf);
-            }
-        }
-    }
 
     public class ym2609 : Instrument
     {
         private fmvgen.OPNA2[] chip = new fmvgen.OPNA2[2];
         private const uint DefaultYM2609ClockValue = 8000000;
-        private rev[] rev = new rev[2];
+        private reverb[] reverb = new reverb[2];
+        private distortion[] distortion = new distortion[2];
 
         public override string Name { get { return "YM2609"; } set { } }
         public override string ShortName { get { return "OPNA2"; } set { } }
@@ -122,8 +33,9 @@ namespace MDSound
 
         public override uint Start(byte ChipID, uint clock)
         {
-            rev[ChipID] = new rev((int)clock, 31);
-            chip[ChipID] = new fmvgen.OPNA2(rev[ChipID]);
+            reverb[ChipID] = new reverb((int)clock, 37);
+            distortion[ChipID] = new distortion((int)clock, 37);
+            chip[ChipID] = new fmvgen.OPNA2(reverb[ChipID], distortion[ChipID]);
             chip[ChipID].Init(DefaultYM2609ClockValue, clock);
 
             return clock;
@@ -131,8 +43,9 @@ namespace MDSound
 
         public override uint Start(byte ChipID, uint clock, uint FMClockValue, params object[] option)
         {
-            rev[ChipID] = new rev((int)clock, 31);
-            chip[ChipID] = new fmvgen.OPNA2(rev[ChipID]);
+            reverb[ChipID] = new reverb((int)clock, 37);
+            distortion[ChipID] = new distortion((int)clock, 37);
+            chip[ChipID] = new fmvgen.OPNA2(reverb[ChipID],distortion[ChipID]);
 
             if (option != null && option.Length > 0 && option[0] is Func<string, Stream>)
             {
@@ -154,11 +67,11 @@ namespace MDSound
         public override void Update(byte ChipID, int[][] outputs, int samples)
         {
             int[] buffer = new int[2];
-            buffer[0] = rev[ChipID].GetDataFromPos()/2;
-            buffer[1] = rev[ChipID].GetDataFromPos()/2;
+            buffer[0] = reverb[ChipID].GetDataFromPos()/2;
+            buffer[1] = reverb[ChipID].GetDataFromPos()/2;
 
-            rev[ChipID].StoreData(rev[ChipID].GetDataFromPos() / 2);
-            rev[ChipID].ClearDataAtPos();
+            reverb[ChipID].StoreData(reverb[ChipID].GetDataFromPos() / 2);
+            reverb[ChipID].ClearDataAtPos();
 
             chip[ChipID].Mix(buffer, 1);
             for (int i = 0; i < 1; i++)
@@ -168,7 +81,7 @@ namespace MDSound
 
                 //rev[ChipID].StoreData(0, (outputs[0][i] + outputs[1][i]) / 2);
             }
-            rev[ChipID].UpdatePos();
+            reverb[ChipID].UpdatePos();
 
             visVolume[ChipID][0][0] = outputs[0][0];
             visVolume[ChipID][0][1] = outputs[1][0];

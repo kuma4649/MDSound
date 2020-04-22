@@ -22,7 +22,8 @@ namespace MDSound.fmvgen
         protected ADPCMA adpcma = null;
 
         protected new byte prescale;
-        private rev rev;
+        private reverb reverb;
+        private distortion distortion;
 
         public class Rhythm
         {
@@ -34,12 +35,12 @@ namespace MDSound.fmvgen
             public uint pos;       // いち
             public uint step;      // すてっぷち
             public uint rate;      // さんぷるのれーと
-            public rev rev;
+            public reverb reverb;
             public int revCh;
 
-            public Rhythm(rev rev, int revCh)
+            public Rhythm(reverb reverb, int revCh)
             {
-                this.rev = rev;
+                this.reverb = reverb;
                 this.revCh = revCh;
             }
         };
@@ -60,16 +61,18 @@ namespace MDSound.fmvgen
         // ---------------------------------------------------------------------------
         //	構築
         //
-        public OPNA2(rev rev)
+        public OPNA2(reverb reverb, distortion distortion)
         {
-            this.rev = rev;
-            fm6 = new FM6[2] { new FM6(0, rev, 0), new FM6(1, rev, 6) };
-            psg2 = new PSG2[4] { new PSG2(rev,12), new PSG2(rev, 15), new PSG2(rev, 18), new PSG2(rev, 21) };
-            adpcmb = new ADPCMB[3] { new ADPCMB(rev, 22), new ADPCMB(rev,23), new ADPCMB(rev,24) };
+            this.reverb = reverb;
+            this.distortion = distortion;
+
+            fm6 = new FM6[2] { new FM6(0, reverb, 0), new FM6(1, reverb, 6) };
+            psg2 = new PSG2[4] { new PSG2(reverb, 12), new PSG2(reverb, 15), new PSG2(reverb, 18), new PSG2(reverb, 21) };
+            adpcmb = new ADPCMB[3] { new ADPCMB(reverb, 22), new ADPCMB(reverb, 23), new ADPCMB(reverb, 24) };
             rhythm = new Rhythm[6] { 
-                new Rhythm(rev, 25), new Rhythm(rev, 26), new Rhythm(rev, 27),
-                new Rhythm(rev, 28), new Rhythm(rev, 29), new Rhythm(rev, 30) };
-            adpcma = new ADPCMA(rev, 31);
+                new Rhythm(reverb, 25), new Rhythm(reverb, 26), new Rhythm(reverb, 27),
+                new Rhythm(reverb, 28), new Rhythm(reverb, 29), new Rhythm(reverb, 30) };
+            adpcma = new ADPCMA(reverb, 31);
 
             for (int i = 0; i < 6; i++)
             {
@@ -208,10 +211,12 @@ namespace MDSound.fmvgen
             adpcmb[2].Mix(buffer, nsamples);
             RhythmMix(buffer, nsamples);
             adpcma.Mix(buffer, (uint)nsamples);
-            //for (int i = 0; i < nsamples; i++)
-            //rev.StoreData(0, (buffer[i * 2 + 0] + buffer[i * 2 + 1]) / 2);
 
+            //distortion.Mix(buffer, 1);
         }
+
+
+
 
         // ---------------------------------------------------------------------------
         //	リセット
@@ -349,7 +354,7 @@ namespace MDSound.fmvgen
             }
             else if (addr >= 0x322 && addr < 0x325)
             {
-                rev.SetReg(addr - 0x322, (byte)data);
+                reverb.SetReg(addr - 0x322, (byte)data);
                 return;
             }
             else if (addr >= 0x325 && addr < 0x330)
@@ -526,10 +531,10 @@ namespace MDSound.fmvgen
                             r.pos += r.step;
                             int sL = sample & maskl;
                             int sR = sample & maskr;
-                            int revSample = (int)((sL + sR) / 2 * rev.SendLevel[r.revCh]);
+                            int revSample = (int)((sL + sR) / 2 * reverb.SendLevel[r.revCh]);
                             fmvgen.StoreSample(ref buffer[dest + 0], sL);
                             fmvgen.StoreSample(ref buffer[dest + 1], sR);
-                            rev.StoreData(revSample);
+                            reverb.StoreData(revSample);
                             visRtmVolume[0] += sample & maskl;
                             visRtmVolume[1] += sample & maskr;
                         }

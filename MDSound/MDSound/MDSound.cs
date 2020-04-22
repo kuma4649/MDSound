@@ -1568,6 +1568,26 @@ namespace MDSound
             }
         }
 
+        public void WriteYM2609_SetAdpcmA(byte ChipID, byte[] Buf)
+        {
+            lock (lockobj)
+            {
+                if (!dicInst.ContainsKey(enmInstrumentType.YM2609)) return;
+
+                ((ym2609)(dicInst[enmInstrumentType.YM2609][0])).SetAdpcmA(ChipID, Buf, Buf.Length);
+            }
+        }
+
+        public void WriteYM2609_SetAdpcmA(int ChipIndex, byte ChipID, byte[] Buf)
+        {
+            lock (lockobj)
+            {
+                if (!dicInst.ContainsKey(enmInstrumentType.YM2609)) return;
+
+                ((ym2609)(dicInst[enmInstrumentType.YM2609][ChipIndex])).SetAdpcmA(ChipID, Buf, Buf.Length);
+            }
+        }
+
         #endregion
 
 

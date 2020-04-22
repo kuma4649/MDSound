@@ -35,12 +35,12 @@ namespace MDSound.fmvgen
         public int wavecounter = 0;
 
         protected uint[] lfotable = new uint[8];
-        private rev rev;
+        private reverb reverb;
         private int revStartCh;
 
-        public FM6(int n,rev rev,int revStartCh)
+        public FM6(int n, reverb reverb, int revStartCh)
         {
-            this.rev = rev;
+            this.reverb = reverb;
             this.revStartCh = revStartCh;
 
             chip = new fmvgen.Chip();
@@ -363,7 +363,7 @@ namespace MDSound.fmvgen
                 visVolume[1] = v2;
 
                 int r = ((fmvgen.Limit(ibuf[0], 0x7fff, -0x8000) * fmvolume) >> 14);
-                rev.StoreData(r);
+                reverb.StoreData(r);
             }
         }
 
@@ -376,7 +376,7 @@ namespace MDSound.fmvgen
                 buf[2] = (int)((dest[0] >> 1) * v * panL[0]);
                 buf[1] = (int)((dest[0] & 0x1) * v * panR[0]);
 
-                buf[0] = (int)((buf[2] + buf[1]) / 2 * rev.SendLevel[revStartCh + 0]);
+                buf[0] = (int)((buf[2] + buf[1]) / 2 * reverb.SendLevel[revStartCh + 0]);
             }
             if ((activech & 0x004) != 0)
             {
@@ -384,7 +384,7 @@ namespace MDSound.fmvgen
                 buf[2] += (int)((dest[1] >> 1) * v * panL[1]);
                 buf[1] += (int)((dest[1] & 0x1) * v * panR[1]);
 
-                buf[0] += (int)((buf[2] + buf[1]) / 2 * rev.SendLevel[revStartCh + 1]);
+                buf[0] += (int)((buf[2] + buf[1]) / 2 * reverb.SendLevel[revStartCh + 1]);
             }
             if ((activech & 0x010) != 0)
             {
@@ -392,7 +392,7 @@ namespace MDSound.fmvgen
                 buf[2] += (int)((dest[2] >> 1) * v * panL[2]);
                 buf[1] += (int)((dest[2] & 0x1) * v * panR[2]);
 
-                buf[0] += (int)((buf[2] + buf[1]) / 2 * rev.SendLevel[revStartCh + 2]);
+                buf[0] += (int)((buf[2] + buf[1]) / 2 * reverb.SendLevel[revStartCh + 2]);
             }
             if ((activech & 0x040) != 0)
             {
@@ -400,7 +400,7 @@ namespace MDSound.fmvgen
                 buf[2] += (int)((dest[3] >> 1) * v * panL[3]);
                 buf[1] += (int)((dest[3] & 0x1) * v * panR[3]);
 
-                buf[0] += (int)((buf[2] + buf[1]) / 2 * rev.SendLevel[revStartCh + 3]);
+                buf[0] += (int)((buf[2] + buf[1]) / 2 * reverb.SendLevel[revStartCh + 3]);
             }
             if ((activech & 0x100) != 0)
             {
@@ -408,7 +408,7 @@ namespace MDSound.fmvgen
                 buf[2] += (int)((dest[4] >> 1) * v * panL[4]);
                 buf[1] += (int)((dest[4] & 0x1) * v * panR[4]);
 
-                buf[0] += (int)((buf[2] + buf[1]) / 2 * rev.SendLevel[revStartCh + 4]);
+                buf[0] += (int)((buf[2] + buf[1]) / 2 * reverb.SendLevel[revStartCh + 4]);
             }
             if ((activech & 0x400) != 0)
             {
@@ -416,7 +416,7 @@ namespace MDSound.fmvgen
                 buf[2] += (int)((dest[5] >> 1) * v * panL[5]);
                 buf[1] += (int)((dest[5] & 0x1) * v * panR[5]);
 
-                buf[0] += (int)((buf[2] + buf[1]) / 2 * rev.SendLevel[revStartCh + 5]);
+                buf[0] += (int)((buf[2] + buf[1]) / 2 * reverb.SendLevel[revStartCh + 5]);
             }
         }
 
@@ -429,7 +429,7 @@ namespace MDSound.fmvgen
                 buf[2] = (int)((dest[0] >> 1) * v * panL[0]);
                 buf[1] = (int)((dest[0] & 0x1) * v * panR[0]);
 
-                buf[0] = (int)((buf[2] + buf[1]) / 2 * rev.SendLevel[revStartCh + 0]);
+                buf[0] = (int)((buf[2] + buf[1]) / 2 * reverb.SendLevel[revStartCh + 0]);
             }
             if ((activech & 0x004) != 0)
             {
@@ -437,7 +437,7 @@ namespace MDSound.fmvgen
                 buf[2] += (int)((dest[1] >> 1) * v * panL[1]);
                 buf[1] += (int)((dest[1] & 0x1) * v * panR[1]);
 
-                buf[0] += (int)((buf[2] + buf[1]) / 2 * rev.SendLevel[revStartCh + 1]);
+                buf[0] += (int)((buf[2] + buf[1]) / 2 * reverb.SendLevel[revStartCh + 1]);
             }
             if ((activech & 0x010) != 0)
             {
@@ -445,7 +445,7 @@ namespace MDSound.fmvgen
                 buf[2] += (int)((dest[2] >> 1) * v * panL[2]);
                 buf[1] += (int)((dest[2] & 0x1) * v * panR[2]);
 
-                buf[0] += (int)((buf[2] + buf[1]) / 2 * rev.SendLevel[revStartCh + 2]);
+                buf[0] += (int)((buf[2] + buf[1]) / 2 * reverb.SendLevel[revStartCh + 2]);
             }
             if ((activech & 0x040) != 0)
             {
@@ -453,7 +453,7 @@ namespace MDSound.fmvgen
                 buf[2] += (int)((dest[3] >> 1) * v * panL[3]);
                 buf[1] += (int)((dest[3] & 0x1) * v * panR[3]);
 
-                buf[0] += (int)((buf[2] + buf[1]) / 2 * rev.SendLevel[revStartCh + 3]);
+                buf[0] += (int)((buf[2] + buf[1]) / 2 * reverb.SendLevel[revStartCh + 3]);
             }
             if ((activech & 0x100) != 0)
             {
@@ -461,7 +461,7 @@ namespace MDSound.fmvgen
                 buf[2] += (int)((dest[4] >> 1) * v * panL[4]);
                 buf[1] += (int)((dest[4] & 0x1) * v * panR[4]);
 
-                buf[0] += (int)((buf[2] + buf[1]) / 2 * rev.SendLevel[revStartCh + 4]);
+                buf[0] += (int)((buf[2] + buf[1]) / 2 * reverb.SendLevel[revStartCh + 4]);
             }
             if ((activech & 0x400) != 0)
             {
@@ -469,7 +469,7 @@ namespace MDSound.fmvgen
                 buf[2] += (int)((dest[5] >> 1) * v * panL[5]);
                 buf[1] += (int)((dest[5] & 0x1) * v * panR[5]);
 
-                buf[0] += (int)((buf[2] + buf[1]) / 2 * rev.SendLevel[revStartCh + 5]);
+                buf[0] += (int)((buf[2] + buf[1]) / 2 * reverb.SendLevel[revStartCh + 5]);
             }
         }
 

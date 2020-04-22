@@ -9,9 +9,8 @@ namespace MDSound.fmvgen
         public OPNA2 parent = null;
         public class Channel
         {
-            public byte pan;      // ぱん
-            public byte panLm;      // ぱん
-            public byte panRm;      // ぱん
+            public float panL;      // ぱん
+            public float panR;      // ぱん
             public sbyte level;     // おんりょう
             public int volume;     // おんりょうせってい
             public uint pos;       // いち
@@ -37,7 +36,7 @@ namespace MDSound.fmvgen
         public int step;
         public byte[] reg = new byte[32];
         public static short[] jedi_table = new short[(48 + 1) * 16];
-        private rev rev = null;
+        private reverb reverb = null;
         private int revStartCh = 0;
 
         private sbyte[] table2 = new sbyte[]
@@ -53,16 +52,18 @@ namespace MDSound.fmvgen
         };
         private int currentCh;
         private bool currentIsLSB;
+        protected float[] panTable = new float[4] { 1.0f, 0.5012f, 0.2512f, 0.1000f };
 
-        public ADPCMA(rev rev,int revStartCh)
+        public ADPCMA(reverb reverb, int revStartCh)
         {
-            this.rev = rev;
+            this.reverb = reverb;
             this.revStartCh = revStartCh;
             this.buf = null;
             this.size = 0;
             for (int i = 0; i < 6; i++)
             {
-                channel[i].pan = 0;
+                channel[i].panL = 1.0f;
+                channel[i].panR = 1.0f;
                 channel[i].level = 0;
                 channel[i].volume = 0;
                 channel[i].pos = 0;
@@ -104,17 +105,14 @@ namespace MDSound.fmvgen
             {
                 //Sample* limit = buffer + count * 2;
                 uint limit = count * 2;
+                int revSample = 0;
                 for (int i = 0; i < 6; i++)
                 {
                     Channel r = channel[i];
                     if ((key & (1 << i)) != 0 && (byte)r.level < 128)
                     {
-                        uint maskl = (uint)((r.pan & 2) != 0 ? -1 : 0);
-                        uint maskr = (uint)((r.pan & 1) != 0 ? -1 : 0);
-                        //if ((mask_ & (1 << i)) != 0)
-                        //{
-                            //maskl = maskr = 0;
-                        //}
+                        //uint maskl = (uint)(r.panL == 0f ? -1 : 0);
+                        //uint maskr = (uint)(r.panR == 0f ? -1 : 0);
 
                         int db = fmvgen.Limit(tl + tvol + r.level + r.volume, 127, -31);
                         int vol = fmgen.OPNABase.tltable[fmvgen.FM_TLPOS + (db << (fmvgen.FM_TLBITS - 7))] >> 4;
@@ -150,14 +148,17 @@ namespace MDSound.fmvgen
                                 r.adpcmd += (short)decode_tableA1[data];
                                 r.adpcmd = (short)fmvgen.Limit(r.adpcmd, 48 * 16, 0);
                             }
-                            int sample = (r.adpcmx * vol) >> 10;
-                            fmvgen.StoreSample(ref buffer[dest + 0], (int)(sample & maskl));
-                            fmvgen.StoreSample(ref buffer[dest + 1], (int)(sample & maskr));
+                            int sampleL = (int)(((r.adpcmx * vol) >> 10) * r.panL);
+                            int sampleR = (int)(((r.adpcmx * vol) >> 10) * r.panR);
+                            fmvgen.StoreSample(ref buffer[dest + 0], sampleL);
+                            fmvgen.StoreSample(ref buffer[dest + 1], sampleR);
+                            revSample += (int)((sampleL + sampleR) / 2.0 * reverb.SendLevel[revStartCh + i] * 0.6);
                             //visRtmVolume[0] = (int)(sample & maskl);
                             //visRtmVolume[1] = (int)(sample & maskr);
                         }
                     }
                 }
+                reverb.StoreData(revSample);
             }
         }
 
@@ -202,9 +203,8 @@ namespace MDSound.fmvgen
                     break;
 
                 case 0x04:
-                    channel[currentCh].pan = (byte)(((data >> 6) & 2) | ((data >> 4) & 1));
-                    channel[currentCh].panLm = (byte)((data >> 5) & 3);
-                    channel[currentCh].panRm = (byte)((data >> 2) & 3);
+                    channel[currentCh].panL = panTable[((data >> 5) & 3) & 3] * ((data >> 7) & 1);
+                    channel[currentCh].panR = panTable[((data >> 2) & 3) & 3] * ((data >> 4) & 1);
                     break;
 
                 case 0x05:
