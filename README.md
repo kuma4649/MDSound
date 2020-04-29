@@ -60,6 +60,7 @@
  ・X68Sound.dll  
  ・TinyMPCM(仮)  
  ・Nuked-OPN2  
+ ・うつぼかずら氏作フィルタ、エフェクター  
   
 [SpecialThanks]  
  本ツールは以下の方々にお世話になっております。また以下のソフトウェア、ウェブページを参考、使用しています。  
@@ -77,5 +78,6 @@
   
  ・SMS Power!  
  ・DOBON.NET  
+ ・C++でVST作り  
  ・Wikipedia  
   

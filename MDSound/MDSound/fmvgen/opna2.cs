@@ -66,7 +66,7 @@ namespace MDSound.fmvgen
             this.reverb = reverb;
             this.distortion = distortion;
 
-            fm6 = new FM6[2] { new FM6(0, reverb, 0), new FM6(1, reverb, 6) };
+            fm6 = new FM6[2] { new FM6(0, reverb, distortion, 0), new FM6(1, reverb, distortion, 6) };
             psg2 = new PSG2[4] { new PSG2(reverb, 12), new PSG2(reverb, 15), new PSG2(reverb, 18), new PSG2(reverb, 21) };
             adpcmb = new ADPCMB[3] { new ADPCMB(reverb, 22), new ADPCMB(reverb, 23), new ADPCMB(reverb, 24) };
             rhythm = new Rhythm[6] { 
@@ -355,9 +355,15 @@ namespace MDSound.fmvgen
             else if (addr >= 0x322 && addr < 0x325)
             {
                 reverb.SetReg(addr - 0x322, (byte)data);
+                if (addr == 0x323) distortion.SetReg(0, (byte)data);//channel変更はアドレスを共有
                 return;
             }
-            else if (addr >= 0x325 && addr < 0x330)
+            else if (addr >= 0x325 && addr < 0x328)
+            {
+                distortion.SetReg(addr - 0x324, (byte)data);//distortionのアドレス0はリバーブと共有
+                return;
+            }
+            else if (addr >= 0x328 && addr < 0x330)
             {
                 return;
             }
