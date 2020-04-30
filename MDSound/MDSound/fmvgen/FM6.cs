@@ -372,6 +372,7 @@ namespace MDSound.fmvgen
         protected void MixSubS(int activech, int[] dest, int[] buf)
         {
             int v;
+            int L, R;
             if ((activech & 0x001) != 0)
             {
                 v = ch[0].Calc();
@@ -383,105 +384,123 @@ namespace MDSound.fmvgen
             if ((activech & 0x004) != 0)
             {
                 v = ch[1].Calc();
-                buf[2] += (int)((dest[1] >> 1) * v * panL[1]);
-                buf[1] += (int)((dest[1] & 0x1) * v * panR[1]);
+                L = (int)((dest[1] >> 1) * v * panL[1]);
+                R = (int)((dest[1] & 0x1) * v * panR[1]);
+                distortion.Mix(efcStartCh + 1, ref L, ref R);
+                buf[2] += L;
+                buf[1] += R;
 
-                distortion.Mix(efcStartCh + 1, ref buf[2], ref buf[1]);
-
-                buf[0] += (int)((buf[2] + buf[1]) / 2 * reverb.SendLevel[efcStartCh + 1]);
+                buf[0] += (int)((L + R) / 2 * reverb.SendLevel[efcStartCh + 1]);
             }
             if ((activech & 0x010) != 0)
             {
                 v = ch[2].Calc();
-                buf[2] += (int)((dest[2] >> 1) * v * panL[2]);
-                buf[1] += (int)((dest[2] & 0x1) * v * panR[2]);
+                L = (int)((dest[2] >> 1) * v * panL[2]);
+                R = (int)((dest[2] & 0x1) * v * panR[2]);
+                distortion.Mix(efcStartCh + 2, ref L, ref R);
+                buf[2] += L;
+                buf[1] += R;
 
-                distortion.Mix(efcStartCh + 2, ref buf[2], ref buf[1]);
-
-                buf[0] += (int)((buf[2] + buf[1]) / 2 * reverb.SendLevel[efcStartCh + 2]);
+                buf[0] += (int)((L + R) / 2 * reverb.SendLevel[efcStartCh + 2]);
             }
             if ((activech & 0x040) != 0)
             {
                 v = ch[3].Calc();
-                buf[2] += (int)((dest[3] >> 1) * v * panL[3]);
-                buf[1] += (int)((dest[3] & 0x1) * v * panR[3]);
+                L = (int)((dest[3] >> 1) * v * panL[3]);
+                R = (int)((dest[3] & 0x1) * v * panR[3]);
+                distortion.Mix(efcStartCh + 3, ref L, ref R);
+                buf[2] += L;
+                buf[1] += R;
 
-                distortion.Mix(efcStartCh + 3, ref buf[2], ref buf[1]);
-
-                buf[0] += (int)((buf[2] + buf[1]) / 2 * reverb.SendLevel[efcStartCh + 3]);
+                buf[0] += (int)((L + R) / 2 * reverb.SendLevel[efcStartCh + 3]);
             }
             if ((activech & 0x100) != 0)
             {
                 v = ch[4].Calc();
-                buf[2] += (int)((dest[4] >> 1) * v * panL[4]);
-                buf[1] += (int)((dest[4] & 0x1) * v * panR[4]);
+                L = (int)((dest[4] >> 1) * v * panL[4]);
+                R = (int)((dest[4] & 0x1) * v * panR[4]);
+                distortion.Mix(efcStartCh + 4, ref L, ref R);
+                buf[2] += L;
+                buf[1] += R;
 
-                distortion.Mix(efcStartCh + 4, ref buf[2], ref buf[1]);
-
-                buf[0] += (int)((buf[2] + buf[1]) / 2 * reverb.SendLevel[efcStartCh + 4]);
+                buf[0] += (int)((L + R) / 2 * reverb.SendLevel[efcStartCh + 4]);
             }
             if ((activech & 0x400) != 0)
             {
                 v = ch[5].Calc();
-                buf[2] += (int)((dest[5] >> 1) * v * panL[5]);
-                buf[1] += (int)((dest[5] & 0x1) * v * panR[5]);
+                L = (int)((dest[5] >> 1) * v * panL[5]);
+                R = (int)((dest[5] & 0x1) * v * panR[5]);
+                distortion.Mix(efcStartCh + 5, ref L, ref R);
+                buf[2] += L;
+                buf[1] += R;
 
-                distortion.Mix(efcStartCh + 5, ref buf[2], ref buf[1]);
-
-                buf[0] += (int)((buf[2] + buf[1]) / 2 * reverb.SendLevel[efcStartCh + 5]);
+                buf[0] += (int)((L + R) / 2 * reverb.SendLevel[efcStartCh + 5]);
             }
         }
 
         protected void MixSubSL(int activech, int[] dest, int[] buf)
         {
-            int v;
+            int v,L,R;
             if ((activech & 0x001) != 0)
             {
                 v = ch[0].CalcL();
                 buf[2] = (int)((dest[0] >> 1) * v * panL[0]);
                 buf[1] = (int)((dest[0] & 0x1) * v * panR[0]);
-
+                distortion.Mix(efcStartCh + 0, ref buf[2], ref buf[1]);
                 buf[0] = (int)((buf[2] + buf[1]) / 2 * reverb.SendLevel[efcStartCh + 0]);
             }
             if ((activech & 0x004) != 0)
             {
                 v = ch[1].CalcL();
-                buf[2] += (int)((dest[1] >> 1) * v * panL[1]);
-                buf[1] += (int)((dest[1] & 0x1) * v * panR[1]);
-
-                buf[0] += (int)((buf[2] + buf[1]) / 2 * reverb.SendLevel[efcStartCh + 1]);
+                L = (int)((dest[1] >> 1) * v * panL[1]);
+                R = (int)((dest[1] & 0x1) * v * panR[1]);
+                distortion.Mix(efcStartCh + 1, ref L, ref R);
+                buf[2] += L;
+                buf[1] += R;
+                buf[0] += (int)((L + R) / 2 * reverb.SendLevel[efcStartCh + 1]);
             }
             if ((activech & 0x010) != 0)
             {
                 v = ch[2].CalcL();
-                buf[2] += (int)((dest[2] >> 1) * v * panL[2]);
-                buf[1] += (int)((dest[2] & 0x1) * v * panR[2]);
-
-                buf[0] += (int)((buf[2] + buf[1]) / 2 * reverb.SendLevel[efcStartCh + 2]);
+                L = (int)((dest[2] >> 1) * v * panL[2]);
+                R = (int)((dest[2] & 0x1) * v * panR[2]);
+                distortion.Mix(efcStartCh + 2, ref L, ref R);
+                buf[2] += L;
+                buf[1] += R;
+                buf[0] += (int)((L + R) / 2 * reverb.SendLevel[efcStartCh + 2]);
             }
             if ((activech & 0x040) != 0)
             {
                 v = ch[3].CalcL();
-                buf[2] += (int)((dest[3] >> 1) * v * panL[3]);
-                buf[1] += (int)((dest[3] & 0x1) * v * panR[3]);
+                L = (int)((dest[3] >> 1) * v * panL[3]);
+                R = (int)((dest[3] & 0x1) * v * panR[3]);
+                distortion.Mix(efcStartCh + 3, ref L, ref R);
+                buf[2] += L;
+                buf[1] += R;
 
-                buf[0] += (int)((buf[2] + buf[1]) / 2 * reverb.SendLevel[efcStartCh + 3]);
+                buf[0] += (int)((L + R) / 2 * reverb.SendLevel[efcStartCh + 3]);
             }
             if ((activech & 0x100) != 0)
             {
                 v = ch[4].CalcL();
-                buf[2] += (int)((dest[4] >> 1) * v * panL[4]);
-                buf[1] += (int)((dest[4] & 0x1) * v * panR[4]);
+                L = (int)((dest[4] >> 1) * v * panL[4]);
+                R = (int)((dest[4] & 0x1) * v * panR[4]);
+                distortion.Mix(efcStartCh + 4, ref L, ref R);
+                buf[2] += L;
+                buf[1] += R;
 
-                buf[0] += (int)((buf[2] + buf[1]) / 2 * reverb.SendLevel[efcStartCh + 4]);
+                buf[0] += (int)((L + R) / 2 * reverb.SendLevel[efcStartCh + 4]);
             }
             if ((activech & 0x400) != 0)
             {
                 v = ch[5].CalcL();
-                buf[2] += (int)((dest[5] >> 1) * v * panL[5]);
-                buf[1] += (int)((dest[5] & 0x1) * v * panR[5]);
+                L = (int)((dest[5] >> 1) * v * panL[5]);
+                R = (int)((dest[5] & 0x1) * v * panR[5]);
+                distortion.Mix(efcStartCh + 5, ref L, ref R);
+                buf[2] += L;
+                buf[1] += R;
 
-                buf[0] += (int)((buf[2] + buf[1]) / 2 * reverb.SendLevel[efcStartCh + 5]);
+                buf[0] += (int)((L + R) / 2 * reverb.SendLevel[efcStartCh + 5]);
             }
         }
 

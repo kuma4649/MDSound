@@ -50,12 +50,14 @@ namespace MDSound.fmvgen
         protected float panL = 1.0f;
         protected float panR = 1.0f;
         private reverb reverb;
-        private int revCh;
+        private distortion distortion;
+        private int efcCh;
 
-        public ADPCMB(reverb reverb, int revCh)
+        public ADPCMB(reverb reverb, distortion distortion, int efcCh)
         {
             this.reverb = reverb;
-            this.revCh = revCh;
+            this.distortion = distortion;
+            this.efcCh = efcCh;
         }
 
         public void Mix(int[] dest, int count)
@@ -85,7 +87,8 @@ namespace MDSound.fmvgen
                         int s = (adplc * apout0 + (8192 - adplc) * apout1) >> 13;
                         int sL = (int)((int)(s & maskl) * panL);
                         int sR = (int)((int)(s & maskr) * panR);
-                        int revSample = (int)((sL + sR) / 2 * reverb.SendLevel[revCh]);
+                        distortion.Mix(efcCh, ref sL, ref sR);
+                        int revSample = (int)((sL + sR) / 2 * reverb.SendLevel[efcCh]);
                         fmvgen.StoreSample(ref dest[ptrDest + 0], sL);
                         fmvgen.StoreSample(ref dest[ptrDest + 1], sR);
                         reverb.StoreData(revSample);
@@ -105,7 +108,7 @@ namespace MDSound.fmvgen
                         int s = (adplc * apout1) >> 13;
                         int sL = (int)((int)(s & maskl) * panL);
                         int sR = (int)((int)(s & maskr) * panR);
-                        int revSample = (int)((sL + sR) / 2 * reverb.SendLevel[revCh]);
+                        int revSample = (int)((sL + sR) / 2 * reverb.SendLevel[efcCh]);
                         fmvgen.StoreSample(ref dest[ptrDest + 0], sL);
                         fmvgen.StoreSample(ref dest[ptrDest + 1], sR);
                         reverb.StoreData(revSample);
@@ -133,7 +136,7 @@ namespace MDSound.fmvgen
                         s >>= 13;
                         int sL = (int)((int)(s & maskl) * panL);
                         int sR = (int)((int)(s & maskr) * panR);
-                        int revSample = (int)((sL + sR) / 2 * reverb.SendLevel[revCh]);
+                        int revSample = (int)((sL + sR) / 2 * reverb.SendLevel[efcCh]);
                         fmvgen.StoreSample(ref dest[ptrDest + 0], sL);
                         fmvgen.StoreSample(ref dest[ptrDest + 1], sR);
                         reverb.StoreData(revSample);

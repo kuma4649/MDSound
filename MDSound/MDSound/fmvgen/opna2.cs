@@ -36,12 +36,14 @@ namespace MDSound.fmvgen
             public uint step;      // すてっぷち
             public uint rate;      // さんぷるのれーと
             public reverb reverb;
-            public int revCh;
+            public distortion distortion;
+            public int efcCh;
 
-            public Rhythm(reverb reverb, int revCh)
+            public Rhythm(reverb reverb, distortion distortion, int efcCh)
             {
                 this.reverb = reverb;
-                this.revCh = revCh;
+                this.distortion = distortion;
+                this.efcCh = efcCh;
             }
         };
 
@@ -67,12 +69,12 @@ namespace MDSound.fmvgen
             this.distortion = distortion;
 
             fm6 = new FM6[2] { new FM6(0, reverb, distortion, 0), new FM6(1, reverb, distortion, 6) };
-            psg2 = new PSG2[4] { new PSG2(reverb, 12), new PSG2(reverb, 15), new PSG2(reverb, 18), new PSG2(reverb, 21) };
-            adpcmb = new ADPCMB[3] { new ADPCMB(reverb, 22), new ADPCMB(reverb, 23), new ADPCMB(reverb, 24) };
+            psg2 = new PSG2[4] { new PSG2(reverb, distortion, 12), new PSG2(reverb, distortion, 15), new PSG2(reverb, distortion, 18), new PSG2(reverb, distortion, 21) };
+            adpcmb = new ADPCMB[3] { new ADPCMB(reverb, distortion, 22), new ADPCMB(reverb, distortion, 23), new ADPCMB(reverb, distortion, 24) };
             rhythm = new Rhythm[6] { 
-                new Rhythm(reverb, 25), new Rhythm(reverb, 26), new Rhythm(reverb, 27),
-                new Rhythm(reverb, 28), new Rhythm(reverb, 29), new Rhythm(reverb, 30) };
-            adpcma = new ADPCMA(reverb, 31);
+                new Rhythm(reverb,distortion, 25), new Rhythm(reverb,distortion, 26), new Rhythm(reverb,distortion, 27),
+                new Rhythm(reverb,distortion, 28), new Rhythm(reverb,distortion, 29), new Rhythm(reverb,distortion, 30) };
+            adpcma = new ADPCMA(reverb, distortion, 31);
 
             for (int i = 0; i < 6; i++)
             {
@@ -537,7 +539,8 @@ namespace MDSound.fmvgen
                             r.pos += r.step;
                             int sL = sample & maskl;
                             int sR = sample & maskr;
-                            int revSample = (int)((sL + sR) / 2 * reverb.SendLevel[r.revCh]);
+                            distortion.Mix(r.efcCh, ref sL, ref sR);
+                            int revSample = (int)((sL + sR) / 2 * reverb.SendLevel[r.efcCh]);
                             fmvgen.StoreSample(ref buffer[dest + 0], sL);
                             fmvgen.StoreSample(ref buffer[dest + 1], sR);
                             reverb.StoreData(revSample);

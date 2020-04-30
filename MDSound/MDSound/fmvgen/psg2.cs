@@ -6,12 +6,14 @@
         protected byte[] panpot = new byte[3];
         protected byte[] duty = new byte[3];
         private reverb reverb;
-        private int revStartCh;
+        private distortion distortion;
+        private int efcStartCh;
 
-        public PSG2(reverb reverb, int revStartCh)
+        public PSG2(reverb reverb, distortion distortion, int efcStartCh)
         {
             this.reverb = reverb;
-            this.revStartCh = revStartCh;
+            this.distortion = distortion;
+            this.efcStartCh = efcStartCh;
         }
 
         ~PSG2()
@@ -150,9 +152,13 @@
                                         sample = (int)((olevel[k] * x) >> 2);
                                     }
 
-                                    sampleL += (panpot[k] & 2) != 0 ? sample : 0;
-                                    sampleR += (panpot[k] & 1) != 0 ? sample : 0;
-                                    revSample += (int)((sampleL + sampleR) / 2.0 * reverb.SendLevel[revStartCh + k] * 0.6);
+                                    int L = (panpot[k] & 2) != 0 ? sample : 0;
+                                    int R = (panpot[k] & 1) != 0 ? sample : 0;
+                                    distortion.Mix(efcStartCh + k, ref L, ref R);
+                                    revSample += (int)((L + R) / 2.0 * reverb.SendLevel[efcStartCh + k] * 0.6);
+
+                                    sampleL += L;
+                                    sampleR += R;
                                     scount[k] += speriod[k];
                                 }
 
