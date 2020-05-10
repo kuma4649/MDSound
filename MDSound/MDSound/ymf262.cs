@@ -327,6 +327,7 @@ namespace MDSound
         {
             //ymf262_state *info = get_safe_token(device);
             ymf262_state info = YMF262Data[ChipID];
+            if (info.chip == null) return;
 
             switch (EMU_CORE)
             {
