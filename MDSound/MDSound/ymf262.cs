@@ -37,6 +37,7 @@ namespace MDSound
         {
             ymf262_stream_update(ChipID, outputs, samples);
 
+            //common.write("output {0} {1}", outputs[0][0], outputs[1][0]);
             visVolume[ChipID][0][0] = outputs[0][0];
             visVolume[ChipID][0][1] = outputs[1][0];
         }
@@ -3794,13 +3795,15 @@ differences between OPL2 and OPL3 shown in datasheets:
             op_pt.generator_pos += chip.generator_add;
         }
 
+        Random rnd = new Random();
+
         private void operator_advance_drums(OPL_DATA chip, op_type op_pt1, Int32 vib1, op_type op_pt2, Int32 vib2, op_type op_pt3, Int32 vib3)
         {
             UInt32 c1 = op_pt1.tcount / FIXEDPT;
             UInt32 c3 = op_pt3.tcount / FIXEDPT;
             UInt32 phasebit = (UInt32)((((c1 & 0x88) ^ ((c1 << 5) & 0x80)) | ((c3 ^ (c3 << 2)) & 0x20)) != 0 ? 0x02 : 0x00);
 
-            UInt32 noisebit = (UInt32)((new System.Random()).Next() & 1);// rand() & 1;
+            UInt32 noisebit = (UInt32)(rnd.Next() & 1);// rand() & 1;
 
             UInt32 snare_phase_bit = (((UInt32)((op_pt1.tcount / FIXEDPT) / 0x100)) & 1);
 

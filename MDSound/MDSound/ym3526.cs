@@ -264,6 +264,8 @@ namespace MDSound
         {
             //ym3526_state *info = get_safe_token(device);
             ym3526_state info = YM3526Data[ChipID];
+            if (info==null || info.chip == null) return;
+
             ym3526_write(info.chip, offset & 1, data);
         }
 

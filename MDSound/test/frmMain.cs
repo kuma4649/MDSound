@@ -250,7 +250,7 @@ namespace test
 
         private void DriverActionMain()
         {
-            OneFrameVGM();
+            //OneFrameVGM();
         }
 
         private void DriverActionFinal()
@@ -1075,18 +1075,24 @@ namespace test
 
             for (int i = 0; i < bufCnt; i++)
             {
-                mds.Update(emuRenderBuf, 0, 2, OneFrameVGMStream);
+                //mds.Update(emuRenderBuf, 0, 2, OneFrameVGMStream);
+                mds.Update(emuRenderBuf, 0, 2, OneFrameVGMaaa);
 
                 frames[i * 2 + 0] = emuRenderBuf[0];
                 frames[i * 2 + 1] = emuRenderBuf[1];
-                //Console.Write("Adr[{0:x8}] : Wait[{1:d8}] : [{2:d8}]/[{3:d8}]\r\n", vgmAdr, vgmWait, buf[0], buf[1]);
-                dummy++;
-                dummy %= 2000;
-                frames[i * 2 + 0] = (short)dummy;// (dummy < 100 ? 0xfff : 0x000);
+                //Console.Write("Adr[{0:x8}] : Wait[{1:d8}] : [{2:d8}]/[{3:d8}]\r\n", vgmAdr,0,0,0);
+                //dummy++;
+                //dummy %= 2000;
+                //frames[i * 2 + 0] = (short)dummy;// (dummy < 100 ? 0xfff : 0x000);
             }
 
             Marshal.Copy(frames, 0, stream, len / 2);
 
+        }
+
+        private static void OneFrameVGMaaa()
+        {
+            OneFrameVGM();
         }
 
         private static void OneFrameVGM()
@@ -1224,7 +1230,8 @@ namespace test
                     rAdr = vgmBuf[vgmAdr + 1];
                     rDat = vgmBuf[vgmAdr + 2];
                     vgmAdr += 3;
-                    //mds.WriteYMF262(0, 0, rAdr, rDat);
+                    
+                    mds.WriteYMF262(0, 0, rAdr, rDat);
                     //mds.WriteYMF278B(0, 0, rAdr, rDat);
                     //Console.WriteLine("P0:adr{0:x2}:dat{1:x2}", rAdr, rDat);
                     break;
@@ -1232,7 +1239,8 @@ namespace test
                     rAdr = vgmBuf[vgmAdr + 1];
                     rDat = vgmBuf[vgmAdr + 2];
                     vgmAdr += 3;
-                    //mds.WriteYMF262(0, 1, rAdr, rDat);
+                    
+                    mds.WriteYMF262(0, 1, rAdr, rDat);
                     //mds.WriteYMF278B(0, 1, rAdr, rDat);
                     //Console.WriteLine("P1:adr{0:x2}:dat{1:x2}", rAdr, rDat);
 

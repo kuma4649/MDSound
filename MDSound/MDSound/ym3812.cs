@@ -346,6 +346,8 @@ namespace MDSound
         {
             //ym3812_state *info = get_safe_token(device);
             ym3812_state info = YM3812Data[ChipID];
+            if (info == null || info.chip == null) return;
+
             switch (EMU_CORE)
             {
                 //# ifdef ENABLE_ALL_CORES
