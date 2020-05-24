@@ -16,6 +16,9 @@
   </PropertyGroup>
   <PropertyGroup>
     <StartupObject />
+    <Description>vgm chip emu</Description>
+    <Authors>kuma</Authors>
+    <Version>1.0.1</Version>
   </PropertyGroup>
   <ItemGroup>
     <Content Include="fmgen\readme.txt" />

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package >
+  <metadata>
+    <id>$id$</id>
+    <version>$version$</version>
+    <title>$title$</title>
+    <authors>$author$</authors>
+    <owners>$author$</owners>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <license type="expression">GPL-3.0-or-later</license>
+    <projectUrl>https://github.com/kuma4649/MDSound</projectUrl>
+    <iconUrl>https://github.com/kuma4649/MDSound</iconUrl>
+    <description>$description$</description>
+    <releaseNotes>Summary of changes made in this release of the package.</releaseNotes>
+    <copyright>Copyright 2020</copyright>
+    <tags>vgm audio</tags>
+  </metadata>
+</package>
