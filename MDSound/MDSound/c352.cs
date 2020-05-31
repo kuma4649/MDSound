@@ -7,6 +7,8 @@ namespace MDSound
 {
     public class c352 : Instrument
     {
+        private short[] mulaw_table=new short[256];
+        private int[] _out = new int[4];
 
         public c352()
         {
@@ -15,6 +17,8 @@ namespace MDSound
                 , new int[1][] { new int[2] { 0, 0 } }
             };
             //0..Main
+
+            makeMulawTable();
         }
 
         public override void Reset(byte ChipID)
@@ -49,6 +53,28 @@ namespace MDSound
             return (uint)device_start_c352(ChipID, (int)clock, bytC352ClkDiv*4);
         }
 
+
+
+        private void makeMulawTable()
+        {
+            int i, j = 0;
+            for (i = 0; i < 128; i++)
+            {
+                mulaw_table[i] = (short)(j << 5);
+                if (i < 16)
+                    j += 1;
+                else if (i < 24)
+                    j += 2;
+                else if (i < 48)
+                    j += 4;
+                else if (i < 100)
+                    j += 8;
+                else
+                    j += 16;
+            }
+            for (i = 128; i < 256; i++)
+                mulaw_table[i] = (short)((~mulaw_table[i - 128]) & 0xffe0);
+        }
 
 
         //        // license:BSD-3-Clause
@@ -157,7 +183,7 @@ namespace MDSound
         public override string Name { get { return "C352"; } set { } }
         public override string ShortName { get { return "C352"; } set { } }
 
-        private static void C352_fetch_sample(C352 c, C352_Voice v)
+        private void C352_fetch_sample(C352 c, C352_Voice v)
         {
             //Console.WriteLine("v->sample = {0}  v->pos = {1}  c->wave_mask = {2}  v->flags ={3} ", v.sample, v.pos, c.wave_mask, v.flags);
 
@@ -171,19 +197,20 @@ namespace MDSound
             }
             else
             {
-                sbyte s, s2;
+                sbyte s;
                 ushort pos;
 
-                s = (sbyte)c.wave[v.pos & c.wave_mask];
+                s = (sbyte)(v.pos < c.wave.Length ? c.wave[v.pos & c.wave_mask] : 0);
 
                 v.sample = (short)(s << 8);
                 //if (v.flags & C352_FLG_MULAW)
                 if ((v.flags & 0x0008) != 0)
                 {
-                    s2 = (sbyte)((s & 0x7f) >> 4);
+                    //s2 = (sbyte)((s & 0x7f) >> 4);
 
-                    v.sample = (short)(((s2 * s2) << 4) - (~(s2 << 1)) * (s & 0x0f));
-                    v.sample = (short)(((s & 0x80) != 0) ? ((~v.sample) << 5) : (v.sample << 5));
+                    v.sample = mulaw_table[(byte)s];
+                    //v.sample = (short)(((s2 * s2) << 4) - (~(s2 << 1)) * (s & 0x0f));
+                    //v.sample = (short)(((s & 0x80) != 0) ? ((~v.sample) << 5) : (v.sample << 5));
                 }
 
                 pos = (ushort)(v.pos & 0xffff);
@@ -240,11 +267,18 @@ namespace MDSound
 
         private static void c352_ramp_volume(C352_Voice v, int ch, byte val)
         {
+            if((v.flags & (int)C352_FLG.FILTER) != 0)
+            {
+                v.curr_vol[ch] = val;
+                return;
+            }
+
             short vol_delta = (short)(v.curr_vol[ch] - val);
             if (vol_delta != 0)
                 v.curr_vol[ch] = (byte)(v.curr_vol[ch] + ((vol_delta > 0) ? -1 : 1));
             //Console.WriteLine("v.curr_vol[ch{0}] = {1} val={2}", ch, v.curr_vol[ch], val);
         }
+
 
         private void c352_update(byte ChipID, int[][] outputs, int samples)
         {
@@ -254,7 +288,6 @@ namespace MDSound
             int next_counter;
             C352_Voice v;
 
-            int[] _out = new int[4];
             //short[] _out = new short[4];
 
             for (i = 0; i < samples; i++)
