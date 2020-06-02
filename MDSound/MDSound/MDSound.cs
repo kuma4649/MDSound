@@ -2849,6 +2849,19 @@ namespace MDSound
             }
         }
 
+        public void SetVolumeQSoundCtr(int vol)
+        {
+            if (!dicInst.ContainsKey(enmInstrumentType.QSoundCtr)) return;
+
+            if (insts == null) return;
+
+            foreach (Chip c in insts)
+            {
+                if (c.type != enmInstrumentType.QSoundCtr) continue;
+                c.Volume = Math.Max(Math.Min(vol, 20), -192);
+            }
+        }
+
         public void SetVolumeDMG(int vol)
         {
             if (!dicInst.ContainsKey(enmInstrumentType.DMG)) return;
