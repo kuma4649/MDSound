@@ -87,7 +87,7 @@ namespace MDSound
 			qsoundc_wait_busy(ChipID);
 		}
 
-		private void qsound_w(byte ChipID, int offset, byte data)
+		public void qsound_w(byte ChipID, int offset, byte data)
 		{
 			if (key_on_hack != 0)
 			{
@@ -187,28 +187,33 @@ namespace MDSound
 
 		private int CLAMP(int x, int low, int high)
 		{
-			return (((x) > (high)) ? (high) : (((x) < (low)) ? (low) : (x)));
+			//return (((x) > (high)) ? (high) : (((x) < (low)) ? (low) : (x)));
+			if (x > high) 
+				return high;
+			if (x < low) 
+				return low;
+			return x;
 		}
 
-		class qsound_voice
-		{
-			public ushort bank = 0;
-			public ushort addr = 0; // top word is the sample address
-			public ushort phase = 0;
-			public ushort rate = 0;
-			public short loop_len = 0;
-			public short end_addr = 0;
-			public short volume = 0;
-			public short echo = 0;
-		};
+		//class qsound_voice
+		//{
+			//public ushort bank = 0;
+			//public ushort addr = 0; // top word is the sample address
+			//public ushort phase = 0;
+			//public ushort rate = 0;
+			//public short loop_len = 0;
+			//public short end_addr = 0;
+			//public short volume = 0;
+			//public short echo = 0;
+		//};
 
 		class qsound_adpcm
 		{
-			public ushort start_addr = 0;
-			public ushort end_addr = 0;
-			public ushort bank = 0;
-			public short volume = 0;
-			public ushort flag = 0;
+			//public ushort start_addr = 0;
+			//public ushort end_addr = 0;
+			//public ushort bank = 0;
+			//public short volume = 0;
+			//public ushort flag = 0;
 			public short cur_vol = 0;
 			public short step_size = 0;
 			public ushort cur_addr = 0;
@@ -219,7 +224,7 @@ namespace MDSound
 		{
 			public int tap_count = 0;  // usually 95
 			public int delay_pos = 0;
-			public short table_pos = 0;
+			//public short table_pos = 0;
 			public short[] taps = new short[95];
 			public short[] delay_line = new short[95];
 		};
@@ -227,8 +232,8 @@ namespace MDSound
 		// Delay line
 		class qsound_delay
 		{
-			public short delay;
-			public short volume;
+			//public short delay;
+			//public short volume;
 			public short write_pos;
 			public short read_pos;
 			public short[] delay_line = new short[51];
@@ -236,9 +241,9 @@ namespace MDSound
 
 		class qsound_echo
 		{
-			public ushort end_pos;
+			//public ushort end_pos;
 
-			public short feedback;
+			//public short feedback;
 			public short length;
 			public short last_sample;
 			public short[] delay_line = new short[1024];
@@ -263,29 +268,39 @@ namespace MDSound
 				new short[2][]{ new short[98], new short[98] }
 			};
 
-			public qsound_voice[] voice = new qsound_voice[16];
+			//public qsound_voice[] voice = new qsound_voice[16];
 			public qsound_adpcm[] adpcm = new qsound_adpcm[3];
 
-			public ushort[] voice_pan = new ushort[16 + 3];
+			//public ushort[] voice_pan = new ushort[16 + 3];
 			public short[] voice_output = new short[16 + 3];
 
-			public qsound_echo echo;
+			public qsound_echo echo=new qsound_echo();
 
 			public qsound_fir[] filter = new qsound_fir[2];
-			public qsound_fir[] alt_filter = new Qsound_ctr.qsound_fir[2];
+			public qsound_fir[] alt_filter = new qsound_fir[2];
 
 			public qsound_delay[] wet = new qsound_delay[2];
-			public qsound_delay[] dry = new Qsound_ctr.qsound_delay[2];
+			public qsound_delay[] dry = new qsound_delay[2];
 
 			public ushort state;
-			public ushort next_state;
+			//public ushort next_state;
 
-			public ushort delay_update;
+			//public ushort delay_update;
 
 			public int state_counter;
 			public byte ready_flag;
 
 			public ushort[] register_map = new ushort[256];
+
+			public qsound_chip()
+            {
+				//for (int i = 0; i < voice.Length; i++) voice[i] = new qsound_voice();
+				for (int i = 0; i < adpcm.Length; i++) adpcm[i] = new qsound_adpcm();
+				for (int i = 0; i < filter.Length; i++) filter[i] = new qsound_fir();
+				for (int i = 0; i < alt_filter.Length; i++) alt_filter[i] = new qsound_fir();
+				for (int i = 0; i < wet.Length; i++) wet[i] = new qsound_delay();
+				for (int i = 0; i < dry.Length; i++) dry[i] = new qsound_delay();
+			}
 		};
 
 		//static void init_pan_tables(struct qsound_chip *chip);
@@ -313,8 +328,8 @@ namespace MDSound
 
 		private int device_start_qsound_ctr(byte ChipID, int clock)
 		{
+			QSoundData[ChipID] = new qsound_chip();
 			qsound_chip chip = QSoundData[ChipID];
-			chip = new Qsound_ctr.qsound_chip();
 			//memset(chip,0,sizeof(* chip));
 
 			chip.romData = null;
@@ -584,46 +599,46 @@ namespace MDSound
 			// PCM registers
 			for (i = 0; i < 16; i++) // PCM voices
 			{
-				chip.register_map[(i << 3) + 0] = (ushort)chip.voice[(i + 1) % 16].bank; // Bank applies to the next channel
-				chip.register_map[(i << 3) + 1] = (ushort)chip.voice[i].addr; // Current sample position and start position.
-				chip.register_map[(i << 3) + 2] = (ushort)chip.voice[i].rate; // 4.12 fixed point decimal.
-				chip.register_map[(i << 3) + 3] = (ushort)chip.voice[i].phase;
-				chip.register_map[(i << 3) + 4] = (ushort)chip.voice[i].loop_len;
-				chip.register_map[(i << 3) + 5] = (ushort)chip.voice[i].end_addr;
-				chip.register_map[(i << 3) + 6] = (ushort)chip.voice[i].volume;
+				//chip.register_map[(i << 3) + 0] = (ushort)chip.voice[(i + 1) % 16].bank; // Bank applies to the next channel
+				//chip.register_map[(i << 3) + 1] = (ushort)chip.voice[i].addr; // Current sample position and start position.
+				//chip.register_map[(i << 3) + 2] = (ushort)chip.voice[i].rate; // 4.12 fixed point decimal.
+				//chip.register_map[(i << 3) + 3] = (ushort)chip.voice[i].phase;
+				//chip.register_map[(i << 3) + 4] = (ushort)chip.voice[i].loop_len;
+				//chip.register_map[(i << 3) + 5] = (ushort)chip.voice[i].end_addr;
+				//chip.register_map[(i << 3) + 6] = (ushort)chip.voice[i].volume;
 				chip.register_map[(i << 3) + 7] = 0;// null; // unused
-				chip.register_map[i + 0x80] = (ushort)chip.voice_pan[i];
-				chip.register_map[i + 0xba] = (ushort)chip.voice[i].echo;
+				//chip.register_map[i + 0x80] = (ushort)chip.voice_pan[i];
+				//chip.register_map[i + 0xba] = (ushort)chip.voice[i].echo;
 			}
 
 			// ADPCM registers
-			for (i = 0; i < 3; i++) // ADPCM voices
-			{
+			//for (i = 0; i < 3; i++) // ADPCM voices
+			//{
 				// ADPCM sample rate is fixed to 8khz. (one channel is updated every third sample)
-				chip.register_map[(i << 2) + 0xca] = (ushort)chip.adpcm[i].start_addr;
-				chip.register_map[(i << 2) + 0xcb] = (ushort)chip.adpcm[i].end_addr;
-				chip.register_map[(i << 2) + 0xcc] = (ushort)chip.adpcm[i].bank;
-				chip.register_map[(i << 2) + 0xcd] = (ushort)chip.adpcm[i].volume;
-				chip.register_map[i + 0xd6] = (ushort)chip.adpcm[i].flag; // non-zero to start ADPCM playback
-				chip.register_map[i + 0x90] = (ushort)chip.voice_pan[16 + i];
-			}
+				//chip.register_map[(i << 2) + 0xca] = (ushort)chip.adpcm[i].start_addr;
+				//chip.register_map[(i << 2) + 0xcb] = (ushort)chip.adpcm[i].end_addr;
+				//chip.register_map[(i << 2) + 0xcc] = (ushort)chip.adpcm[i].bank;
+				//chip.register_map[(i << 2) + 0xcd] = (ushort)chip.adpcm[i].volume;
+				//chip.register_map[i + 0xd6] = (ushort)chip.adpcm[i].flag; // non-zero to start ADPCM playback
+				//chip.register_map[i + 0x90] = (ushort)chip.voice_pan[16 + i];
+			//}
 
 			// QSound registers
-			chip.register_map[0x93] = (ushort)chip.echo.feedback;
-			chip.register_map[0xd9] = (ushort)chip.echo.end_pos;
-			chip.register_map[0xe2] = (ushort)chip.delay_update; // non-zero to update delays
-			chip.register_map[0xe3] = (ushort)chip.next_state;
-			for (i = 0; i < 2; i++)  // left, right
-			{
+			//chip.register_map[0x93] = (ushort)chip.echo.feedback;
+			//chip.register_map[0xd9] = (ushort)chip.echo.end_pos;
+			//chip.register_map[0xe2] = (ushort)chip.delay_update; // non-zero to update delays
+			//chip.register_map[0xe3] = (ushort)chip.next_state;
+			//for (i = 0; i < 2; i++)  // left, right
+			//{
 				// Wet
-				chip.register_map[(i << 1) + 0xda] = (ushort)chip.filter[i].table_pos;
-				chip.register_map[(i << 1) + 0xde] = (ushort)chip.wet[i].delay;
-				chip.register_map[(i << 1) + 0xe4] = (ushort)chip.wet[i].volume;
+				//chip.register_map[(i << 1) + 0xda] = (ushort)chip.filter[i].table_pos;
+				//chip.register_map[(i << 1) + 0xde] = (ushort)chip.wet[i].delay;
+				//chip.register_map[(i << 1) + 0xe4] = (ushort)chip.wet[i].volume;
 				// Dry
-				chip.register_map[(i << 1) + 0xdb] = (ushort)chip.alt_filter[i].table_pos;
-				chip.register_map[(i << 1) + 0xdf] = (ushort)chip.dry[i].delay;
-				chip.register_map[(i << 1) + 0xe5] = (ushort)chip.dry[i].volume;
-			}
+				//chip.register_map[(i << 1) + 0xdb] = (ushort)chip.alt_filter[i].table_pos;
+				//chip.register_map[(i << 1) + 0xdf] = (ushort)chip.dry[i].delay;
+				//chip.register_map[(i << 1) + 0xe5] = (ushort)chip.dry[i].volume;
+			//}
 		}
 
 		private short get_sample(qsound_chip chip, ushort bank, ushort address)
@@ -638,6 +653,7 @@ namespace MDSound
 			rom_addr = (uint)((bank << 16) | (address << 0));
 
 			sample_data = chip.romData[rom_addr];
+			//common.write("adr:{0} dat:{1}", rom_addr, sample_data);
 
 			return (short)((sample_data << 8) | (sample_data << 0));    // MAME currently expands the 8 bit ROM data to 16 bits this way.
 		}
@@ -705,7 +721,8 @@ namespace MDSound
 			if (chip.state_counter >= 2)
 			{
 				chip.state_counter = 0;
-				chip.state = chip.next_state;
+				//chip.state = chip.next_state;
+				chip.state= chip.register_map[0xe3];
 				return;
 			}
 			else if (chip.state_counter == 1)
@@ -714,7 +731,7 @@ namespace MDSound
 				return;
 			}
 
-			for (i = 0; i < chip.voice.Length; i++) chip.voice[i] = new qsound_voice();
+			//for (i = 0; i < chip.voice.Length; i++) chip.voice[i] = new qsound_voice();
 			for (i = 0; i < chip.adpcm.Length; i++) chip.adpcm[i] = new qsound_adpcm();
 			for (i = 0; i < chip.filter.Length; i++) chip.filter[i] = new qsound_fir();
 			for (i = 0; i < chip.alt_filter.Length; i++) chip.alt_filter[i] = new qsound_fir();
@@ -724,48 +741,77 @@ namespace MDSound
 
 			for (i = 0; i < 19; i++)
 			{
-				chip.voice_pan[i] = 0x120;
+				//chip.voice_pan[i] = 0x120;
+				chip.register_map[i + 0x80] = 0x120;
 				chip.voice_output[i] = 0;
 			}
 
 			for (i = 0; i < 16; i++)
-				chip.voice[i].bank = 0x8000;
+			{
+				//chip.voice[i].bank = 0x8000;
+				chip.register_map[(i << 3) + 0] = 0x8000;
+			}
 			for (i = 0; i < 3; i++)
-				chip.adpcm[i].bank = 0x8000;
-
+			{
+				//chip.adpcm[i].bank = 0x8000;
+				chip.register_map[(i << 2) + 0xcc] = 0x8000;
+			}
 			if (mode == 0)
 			{
 				// mode 1
-				chip.wet[0].delay = 0;
-				chip.dry[0].delay = 46;
-				chip.wet[1].delay = 0;
-				chip.dry[1].delay = 48;
-				chip.filter[0].table_pos = 0xdb2;
-				chip.filter[1].table_pos = 0xe11;
-				chip.echo.end_pos = 0x554 + 6;
-				chip.next_state = (ushort)STATE.REFRESH1;
+				//chip.wet[0].delay = 0;
+				//chip.dry[0].delay = 46;
+				//chip.wet[1].delay = 0;
+				//chip.dry[1].delay = 48;
+				chip.register_map[(0 << 1) + 0xde] = 0;
+				chip.register_map[(0 << 1) + 0xdf] = 46;
+				chip.register_map[(1 << 1) + 0xde] = 0;
+				chip.register_map[(1 << 1) + 0xdf] = 48;
+				//chip.filter[0].table_pos = 0xdb2;
+				//chip.filter[1].table_pos = 0xe11;
+				chip.register_map[(0 << 1) + 0xda] = 0xdb2;
+				chip.register_map[(1 << 1) + 0xda] = 0xe11;
+				//chip.echo.end_pos = 0x554 + 6;
+				chip.register_map[0xd9]= 0x554 + 6;
+				//chip.next_state = (ushort)STATE.REFRESH1;
+				chip.register_map[0xe3] = (ushort)STATE.REFRESH1;
 			}
 			else
 			{
 				// mode 2
-				chip.wet[0].delay = 1;
-				chip.dry[0].delay = 0;
-				chip.wet[1].delay = 0;
-				chip.dry[1].delay = 0;
-				chip.filter[0].table_pos = 0xf73;
-				chip.filter[1].table_pos = 0xfa4;
-				chip.alt_filter[0].table_pos = 0xf73;
-				chip.alt_filter[1].table_pos = 0xfa4;
-				chip.echo.end_pos = 0x53c + 6;
-				chip.next_state = (ushort)STATE.REFRESH2;
+				//chip.wet[0].delay = 1;
+				//chip.dry[0].delay = 0;
+				//chip.wet[1].delay = 0;
+				//chip.dry[1].delay = 0;
+				chip.register_map[(0 << 1) + 0xde] = 1;
+				chip.register_map[(0 << 1) + 0xdf] = 0;
+				chip.register_map[(1 << 1) + 0xde] = 0;
+				chip.register_map[(1 << 1) + 0xdf] = 0;
+				//chip.filter[0].table_pos = 0xf73;
+				//chip.filter[1].table_pos = 0xfa4;
+				chip.register_map[(0 << 1) + 0xda] = 0xf73;
+				chip.register_map[(1 << 1) + 0xda] = 0xfa4;
+				//chip.alt_filter[0].table_pos = 0xf73;
+				//chip.alt_filter[1].table_pos = 0xfa4;
+				chip.register_map[(0 << 1) + 0xdb] = 0xf73;
+				chip.register_map[(1 << 1) + 0xdb] = 0xfa4;
+				//chip.echo.end_pos = 0x53c + 6;
+				chip.register_map[0xd9] = 0x53c + 6;
+				//chip.next_state = (ushort)STATE.REFRESH2;
+				chip.register_map[0xe3] = (ushort)STATE.REFRESH2;
 			}
 
-			chip.wet[0].volume = 0x3fff;
-			chip.dry[0].volume = 0x3fff;
-			chip.wet[1].volume = 0x3fff;
-			chip.dry[1].volume = 0x3fff;
+			//chip.wet[0].volume = 0x3fff;
+			//chip.dry[0].volume = 0x3fff;
+			//chip.wet[1].volume = 0x3fff;
+			//chip.dry[1].volume = 0x3fff;
+			chip.register_map[(0 << 1) + 0xe4] = 0x3fff;
+			chip.register_map[(0 << 1) + 0xe5] = 0x3fff;
+			chip.register_map[(1 << 1) + 0xe4] = 0x3fff;
+			chip.register_map[(1 << 1) + 0xe5] = 0x3fff;
 
-			chip.delay_update = 1;
+			//chip.delay_update = 1;
+			chip.register_map[0xe2] = 1;
 			chip.ready_flag = 0;
 			chip.state_counter = 1;
 		}
@@ -787,19 +833,22 @@ namespace MDSound
 				//	for (int i = 0; i < 95; i++) chip.filter[ch].taps[i] = table[i];
 				//}
 
-				short? dat = get_filter_table(chip, (ushort)chip.filter[ch].table_pos);
+				//short? dat = get_filter_table(chip, (ushort)chip.filter[ch].table_pos);
+				short? dat = get_filter_table(chip, (ushort)chip.register_map[(ch << 1) + 0xda]);
 				if (dat != null)
 				{
 					for (int i = 0; i < 95; i++)
 					{
-						dat = get_filter_table(chip, (ushort)(chip.filter[ch].table_pos + i));
+						//dat = get_filter_table(chip, (ushort)(chip.filter[ch].table_pos + i));
+						dat = get_filter_table(chip, (ushort)(chip.register_map[(ch << 1) + 0xda] + i));
 						if (dat == null) break;
 						chip.filter[ch].taps[i] = (short)dat;
 					}
 				}
 			}
 
-			chip.state = chip.next_state = (ushort)STATE.NORMAL1;
+			//chip.state = chip.next_state = (ushort)STATE.NORMAL1;
+			chip.state = chip.register_map[0xe3] = (ushort)STATE.NORMAL1;
 		}
 
 		// Updates filter parameters for mode 2
@@ -817,12 +866,14 @@ namespace MDSound
 				//if (table != null)
 				//	for (int i = 0; i < 45; i++) chip.filter[ch].taps[i] = table[i];
 
-				short? dat = get_filter_table(chip, (ushort)chip.filter[ch].table_pos);
+				//short? dat = get_filter_table(chip, (ushort)chip.filter[ch].table_pos);
+				short? dat = get_filter_table(chip, (ushort)chip.register_map[(ch << 1) + 0xda]);
 				if (dat != null)
 				{
 					for (int i = 0; i < 45; i++)
 					{
-						dat = get_filter_table(chip, (ushort)(chip.filter[ch].table_pos + i));
+						//dat = get_filter_table(chip, (ushort)(chip.filter[ch].table_pos + i));
+						dat = get_filter_table(chip, (ushort)(chip.register_map[(ch << 1) + 0xda] + i));
 						if (dat == null) break;
 						chip.filter[ch].taps[i] = (short)dat;
 					}
@@ -835,26 +886,31 @@ namespace MDSound
 				//if (table != null)
 				//	for (int i = 0; i < 44; i++) chip.alt_filter[ch].taps[i] = table[i];
 
-				dat = get_filter_table(chip, (ushort)chip.alt_filter[ch].table_pos);
+				//dat = get_filter_table(chip, (ushort)chip.alt_filter[ch].table_pos);
+				dat = get_filter_table(chip, (ushort)chip.register_map[(ch << 1) + 0xdb]);
 				if (dat != null)
 				{
 					for (int i = 0; i < 44; i++)
 					{
-						dat = get_filter_table(chip, (ushort)(chip.alt_filter[ch].table_pos + i));
+						//dat = get_filter_table(chip, (ushort)(chip.alt_filter[ch].table_pos + i));
+						dat = get_filter_table(chip, (ushort)(chip.register_map[(ch << 1) + 0xdb] + i));
 						if (dat == null) break;
 						chip.alt_filter[ch].taps[i] = (short)dat;
 					}
 				}
 			}
 
-			chip.state = chip.next_state = (ushort)STATE.NORMAL2;
+			//chip.state = chip.next_state = (ushort)STATE.NORMAL2;
+			chip.state = chip.register_map[0xe3] = (ushort)STATE.NORMAL2;
 		}
 
 		// Updates a PCM voice. There are 16 voices, each are updated every sample
 		// with full rate and volume control.
 		private short pcm_update(qsound_chip chip, int voice_no, ref int echo_out)
 		{
-			qsound_voice v = chip.voice[voice_no];
+			//if (voice_no != 8) return 0;
+
+			//qsound_voice v = chip.voice[voice_no];
 			int new_phase;
 			short output;
 
@@ -862,20 +918,50 @@ namespace MDSound
 				return 0;
 
 			// Read sample from rom and apply volume
-			output = (short)((v.volume * get_sample(chip, v.bank, v.addr)) >> 14);
+			//output = (short)((v.volume * get_sample(chip, v.bank, v.addr)) >> 14);
+			output = (short)((chip.register_map[(voice_no << 3) + 6] 
+				* get_sample(chip, chip.register_map[(((voice_no-1+16)%16) << 3) + 0], chip.register_map[(voice_no << 3) + 1])) >> 14);
+			//common.write("output:{0} vadr:{1}", output, chip.register_map[(voice_no << 3) + 1]);
 
+			if (voice_no == 2)
+			{
+				MDSound.debugMsg = string.Format("{0}:{1}:{2}:{3}",
+					chip.register_map[(voice_no << 3) + 6], chip.register_map[(voice_no << 3) + 0], chip.register_map[(voice_no << 3) + 1], chip.register_map[(voice_no << 3) + 5]);
+			}
 
-			echo_out += (output * v.echo) << 2;
+			//echo_out += (output * v.echo) << 2;
+			echo_out += (output * chip.register_map[voice_no + 0xba] ) << 2;
 
 			// Add delta to the phase and loop back if required
-			new_phase = v.rate + ((v.addr << 12) | (v.phase >> 4));
+			//new_phase = v.rate + ((v.addr << 12) | (v.phase >> 4));
+			uint a = (uint)((chip.register_map[(voice_no << 3) + 1] << 12) | (chip.register_map[(voice_no << 3) + 3] >> 4));
+			a = (a & 0x0800_0000) != 0 ? (a | 0xf000_0000) : a;
+			new_phase = chip.register_map[(voice_no << 3) + 2] + (int)a;
 
-			if ((new_phase >> 12) >= v.end_addr)
-				new_phase -= (v.loop_len << 12);
+			//if ((new_phase >> 12) >= v.end_addr)
+			if ((new_phase >> 12) >= chip.register_map[(voice_no << 3) + 5])
+			{
+				//new_phase -= (v.loop_len << 12);
+				a = (uint)((chip.register_map[(voice_no << 3) + 4] << 12));
+				a = (a & 0x0800_0000) != 0 ? (a | 0xf000_0000) : a;
+				new_phase -= (int)a;// (chip.register_map[(voice_no << 3) + 4] << 12);
+			}
 
-			new_phase = CLAMP(new_phase, -0x8000000, 0x7FFFFFF);
-			v.addr = (ushort)(new_phase >> 12);
-			v.phase = (ushort)((new_phase << 4) & 0xffff);
+            //if (voice_no == 0)
+            //{
+				//common.write("Bf:{0}", new_phase);
+            //}
+
+			new_phase = CLAMP(new_phase, -0x800_0000, 0x7FF_FFFF);
+
+			//if (voice_no == 0)
+			//{
+				//common.write("Af:{0}", new_phase);
+			//}
+			//v.addr = (ushort)(new_phase >> 12);
+			chip.register_map[(voice_no << 3) + 1] = (ushort)(new_phase >> 12);
+			//v.phase = (ushort)((new_phase << 4) & 0xffff);
+			chip.register_map[(voice_no << 3) + 3] = (ushort)((new_phase << 4) & 0xffff);
 
 			return output;
 		}
@@ -888,6 +974,7 @@ namespace MDSound
 		// emulators.
 		private void adpcm_update(qsound_chip chip, int voice_no, int nibble)
 		{
+			//return;
 			qsound_adpcm v = chip.adpcm[voice_no];
 
 			int delta;
@@ -902,26 +989,33 @@ namespace MDSound
 			if (nibble == 0)
 			{
 				// Mute voice when it reaches the end address.
-				if (v.cur_addr == v.end_addr)
+				//if (v.cur_addr == v.end_addr)
+				if (v.cur_addr == chip.register_map[(voice_no << 2) + 0xcb])
 					v.cur_vol = 0;
 
 				// Playback start flag
-				if (v.flag != 0)
-				{
-					chip.voice_output[16 + voice_no] = 0;
-					v.flag = 0;
+				//if (v.flag != 0)
+					if (chip.register_map[voice_no + 0xd6]  != 0)
+					{
+						chip.voice_output[16 + voice_no] = 0;
+					//v.flag = 0;
+					chip.register_map[voice_no + 0xd6] = 0;
 					v.step_size = 10;
-					v.cur_vol = v.volume;
-					v.cur_addr = v.start_addr;
+					//v.cur_vol = v.volume;
+					v.cur_vol = (short)chip.register_map[(voice_no << 2) + 0xcd];
+					//v.cur_addr = v.start_addr;
+					v.cur_addr = chip.register_map[(voice_no << 2) + 0xca];
 				}
 
 				// get top nibble
-				step = (sbyte)(get_sample(chip, v.bank, v.cur_addr) >> 8);
+				//step = (sbyte)(get_sample(chip, v.bank, v.cur_addr) >> 8);
+				step = (sbyte)(get_sample(chip, chip.register_map[(voice_no << 2) + 0xcc], v.cur_addr) >> 8);
 			}
 			else
 			{
 				// get bottom nibble
-				step = (sbyte)(get_sample(chip, v.bank, v.cur_addr++) >> 4);
+				//step = (sbyte)(get_sample(chip, v.bank, v.cur_addr++) >> 4);
+				step = (sbyte)(get_sample(chip, chip.register_map[(voice_no << 2) + 0xcc], v.cur_addr++) >> 4);
 			}
 
 			// shift with sign extend
@@ -932,7 +1026,7 @@ namespace MDSound
 			if (step <= 0)
 				delta = -delta;
 			delta += chip.voice_output[16 + voice_no];
-			delta = CLAMP(delta, -32768, 32767);
+			delta = CLAMP((short)delta, -32768, 32767);
 
 			chip.voice_output[16 + voice_no] = (short)((delta * v.cur_vol) >> 16);
 
@@ -942,7 +1036,7 @@ namespace MDSound
 
 		// The echo effect is pretty simple. A moving average filter is used on
 		// the output from the delay line to smooth samples over time. 
-		private short echo(qsound_echo r, int input)
+		private short echo(qsound_chip chip,qsound_echo r, int input)
 		{
 			// get average of last 2 samples from the delay line
 			int new_sample;
@@ -953,7 +1047,8 @@ namespace MDSound
 			old_sample = (old_sample + last_sample) >> 1;
 
 			// add current sample to the delay line
-			new_sample = input + ((old_sample * r.feedback) << 2);
+			//new_sample = input + ((old_sample * r.feedback) << 2);
+			new_sample = input + ((old_sample * chip.register_map[0x93]) << 2);
 			r.delay_line[r.delay_pos++] = (short)(new_sample >> 16);
 
 			if (r.delay_pos >= r.length)
@@ -973,9 +1068,11 @@ namespace MDSound
 
 			// recalculate echo length
 			if (chip.state == (ushort)STATE.NORMAL2)
-				chip.echo.length = (short)(chip.echo.end_pos - 0x53c);
+				//chip.echo.length = (short)(chip.echo.end_pos - 0x53c);
+				chip.echo.length = (short)(chip.register_map[0xd9] - 0x53c);
 			else
-				chip.echo.length = (short)(chip.echo.end_pos - 0x554);
+				//chip.echo.length = (short)(chip.echo.end_pos - 0x554);
+				chip.echo.length = (short)(chip.register_map[0xd9] - 0x554);
 
 			chip.echo.length = (short)CLAMP(chip.echo.length, 0, 1024);
 
@@ -986,7 +1083,7 @@ namespace MDSound
 			// update ADPCM voices (one every third sample)
 			adpcm_update(chip, chip.state_counter % 3, chip.state_counter / 3);
 
-			echo_output = echo(chip.echo, echo_input);
+			echo_output = echo(chip, chip.echo, echo_input);
 
 			// now, we do the magic stuff
 			for (ch = 0; ch < 2; ch++)
@@ -999,7 +1096,8 @@ namespace MDSound
 
 				for (v = 0; v < 19; v++)
 				{
-					ushort pan_index = (ushort)(chip.voice_pan[v] - 0x110);
+					//ushort pan_index = (ushort)(chip.voice_pan[v] - 0x110);
+					ushort pan_index = (ushort)(chip.register_map[v + 0x80] - 0x110);
 					if (pan_index > 97)
 						pan_index = 97;
 
@@ -1020,27 +1118,30 @@ namespace MDSound
 					dry = fir(chip.alt_filter[ch], (short)(dry >> 16));
 
 				// output goes through a delay line and attenuation
-				output = (delay(chip.wet[ch], wet) + delay(chip.dry[ch], dry));
+				output = (delay(chip, false, ch, chip.wet[ch], wet) + delay(chip, true, ch, chip.dry[ch], dry));
 
 				// DSP round function
 				output = ((output + 0x2000) & ~0x3fff) >> 14;
 				chip._out[ch] = (short)CLAMP(output, -0x7fff, 0x7fff);
 
-				if (chip.delay_update != 0)
+				//if (chip.delay_update != 0)
+				if (chip.register_map[0xe2] != 0)
 				{
-					delay_update(chip.wet[ch]);
-					delay_update(chip.dry[ch]);
+					delay_update(chip, false, ch, chip.wet[ch]);
+					delay_update(chip, true, ch, chip.dry[ch]);
 				}
 			}
 
-			chip.delay_update = 0;
+			//chip.delay_update = 0;
+			chip.register_map[0xe2] = 0;
 
 			// after 6 samples, the next state is executed.
 			chip.state_counter++;
 			if (chip.state_counter > 5)
 			{
 				chip.state_counter = 0;
-				chip.state = chip.next_state;
+				//chip.state = chip.next_state;
+				chip.state = chip.register_map[0xe3];
 			}
 		}
 
@@ -1067,7 +1168,7 @@ namespace MDSound
 		}
 
 		// Apply delay line and component volume
-		private int delay(qsound_delay d, int input)
+		private int delay(qsound_chip chip, bool isDry, int ch, qsound_delay d, int input)
 		{
 			int output;
 
@@ -1075,7 +1176,8 @@ namespace MDSound
 			if (d.write_pos >= 51)
 				d.write_pos = 0;
 
-			output = d.delay_line[d.read_pos++] * d.volume;
+			//output = d.delay_line[d.read_pos++] * d.volume;
+			output = d.delay_line[d.read_pos++] * chip.register_map[(ch << 1) + (isDry ? 0xe5 : 0xe4)];
 			if (d.read_pos >= 51)
 				d.read_pos = 0;
 
@@ -1083,9 +1185,10 @@ namespace MDSound
 		}
 
 		// Update the delay read position to match new delay length
-		private void delay_update(qsound_delay d)
+		private void delay_update(qsound_chip chip, bool isDry, int ch, qsound_delay d)
 		{
-			short new_read_pos = (short)((d.write_pos - d.delay) % 51);
+			//short new_read_pos = (short)((d.write_pos - d.delay) % 51);
+			short new_read_pos = (short)((d.write_pos - chip.register_map[(ch << 1) + (isDry ? 0xdf : 0xde)]) % 51);
 			if (new_read_pos < 0)
 				new_read_pos += 51;
 

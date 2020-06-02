@@ -216,6 +216,11 @@ namespace MDSound
             }
         }
 
+        public string GetDebugMsg()
+        {
+            return debugMsg;
+        }
+
         private void SetupResampler(Chip chip)
         {
             if (chip.SamplingRate == 0)
@@ -393,6 +398,7 @@ namespace MDSound
         }
 
         int[][] StreamPnt = new int[0x02][] { new int[0x100], new int[0x100] };
+        public static string debugMsg;
 
         private void ResampleChipStream(Chip[] insts, int[][] RetSample, uint Length)
         {
@@ -2002,7 +2008,8 @@ namespace MDSound
             {
                 if (!dicInst.ContainsKey(enmInstrumentType.QSound)) return;
 
-                ((qsound)(dicInst[enmInstrumentType.QSound][0])).qsound_w(ChipID, adr, dat);
+                //((qsound)(dicInst[enmInstrumentType.QSound][0])).qsound_w(ChipID, adr, dat);
+                ((Qsound_ctr)(dicInst[enmInstrumentType.QSound][0])).qsound_w(ChipID, adr, dat);
             }
         }
 
@@ -2012,7 +2019,8 @@ namespace MDSound
             {
                 if (!dicInst.ContainsKey(enmInstrumentType.QSound)) return;
 
-                ((qsound)(dicInst[enmInstrumentType.QSound][ChipIndex])).qsound_w(ChipID, adr, dat);
+                //((qsound)(dicInst[enmInstrumentType.QSound][ChipIndex])).qsound_w(ChipID, adr, dat);
+                ((Qsound_ctr)(dicInst[enmInstrumentType.QSound][ChipIndex])).qsound_w(ChipID, adr, dat);
             }
         }
 
@@ -2022,7 +2030,8 @@ namespace MDSound
             {
                 if (!dicInst.ContainsKey(enmInstrumentType.QSound)) return;
 
-                ((qsound)(dicInst[enmInstrumentType.QSound][0])).qsound_write_rom(ChipID, (int)ROMSize, (int)DataStart, (int)DataLength, ROMData, (int)SrcStartAdr);
+                //((qsound)(dicInst[enmInstrumentType.QSound][0])).qsound_write_rom(ChipID, (int)ROMSize, (int)DataStart, (int)DataLength, ROMData, (int)SrcStartAdr);
+                ((Qsound_ctr)(dicInst[enmInstrumentType.QSound][0])).qsound_write_rom(ChipID, (int)ROMSize, (int)DataStart, (int)DataLength, ROMData, (int)SrcStartAdr);
             }
         }
 
@@ -2032,7 +2041,8 @@ namespace MDSound
             {
                 if (!dicInst.ContainsKey(enmInstrumentType.QSound)) return;
 
-                ((qsound)(dicInst[enmInstrumentType.QSound][ChipIndex])).qsound_write_rom(ChipID, (int)ROMSize, (int)DataStart, (int)DataLength, ROMData, (int)SrcStartAdr);
+                //((qsound)(dicInst[enmInstrumentType.QSound][ChipIndex])).qsound_write_rom(ChipID, (int)ROMSize, (int)DataStart, (int)DataLength, ROMData, (int)SrcStartAdr);
+                ((Qsound_ctr)(dicInst[enmInstrumentType.QSound][ChipIndex])).qsound_write_rom(ChipID, (int)ROMSize, (int)DataStart, (int)DataLength, ROMData, (int)SrcStartAdr);
             }
         }
 

@@ -222,6 +222,8 @@ namespace test
             lblRealChipSenderIsRunning.Text = sm.IsRunningAtRealChipSender() ? "Running" : "Stop";
 
             lblInterrupt.Text = sm.GetInterrupt() ? "Enable" : "Disable";
+
+            lblDebug.Text = mds.GetDebugMsg();
         }
 
 
@@ -975,7 +977,8 @@ namespace test
                     chip = new MDSound.MDSound.Chip();
                     chip.type = MDSound.MDSound.enmInstrumentType.QSound;
                     chip.ID = 0;
-                    MDSound.qsound qsound = new MDSound.qsound();
+                    //MDSound.qsound qsound = new MDSound.qsound();
+                    MDSound.Qsound_ctr qsound = new MDSound.Qsound_ctr();
                     chip.Instrument = qsound;
                     chip.Update = qsound.Update;
                     chip.Start = qsound.Start;
@@ -1092,6 +1095,12 @@ namespace test
 
         private static void OneFrameVGMaaa()
         {
+            if (DriverSeqCounter > 0)
+            {
+                DriverSeqCounter--;
+                return;
+            }
+
             OneFrameVGM();
         }
 
@@ -1387,7 +1396,7 @@ namespace test
                                     break;
 
                                 case 0x8f:
-                                    //mds.WriteQSoundPCMData(chipID, romSize, startAddress, bLen - 8, vgmBuf, vgmAdr + 15);
+                                    mds.WriteQSoundPCMData(0, romSize, startAddress, bLen - 8, vgmBuf, vgmAdr + 15);
                                     break;
 
                                 case 0x92:
@@ -1584,9 +1593,11 @@ namespace test
                     //mds.WriteMultiPCMSetBank(0, multiPCM_ch, multiPCM_adr);
                     break;
                 case 0xc4://QSound
-                          //mds.WriteQSound(0, 0x00, vgmBuf[vgmAdr + 1]);
-                          //mds.WriteQSound(0, 0x01, vgmBuf[vgmAdr + 2]);
-                          //mds.WriteQSound(0, 0x02, vgmBuf[vgmAdr + 3]);
+                          mds.WriteQSound(0, 0x00, vgmBuf[vgmAdr + 1]);
+                          mds.WriteQSound(0, 0x01, vgmBuf[vgmAdr + 2]);
+                          mds.WriteQSound(0, 0x02, vgmBuf[vgmAdr + 3]);
+                    //rDat = vgmBuf[vgmAdr + 3];
+                    //if (rsc == null) DataEnq(DriverSeqCounter, 0xc4, 0, vgmBuf[vgmAdr + 1] * 0x100 + vgmBuf[vgmAdr + 2], rDat, null);
                     vgmAdr += 4;
                     break;
                 case 0xd0: //YMF278B
