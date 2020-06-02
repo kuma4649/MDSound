@@ -908,7 +908,7 @@ namespace MDSound
 		// with full rate and volume control.
 		private short pcm_update(qsound_chip chip, int voice_no, ref int echo_out)
 		{
-			//if (voice_no != 8) return 0;
+			//if (voice_no != 2) return 0;
 
 			//qsound_voice v = chip.voice[voice_no];
 			int new_phase;
@@ -923,11 +923,11 @@ namespace MDSound
 				* get_sample(chip, chip.register_map[(((voice_no-1+16)%16) << 3) + 0], chip.register_map[(voice_no << 3) + 1])) >> 14);
 			//common.write("output:{0} vadr:{1}", output, chip.register_map[(voice_no << 3) + 1]);
 
-			if (voice_no == 2)
-			{
-				MDSound.debugMsg = string.Format("{0}:{1}:{2}:{3}",
-					chip.register_map[(voice_no << 3) + 6], chip.register_map[(voice_no << 3) + 0], chip.register_map[(voice_no << 3) + 1], chip.register_map[(voice_no << 3) + 5]);
-			}
+			//if (voice_no == 2)
+			//{
+				//MDSound.debugMsg = string.Format("{0}:{1}:{2}:{3}",
+					//chip.register_map[(voice_no << 3) + 6], chip.register_map[(voice_no << 3) + 0], chip.register_map[(voice_no << 3) + 1], chip.register_map[(voice_no << 3) + 5]);
+			//}
 
 			//echo_out += (output * v.echo) << 2;
 			echo_out += (output * chip.register_map[voice_no + 0xba] ) << 2;
@@ -939,7 +939,7 @@ namespace MDSound
 			new_phase = chip.register_map[(voice_no << 3) + 2] + (int)a;
 
 			//if ((new_phase >> 12) >= v.end_addr)
-			if ((new_phase >> 12) >= chip.register_map[(voice_no << 3) + 5])
+			if ((new_phase >> 12) >= (short)chip.register_map[(voice_no << 3) + 5])
 			{
 				//new_phase -= (v.loop_len << 12);
 				a = (uint)((chip.register_map[(voice_no << 3) + 4] << 12));

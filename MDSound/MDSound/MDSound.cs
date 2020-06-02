@@ -121,7 +121,8 @@ namespace MDSound
             YM3438,
             mpcmX68k,
             YM3812,
-            YM3526
+            YM3526,
+            QSoundCtr
         }
 
         public class Chip
@@ -2008,8 +2009,7 @@ namespace MDSound
             {
                 if (!dicInst.ContainsKey(enmInstrumentType.QSound)) return;
 
-                //((qsound)(dicInst[enmInstrumentType.QSound][0])).qsound_w(ChipID, adr, dat);
-                ((Qsound_ctr)(dicInst[enmInstrumentType.QSound][0])).qsound_w(ChipID, adr, dat);
+                ((qsound)(dicInst[enmInstrumentType.QSound][0])).qsound_w(ChipID, adr, dat);
             }
         }
 
@@ -2019,8 +2019,7 @@ namespace MDSound
             {
                 if (!dicInst.ContainsKey(enmInstrumentType.QSound)) return;
 
-                //((qsound)(dicInst[enmInstrumentType.QSound][ChipIndex])).qsound_w(ChipID, adr, dat);
-                ((Qsound_ctr)(dicInst[enmInstrumentType.QSound][ChipIndex])).qsound_w(ChipID, adr, dat);
+                ((qsound)(dicInst[enmInstrumentType.QSound][ChipIndex])).qsound_w(ChipID, adr, dat);
             }
         }
 
@@ -2030,8 +2029,7 @@ namespace MDSound
             {
                 if (!dicInst.ContainsKey(enmInstrumentType.QSound)) return;
 
-                //((qsound)(dicInst[enmInstrumentType.QSound][0])).qsound_write_rom(ChipID, (int)ROMSize, (int)DataStart, (int)DataLength, ROMData, (int)SrcStartAdr);
-                ((Qsound_ctr)(dicInst[enmInstrumentType.QSound][0])).qsound_write_rom(ChipID, (int)ROMSize, (int)DataStart, (int)DataLength, ROMData, (int)SrcStartAdr);
+                ((qsound)(dicInst[enmInstrumentType.QSound][0])).qsound_write_rom(ChipID, (int)ROMSize, (int)DataStart, (int)DataLength, ROMData, (int)SrcStartAdr);
             }
         }
 
@@ -2041,8 +2039,56 @@ namespace MDSound
             {
                 if (!dicInst.ContainsKey(enmInstrumentType.QSound)) return;
 
+                ((qsound)(dicInst[enmInstrumentType.QSound][ChipIndex])).qsound_write_rom(ChipID, (int)ROMSize, (int)DataStart, (int)DataLength, ROMData, (int)SrcStartAdr);
+            }
+        }
+
+        #endregion
+
+
+        #region QSoundCtr
+
+        public void WriteQSoundCtr(byte ChipID, Int32 adr, byte dat)
+        {
+            lock (lockobj)
+            {
+                if (!dicInst.ContainsKey(enmInstrumentType.QSoundCtr)) return;
+
+                //((qsound)(dicInst[enmInstrumentType.QSound][0])).qsound_w(ChipID, adr, dat);
+                ((Qsound_ctr)(dicInst[enmInstrumentType.QSoundCtr][0])).qsound_w(ChipID, adr, dat);
+            }
+        }
+
+        public void WriteQSoundCtr(int ChipIndex, byte ChipID, Int32 adr, byte dat)
+        {
+            lock (lockobj)
+            {
+                if (!dicInst.ContainsKey(enmInstrumentType.QSoundCtr)) return;
+
+                //((qsound)(dicInst[enmInstrumentType.QSound][ChipIndex])).qsound_w(ChipID, adr, dat);
+                ((Qsound_ctr)(dicInst[enmInstrumentType.QSoundCtr][ChipIndex])).qsound_w(ChipID, adr, dat);
+            }
+        }
+
+        public void WriteQSoundCtrPCMData(byte ChipID, uint ROMSize, uint DataStart, uint DataLength, byte[] ROMData, uint SrcStartAdr)
+        {
+            lock (lockobj)
+            {
+                if (!dicInst.ContainsKey(enmInstrumentType.QSoundCtr)) return;
+
+                //((qsound)(dicInst[enmInstrumentType.QSound][0])).qsound_write_rom(ChipID, (int)ROMSize, (int)DataStart, (int)DataLength, ROMData, (int)SrcStartAdr);
+                ((Qsound_ctr)(dicInst[enmInstrumentType.QSoundCtr][0])).qsound_write_rom(ChipID, (int)ROMSize, (int)DataStart, (int)DataLength, ROMData, (int)SrcStartAdr);
+            }
+        }
+
+        public void WriteQSoundCtrPCMData(int ChipIndex, byte ChipID, uint ROMSize, uint DataStart, uint DataLength, byte[] ROMData, uint SrcStartAdr)
+        {
+            lock (lockobj)
+            {
+                if (!dicInst.ContainsKey(enmInstrumentType.QSoundCtr)) return;
+
                 //((qsound)(dicInst[enmInstrumentType.QSound][ChipIndex])).qsound_write_rom(ChipID, (int)ROMSize, (int)DataStart, (int)DataLength, ROMData, (int)SrcStartAdr);
-                ((Qsound_ctr)(dicInst[enmInstrumentType.QSound][ChipIndex])).qsound_write_rom(ChipID, (int)ROMSize, (int)DataStart, (int)DataLength, ROMData, (int)SrcStartAdr);
+                ((Qsound_ctr)(dicInst[enmInstrumentType.QSoundCtr][ChipIndex])).qsound_write_rom(ChipID, (int)ROMSize, (int)DataStart, (int)DataLength, ROMData, (int)SrcStartAdr);
             }
         }
 
@@ -4119,6 +4165,17 @@ namespace MDSound
         {
             if (!dicInst.ContainsKey(enmInstrumentType.QSound)) return null;
             return dicInst[enmInstrumentType.QSound][ChipIndex].visVolume;
+        }
+
+        public int[][][] getQSoundCtrVisVolume()
+        {
+            if (!dicInst.ContainsKey(enmInstrumentType.QSoundCtr)) return null;
+            return dicInst[enmInstrumentType.QSoundCtr][0].visVolume;
+        }
+        public int[][][] getQSoundCtrVisVolume(int ChipIndex)
+        {
+            if (!dicInst.ContainsKey(enmInstrumentType.QSoundCtr)) return null;
+            return dicInst[enmInstrumentType.QSoundCtr][ChipIndex].visVolume;
         }
 
         public int[][][] getGA20VisVolume()
