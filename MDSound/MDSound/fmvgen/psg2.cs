@@ -108,7 +108,7 @@
                 p[1] = ((mask & 2) != 0 && (reg[9] & 0x10) != 0) ? (uint?)null : 1;
                 p[2] = ((mask & 4) != 0 && (reg[10] & 0x10) != 0) ? (uint?)null : 2;
 
-                int noise, sample, sampleL, sampleR,revSample;
+                int noise, sample, sampleL, sampleR, revSampleL, revSampleR;
                 uint env;
                 int nv = 0;
 
@@ -123,7 +123,8 @@
                         {
                             sampleL = 0;
                             sampleR = 0;
-                            revSample = 0;
+                            revSampleL = 0;
+                            revSampleR = 0;
                             sample = 0;
 
                             for (int j = 0; j < (1 << oversampling); j++)
@@ -155,7 +156,8 @@
                                     int L = (panpot[k] & 2) != 0 ? sample : 0;
                                     int R = (panpot[k] & 1) != 0 ? sample : 0;
                                     distortion.Mix(efcStartCh + k, ref L, ref R);
-                                    revSample += (int)((L + R) / 2.0 * reverb.SendLevel[efcStartCh + k] * 0.6);
+                                    revSampleL += (int)(L * reverb.SendLevel[efcStartCh + k] * 0.6);
+                                    revSampleR += (int)(R * reverb.SendLevel[efcStartCh + k] * 0.6);
 
                                     sampleL += L;
                                     sampleR += R;
@@ -165,10 +167,13 @@
                             }
                             sampleL /= (1 << oversampling);
                             sampleR /= (1 << oversampling);
-                            revSample/= (1 << oversampling);
+                            revSampleL /= (1 << oversampling);
+                            revSampleR /= (1 << oversampling);
+
                             StoreSample(ref dest[ptrDest + 0], sampleL);
                             StoreSample(ref dest[ptrDest + 1], sampleR);
-                            reverb.StoreData(revSample);
+                            reverb.StoreData(0, revSampleL);
+                            reverb.StoreData(1, revSampleR);
                             ptrDest += 2;
 
                             visVolume = sampleL;
@@ -183,6 +188,8 @@
                         {
                             sampleL = 0;
                             sampleR = 0;
+                            revSampleL = 0;
+                            revSampleR = 0;
                             sample = 0;
                             for (int j = 0; j < (1 << oversampling); j++)
                             {
@@ -214,14 +221,21 @@
                                         sample = (int)((olevel[k] * x) >> 2);
                                     }
 
-                                    sampleL += (panpot[k] & 2) != 0 ? sample : 0;
-                                    sampleR += (panpot[k] & 1) != 0 ? sample : 0;
+                                    int L = (panpot[k] & 2) != 0 ? sample : 0;
+                                    int R = (panpot[k] & 1) != 0 ? sample : 0;
 
                                     //ノイズ
                                     nv = ((int)(scount[k] >> (toneshift + oversampling)) & 0 | (nenable[k] & noise)) - 1;
                                     sample = (int)((olevel[k] + nv) ^ nv);
-                                    sampleL += (panpot[k] & 2) != 0 ? sample : 0;
-                                    sampleR += (panpot[k] & 1) != 0 ? sample : 0;
+                                    L += (panpot[k] & 2) != 0 ? sample : 0;
+                                    R += (panpot[k] & 1) != 0 ? sample : 0;
+
+                                    distortion.Mix(efcStartCh + k, ref L, ref R);
+                                    revSampleL += (int)(L * reverb.SendLevel[efcStartCh + k] * 0.6);
+                                    revSampleR += (int)(R * reverb.SendLevel[efcStartCh + k] * 0.6);
+
+                                    sampleL += L;
+                                    sampleR += R;
 
                                     scount[k] += speriod[k];
                                 }
@@ -256,6 +270,8 @@
                     {
                         sampleL = 0;
                         sampleR = 0;
+                        revSampleL = 0;
+                        revSampleR = 0;
                         sample = 0;
                         for (int j = 0; j < (1 << oversampling); j++)
                         {
@@ -297,23 +313,33 @@
                                     sample = (int)((lv * x) >> 2);
                                 }
 
-                                sampleL += (panpot[k] & 2) != 0 ? sample : 0;
-                                sampleR += (panpot[k] & 1) != 0 ? sample : 0;
+                                int L = (panpot[k] & 2) != 0 ? sample : 0;
+                                int R = (panpot[k] & 1) != 0 ? sample : 0;
 
                                 //ノイズ
                                 nv = ((int)(scount[k] >> (toneshift + oversampling)) & 0 | (nenable[k] & noise)) - 1;
                                 sample = (int)((lv + nv) ^ nv);
-                                sampleL += (panpot[k] & 2) != 0 ? sample : 0;
-                                sampleR += (panpot[k] & 1) != 0 ? sample : 0;
+                                L += (panpot[k] & 2) != 0 ? sample : 0;
+                                R += (panpot[k] & 1) != 0 ? sample : 0;
+                                distortion.Mix(efcStartCh + k, ref L, ref R);
+                                revSampleL += (int)(L * reverb.SendLevel[efcStartCh + k] * 0.6);
+                                revSampleR += (int)(R * reverb.SendLevel[efcStartCh + k] * 0.6);
 
+                                sampleL += L;
+                                sampleR += R;
                                 scount[k] += speriod[k];
                             }
 
                         }
                         sampleL /= (1 << oversampling);
                         sampleR /= (1 << oversampling);
+                        revSampleL /= (1 << oversampling);
+                        revSampleR /= (1 << oversampling);
+
                         StoreSample(ref dest[ptrDest + 0], sampleL);
                         StoreSample(ref dest[ptrDest + 1], sampleR);
+                        reverb.StoreData(0, revSampleL);
+                        reverb.StoreData(1, revSampleR);
                         ptrDest += 2;
 
                         visVolume = sampleL;

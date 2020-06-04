@@ -51,7 +51,7 @@ namespace MDSound
 
 
 
-		byte EMU_CORE = 0x00;
+		//byte EMU_CORE = 0x00;
 		// fix broken optimization of old VGMs causing problems with the new core
 		byte key_on_hack = 0x00;
 		ushort[][] start_addr_cache = new ushort[2][] { new ushort[16], new ushort[16] };
@@ -652,7 +652,7 @@ namespace MDSound
 			bank &= 0x7FFF;
 			rom_addr = (uint)((bank << 16) | (address << 0));
 
-			sample_data = chip.romData[rom_addr];
+			sample_data = rom_addr < chip.romData.Length ? chip.romData[rom_addr] : (byte)0;
 			//common.write("adr:{0} dat:{1}", rom_addr, sample_data);
 
 			return (short)((sample_data << 8) | (sample_data << 0));    // MAME currently expands the 8 bit ROM data to 16 bits this way.

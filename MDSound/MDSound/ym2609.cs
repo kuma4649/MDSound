@@ -67,10 +67,11 @@ namespace MDSound
         public override void Update(byte ChipID, int[][] outputs, int samples)
         {
             int[] buffer = new int[2];
-            buffer[0] = reverb[ChipID].GetDataFromPos()/2;
-            buffer[1] = reverb[ChipID].GetDataFromPos()/2;
+            buffer[0] = reverb[ChipID].GetDataFromPos(0)/2;
+            buffer[1] = reverb[ChipID].GetDataFromPos(1)/2;
 
-            reverb[ChipID].StoreData(reverb[ChipID].GetDataFromPos() / 2);
+            reverb[ChipID].StoreData(0, reverb[ChipID].GetDataFromPos(0) / 2);
+            reverb[ChipID].StoreData(1, reverb[ChipID].GetDataFromPos(1) / 2);
             reverb[ChipID].ClearDataAtPos();
 
             chip[ChipID].Mix(buffer, 1);

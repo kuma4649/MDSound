@@ -107,7 +107,8 @@ namespace MDSound.fmvgen
             {
                 //Sample* limit = buffer + count * 2;
                 uint limit = count * 2;
-                int revSample = 0;
+                int revSampleL = 0;
+                int revSampleR = 0;
                 for (int i = 0; i < 6; i++)
                 {
                     Channel r = channel[i];
@@ -155,13 +156,15 @@ namespace MDSound.fmvgen
                             distortion.Mix(revStartCh + i, ref sampleL, ref sampleR);
                             fmvgen.StoreSample(ref buffer[dest + 0], sampleL);
                             fmvgen.StoreSample(ref buffer[dest + 1], sampleR);
-                            revSample += (int)((sampleL + sampleR) / 2.0 * reverb.SendLevel[revStartCh + i] * 0.6);
+                            revSampleL += (int)(sampleL * reverb.SendLevel[revStartCh + i] * 0.6);
+                            revSampleR += (int)(sampleR * reverb.SendLevel[revStartCh + i] * 0.6);
                             //visRtmVolume[0] = (int)(sample & maskl);
                             //visRtmVolume[1] = (int)(sample & maskr);
                         }
                     }
                 }
-                reverb.StoreData(revSample);
+                reverb.StoreData(0, revSampleL);
+                reverb.StoreData(1, revSampleR);
             }
         }
 

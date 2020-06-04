@@ -540,10 +540,12 @@ namespace MDSound.fmvgen
                             int sL = sample & maskl;
                             int sR = sample & maskr;
                             distortion.Mix(r.efcCh, ref sL, ref sR);
-                            int revSample = (int)((sL + sR) / 2 * reverb.SendLevel[r.efcCh]);
+                            int revSampleL = (int)(sL * reverb.SendLevel[r.efcCh]);
+                            int revSampleR = (int)(sR * reverb.SendLevel[r.efcCh]);
                             fmvgen.StoreSample(ref buffer[dest + 0], sL);
                             fmvgen.StoreSample(ref buffer[dest + 1], sR);
-                            reverb.StoreData(revSample);
+                            reverb.StoreData(0, revSampleL);
+                            reverb.StoreData(1, revSampleR);
                             visRtmVolume[0] += sample & maskl;
                             visRtmVolume[1] += sample & maskr;
                         }

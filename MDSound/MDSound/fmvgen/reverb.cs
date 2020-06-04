@@ -6,7 +6,7 @@ namespace MDSound
 {
     public class reverb
     {
-        private int[] Buf = null;
+        private int[][] Buf = new int[2][] { null, null };
         private int Pos = 0;
         private int Delta = 0;
         public double[] SendLevel = null;
@@ -14,7 +14,7 @@ namespace MDSound
 
         public reverb(int bufSize, int ch)
         {
-            this.Buf = new int[bufSize];
+            this.Buf = new int[2][] { new int[bufSize], new int[bufSize] };
             this.Pos = 0;
             this.currentCh = 0;
             SetDelta(64);
@@ -28,7 +28,7 @@ namespace MDSound
 
         public void SetDelta(int n)
         {
-            this.Delta = (int)Buf.Length / 128 * Math.Max(Math.Min(n, 127), 0);
+            this.Delta = (int)Buf[0].Length / 128 * Math.Max(Math.Min(n, 127), 0);
         }
 
         public void SetSendLevel(int ch, int n)
@@ -51,19 +51,21 @@ namespace MDSound
             0.6000000 , 0.7000000 , 0.8000000 , 0.9000000
         };
 
-        public int GetDataFromPos()
+        public int GetDataFromPos(int LorR)
         {
-            return Buf[Pos];
+            if (LorR == 0) return Buf[0][Pos];
+            return Buf[1][Pos];
         }
 
         public void ClearDataAtPos()
         {
-            Buf[Pos] = 0;
+            Buf[0][Pos] = 0;
+            Buf[1][Pos] = 0;
         }
 
         public void UpdatePos()
         {
-            Pos = (1 + Pos) % Buf.Length;
+            Pos = (1 + Pos) % Buf[0].Length;
         }
 
         //public void StoreData(int ch, int v)
@@ -72,10 +74,10 @@ namespace MDSound
         //Buf[ptr] += (int)(v * SendLevel[ch]);
         //}
 
-        public void StoreData(int v)
+        public void StoreData(int LorR, int v)
         {
-            int ptr = (Delta + Pos) % Buf.Length;
-            Buf[ptr] += (int)(v);
+            int ptr = (Delta + Pos) % Buf[0].Length;
+            Buf[LorR][ptr] += (int)(v);
         }
 
         public void SetReg(uint adr, byte data)

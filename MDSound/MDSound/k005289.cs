@@ -42,7 +42,7 @@ namespace MDSound
 
 
 
-		private byte[] m_sound_prom;
+		private byte[] m_sound_prom = null;
 		//private sound_stream* m_stream;
 		private int m_rate;
 

@@ -109,11 +109,11 @@ namespace MDSound
             }
             else if (adr == 2)
             {
-                chInfo[currentCh].gain = (300.0f - 20.0f) * (data & 0x7f) / 64.0f + 20.0f;
+                chInfo[currentCh].gain = (1000.0f - 20.0f) * (data & 0x7f) / 128.0f + 20.0f;
             }
             else if (adr == 3)
             {
-                float f = 200.0f * (data & 0x7f) / 64.0f;
+                float f = 1000.0f * (data & 0x7f) / 256.0f;
                 chInfo[currentCh].highpassL.HighPass(f, (float)(1.0f / Math.Sqrt(2.0f)), clock);
                 chInfo[currentCh].highpassR.HighPass(f, (float)(1.0f / Math.Sqrt(2.0f)), clock);
             }
