@@ -3,7 +3,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <AssemblyTitle>MDSound</AssemblyTitle>
     <Product>MDSound</Product>
-    <Copyright>Copyright ©  2016</Copyright>
+    <Copyright>Copyright ©  2020</Copyright>
     <DefineConstants />
     <OutputPath>bin\$(Configuration)\</OutputPath>
   </PropertyGroup>
@@ -18,7 +18,11 @@
     <StartupObject />
     <Description>vgm chip emu</Description>
     <Authors>kuma</Authors>
-    <Version>1.0.1</Version>
+    <Version>1.0.3</Version>
+    <AssemblyVersion>1.0.3.0</AssemblyVersion>
+    <FileVersion>1.0.3.0</FileVersion>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PackageLicenseExpression>LGPL-3.0-or-later</PackageLicenseExpression>
   </PropertyGroup>
   <ItemGroup>
     <Content Include="fmgen\readme.txt" />

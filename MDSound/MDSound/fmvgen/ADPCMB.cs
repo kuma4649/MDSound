@@ -46,7 +46,7 @@ namespace MDSound.fmvgen
         protected byte control1;     // ADPCM コントロールレジスタ１
         public byte control2;     // ADPCM コントロールレジスタ２
         protected byte[] adpcmreg = new byte[8];  // ADPCM レジスタの一部分
-        protected float[] panTable = new float[4] { 1.0f, 0.5012f, 0.2512f, 0.1000f };
+        //protected float[] panTable = new float[4] { 1.0f, 0.5012f, 0.2512f, 0.1000f };
         protected float panL = 1.0f;
         protected float panR = 1.0f;
         private reverb reverb;
@@ -202,8 +202,8 @@ namespace MDSound.fmvgen
                     break;
 
                 case 0x07:
-                    panL = panTable[(data >> 6) & 0x3];
-                    panR = panTable[(data >> 4) & 0x3];
+                    panL = OPNA2.panTable[(data >> 6) & 0x3];
+                    panR = OPNA2.panTable[(data >> 4) & 0x3];
                     break;
 
                 case 0x08:      // ADPCM data

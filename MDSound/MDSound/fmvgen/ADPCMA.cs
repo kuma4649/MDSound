@@ -53,7 +53,7 @@ namespace MDSound.fmvgen
         };
         private int currentCh;
         private bool currentIsLSB;
-        protected float[] panTable = new float[4] { 1.0f, 0.5012f, 0.2512f, 0.1000f };
+        //protected float[] panTable = new float[4] { 1.0f, 0.5012f, 0.2512f, 0.1000f };
 
         public ADPCMA(reverb reverb, distortion distortion, int revStartCh)
         {
@@ -209,8 +209,8 @@ namespace MDSound.fmvgen
                     break;
 
                 case 0x04:
-                    channel[currentCh].panL = panTable[((data >> 5) & 3) & 3] * ((data >> 7) & 1);
-                    channel[currentCh].panR = panTable[((data >> 2) & 3) & 3] * ((data >> 4) & 1);
+                    channel[currentCh].panL = OPNA2.panTable[((data >> 5) & 3) & 3] * ((data >> 7) & 1);
+                    channel[currentCh].panR = OPNA2.panTable[((data >> 2) & 3) & 3] * ((data >> 4) & 1);
                     break;
 
                 case 0x05:

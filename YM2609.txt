@@ -275,7 +275,7 @@ Virtual Instrument YM2609(Register Map)
       22  |=====|             Reverb Delta                   |  0-127(Def:64(0.5秒)) 1/128 * n 秒をセット
           |_____|____________________________________________|
           |           |                                      |  0-36(Def:0) 設定をするチャンネルです。Rev&Dis兼用
-      23  |===========|      Current Channel                 |  0-11:FM 12-23:SSG 22-24:ADPCM 25-30:Rhythm
+      23  |===========|      Current Channel                 |  0-11:FM 12-23:SSG 24-26:ADPCM 27-32:Rhythm 33-38:ADPCM-A
           |___________|______________________________________|     
           |                        |                         |  0-15(Def:0)SendLevelを送るときは
       24  |========================|   Reverb Send Level     |  Send Ch.でセットしたいチャンネル番号を送る

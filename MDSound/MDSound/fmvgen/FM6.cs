@@ -21,7 +21,7 @@ namespace MDSound.fmvgen
         protected byte reg22;
         protected uint reg29;     // OPNA only?
         protected byte[] pan = new byte[6];
-        protected float[] panTable = new float[4] { 1.0f, 0.5012f, 0.2512f, 0.1000f };
+        //protected float[] panTable = new float[4] { 1.0f, 0.5012f, 0.2512f, 0.1000f };
         protected float[] panL = new float[6];
         protected float[] panR = new float[6];
         //protected bool[] ac = new bool[6];
@@ -160,13 +160,13 @@ namespace MDSound.fmvgen
                 case 0x1a6:
                     c += 3;
                     fnum2[c] = (byte)(data);
-                    panL[c] = panTable[(data >> 6) & 3];
+                    panL[c] = OPNA2.panTable[(data >> 6) & 3];
                     break;
                 case 0xa4:
                 case 0xa5:
                 case 0xa6:
                     fnum2[c] = (byte)(data);
-                    panL[c] = panTable[(data >> 6) & 3];
+                    panL[c] = OPNA2.panTable[(data >> 6) & 3];
                     break;
 
                 case 0xa8:
@@ -195,14 +195,14 @@ namespace MDSound.fmvgen
                     c += 3;
                     ch[c].SetFB((data >> 3) & 7);
                     ch[c].SetAlgorithm(data & 7);
-                    panR[c] = panTable[(data >> 6) & 3];
+                    panR[c] = OPNA2.panTable[(data >> 6) & 3];
                     break;
                 case 0xb0:
                 case 0xb1:
                 case 0xb2:
                     ch[c].SetFB((data >> 3) & 7);
                     ch[c].SetAlgorithm(data & 7);
-                    panR[c] = panTable[(data >> 6) & 3];
+                    panR[c] = OPNA2.panTable[(data >> 6) & 3];
                     break;
 
                 case 0x1b4:

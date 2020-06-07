@@ -9,6 +9,8 @@ namespace MDSound.fmvgen
     //	YM2609(OPNA2) ---------------------------------------------------
     public class OPNA2 : fmgen.OPNABase
     {
+        public static readonly float[] panTable = new float[4] { 1.0f, 0.5012f, 0.2512f, 0.1000f };
+
         // リズム音源関係
         private Rhythm[] rhythm = null;
 
@@ -70,11 +72,11 @@ namespace MDSound.fmvgen
 
             fm6 = new FM6[2] { new FM6(0, reverb, distortion, 0), new FM6(1, reverb, distortion, 6) };
             psg2 = new PSG2[4] { new PSG2(reverb, distortion, 12), new PSG2(reverb, distortion, 15), new PSG2(reverb, distortion, 18), new PSG2(reverb, distortion, 21) };
-            adpcmb = new ADPCMB[3] { new ADPCMB(reverb, distortion, 22), new ADPCMB(reverb, distortion, 23), new ADPCMB(reverb, distortion, 24) };
+            adpcmb = new ADPCMB[3] { new ADPCMB(reverb, distortion, 24), new ADPCMB(reverb, distortion, 25), new ADPCMB(reverb, distortion, 26) };
             rhythm = new Rhythm[6] { 
-                new Rhythm(reverb,distortion, 25), new Rhythm(reverb,distortion, 26), new Rhythm(reverb,distortion, 27),
-                new Rhythm(reverb,distortion, 28), new Rhythm(reverb,distortion, 29), new Rhythm(reverb,distortion, 30) };
-            adpcma = new ADPCMA(reverb, distortion, 31);
+                new Rhythm(reverb,distortion, 27), new Rhythm(reverb,distortion, 28), new Rhythm(reverb,distortion, 29),
+                new Rhythm(reverb,distortion, 30), new Rhythm(reverb,distortion, 31), new Rhythm(reverb,distortion, 32) };
+            adpcma = new ADPCMA(reverb, distortion, 33);
 
             for (int i = 0; i < 6; i++)
             {

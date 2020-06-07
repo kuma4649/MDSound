@@ -88,7 +88,7 @@ namespace MDSound
             }
             else if (adr == 1)
             {
-                currentCh = Math.Max(Math.Min(data & 0x3f, 30), 0);
+                currentCh = Math.Max(Math.Min(data & 0x3f, 38), 0);
             }
             else if (adr == 2)
             {

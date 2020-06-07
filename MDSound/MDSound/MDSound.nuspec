@@ -7,7 +7,7 @@
     <authors>$author$</authors>
     <owners>$author$</owners>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <license type="expression">GPL-3.0-or-later</license>
+    <license type="expression">LGPL-3.0-or-later</license>
     <projectUrl>https://github.com/kuma4649/MDSound</projectUrl>
     <iconUrl>https://github.com/kuma4649/MDSound</iconUrl>
     <description>$description$</description>
