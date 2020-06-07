@@ -546,8 +546,8 @@ namespace MDSound.fmvgen
             for (i = 0; i < 6; i++)
             {
                 pan[i] = 3;
-                panL[i] = panTable[0];
-                panR[i] = panTable[0];
+                panL[i] = OPNA2.panTable[0];
+                panR[i] = OPNA2.panTable[0];
                 ch[i].Reset();
             }
         }
