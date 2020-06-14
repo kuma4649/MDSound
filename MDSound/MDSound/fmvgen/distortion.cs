@@ -26,13 +26,13 @@ namespace MDSound
 
         public distortion(int clock, int maxCh)
         {
-            Init(clock, maxCh);
-        }
-
-        public void Init(int clock, int maxCh)
-        {
             this.clock = clock;
             this.maxCh = maxCh;
+            Init();
+        }
+
+        public void Init()
+        {
             chInfo = new ChInfo[maxCh];
             for (int i = 0; i < chInfo.Length; i++)
             {
@@ -101,6 +101,7 @@ namespace MDSound
             if (adr == 0)
             {
                 currentCh = Math.Max(Math.Min(data & 0x3f, 38), 0);
+                if ((data & 0x80) != 0) Init();
             }
             else if (adr == 1)
             {

@@ -1267,12 +1267,12 @@ namespace MDSound
                 {
                     //RetVal = fread(ROMFile, 0x01, ROMFileSize, hFile);
                     //fclose(hFile);
-                    if (ROMFile.Length != ROMFileSize)
-                        Console.WriteLine("Error while reading OPL4 Sample ROM ({0})!", ROM_FILENAME);
+                    //if (ROMFile.Length != ROMFileSize)
+                        //Console.WriteLine("Error while reading OPL4 Sample ROM ({0})!", ROM_FILENAME);
                 }
                 else
                 {
-                    Console.WriteLine("Warning! OPL4 Sample ROM ({0}) not found!", ROM_FILENAME);
+                    //Console.WriteLine("Warning! OPL4 Sample ROM ({0}) not found!", ROM_FILENAME);
                 }
             }
 

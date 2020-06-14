@@ -1334,7 +1334,7 @@ namespace MDSound
 
             if (groupnum == -1)
             {
-                Console.WriteLine("ymf271_write_fm invalid group {0:X02} {1:X02}", address, data);
+                //Console.WriteLine("ymf271_write_fm invalid group {0:X02} {1:X02}", address, data);
                 return;
             }
 
@@ -1431,7 +1431,7 @@ namespace MDSound
             YMF271Slot slot;
             if (slotnum == -1)
             {
-                Console.WriteLine("ymf271_write_pcm invalid slot {0:X02} {1:X02}", address, data);
+                //Console.WriteLine("ymf271_write_pcm invalid slot {0:X02} {1:X02}", address, data);
                 return;
             }
             slot = chip.slots[slotnum];
@@ -1556,7 +1556,7 @@ namespace MDSound
                 YMF271Group group;
                 if (groupnum == -1)
                 {
-                    Console.WriteLine("ymf271_write_timer invalid group {0:X02} {1:X02}", address, data);
+                    //Console.WriteLine("ymf271_write_timer invalid group {0:X02} {1:X02}", address, data);
                     return;
                 }
                 group = chip.groups[groupnum];
