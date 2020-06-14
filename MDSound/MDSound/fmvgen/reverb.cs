@@ -32,6 +32,8 @@ namespace MDSound
                 SetSendLevel(i, 0);
             }
 
+            int bufSize = Buf[0].Length;
+            this.Buf = new int[2][] { new int[bufSize], new int[bufSize] };
         }
 
         public void SetDelta(int n)
