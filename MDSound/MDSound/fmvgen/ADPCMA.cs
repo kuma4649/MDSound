@@ -38,6 +38,7 @@ namespace MDSound.fmvgen
         public static short[] jedi_table = new short[(48 + 1) * 16];
         private reverb reverb = null;
         private distortion distortion = null;
+        private chorus chorus = null;
         private int revStartCh = 0;
 
         private sbyte[] table2 = new sbyte[]
@@ -55,10 +56,11 @@ namespace MDSound.fmvgen
         private bool currentIsLSB;
         //protected float[] panTable = new float[4] { 1.0f, 0.5012f, 0.2512f, 0.1000f };
 
-        public ADPCMA(reverb reverb, distortion distortion, int revStartCh)
+        public ADPCMA(reverb reverb, distortion distortion,chorus chorus, int revStartCh)
         {
             this.reverb = reverb;
             this.distortion = distortion;
+            this.chorus = chorus;
             this.revStartCh = revStartCh;
             this.buf = null;
             this.size = 0;
@@ -154,6 +156,7 @@ namespace MDSound.fmvgen
                             int sampleL = (int)(((r.adpcmx * vol) >> 10) * r.panL);
                             int sampleR = (int)(((r.adpcmx * vol) >> 10) * r.panR);
                             distortion.Mix(revStartCh + i, ref sampleL, ref sampleR);
+                            chorus.Mix(revStartCh + i, ref sampleL, ref sampleR);
                             fmvgen.StoreSample(ref buffer[dest + 0], sampleL);
                             fmvgen.StoreSample(ref buffer[dest + 1], sampleR);
                             revSampleL += (int)(sampleL * reverb.SendLevel[revStartCh + i] * 0.6);

@@ -26,6 +26,7 @@ namespace MDSound.fmvgen
         protected new byte prescale;
         private reverb reverb;
         private distortion distortion;
+        private chorus chorus;
 
         public class Rhythm
         {
@@ -39,12 +40,14 @@ namespace MDSound.fmvgen
             public uint rate;      // さんぷるのれーと
             public reverb reverb;
             public distortion distortion;
+            public chorus chorus;
             public int efcCh;
 
-            public Rhythm(reverb reverb, distortion distortion, int efcCh)
+            public Rhythm(reverb reverb, distortion distortion,chorus chorus , int efcCh)
             {
                 this.reverb = reverb;
                 this.distortion = distortion;
+                this.chorus = chorus;
                 this.efcCh = efcCh;
             }
         };
@@ -65,18 +68,32 @@ namespace MDSound.fmvgen
         // ---------------------------------------------------------------------------
         //	構築
         //
-        public OPNA2(reverb reverb, distortion distortion)
+        public OPNA2(reverb reverb, distortion distortion,chorus chorus)
         {
             this.reverb = reverb;
             this.distortion = distortion;
+            this.chorus = chorus;
 
-            fm6 = new FM6[2] { new FM6(0, reverb, distortion, 0), new FM6(1, reverb, distortion, 6) };
-            psg2 = new PSG2[4] { new PSG2(reverb, distortion, 12), new PSG2(reverb, distortion, 15), new PSG2(reverb, distortion, 18), new PSG2(reverb, distortion, 21) };
-            adpcmb = new ADPCMB[3] { new ADPCMB(reverb, distortion, 24), new ADPCMB(reverb, distortion, 25), new ADPCMB(reverb, distortion, 26) };
+            fm6 = new FM6[2] { 
+                new FM6(0, reverb, distortion, chorus, 0), 
+                new FM6(1, reverb, distortion, chorus, 6) };
+            psg2 = new PSG2[4] { 
+                new PSG2(reverb, distortion, chorus, 12), 
+                new PSG2(reverb, distortion, chorus, 15), 
+                new PSG2(reverb, distortion, chorus, 18), 
+                new PSG2(reverb, distortion, chorus, 21) };
+            adpcmb = new ADPCMB[3] { 
+                new ADPCMB(reverb, distortion, chorus, 24),
+                new ADPCMB(reverb, distortion, chorus, 25),
+                new ADPCMB(reverb, distortion, chorus, 26) };
             rhythm = new Rhythm[6] { 
-                new Rhythm(reverb,distortion, 27), new Rhythm(reverb,distortion, 28), new Rhythm(reverb,distortion, 29),
-                new Rhythm(reverb,distortion, 30), new Rhythm(reverb,distortion, 31), new Rhythm(reverb,distortion, 32) };
-            adpcma = new ADPCMA(reverb, distortion, 33);
+                new Rhythm(reverb, distortion, chorus, 27), 
+                new Rhythm(reverb, distortion, chorus, 28), 
+                new Rhythm(reverb, distortion, chorus, 29),
+                new Rhythm(reverb, distortion, chorus, 30), 
+                new Rhythm(reverb, distortion, chorus, 31), 
+                new Rhythm(reverb, distortion, chorus, 32) };
+            adpcma = new ADPCMA(reverb, distortion, chorus, 33);
 
             for (int i = 0; i < 6; i++)
             {
@@ -359,7 +376,11 @@ namespace MDSound.fmvgen
             else if (addr >= 0x322 && addr < 0x325)
             {
                 reverb.SetReg(addr - 0x322, (byte)data);
-                if (addr == 0x323) distortion.SetReg(0, (byte)data);//channel変更はアドレスを共有
+                if (addr == 0x323)
+                {
+                    distortion.SetReg(0, (byte)data);//channel変更はアドレスを共有
+                    chorus.SetReg(0, (byte)data);//channel変更はアドレスを共有
+                }
                 return;
             }
             else if (addr >= 0x325 && addr < 0x328)
@@ -367,7 +388,12 @@ namespace MDSound.fmvgen
                 distortion.SetReg(addr - 0x324, (byte)data);//distortionのアドレス0はリバーブと共有
                 return;
             }
-            else if (addr >= 0x328 && addr < 0x330)
+            else if (addr >= 0x328 && addr < 0x32C)
+            {
+                chorus.SetReg(addr - 0x327, (byte)data);//chorusのアドレス0はリバーブと共有
+                return;
+            }
+            else if (addr >= 0x32C && addr < 0x330)
             {
                 return;
             }
@@ -542,6 +568,7 @@ namespace MDSound.fmvgen
                             int sL = sample & maskl;
                             int sR = sample & maskr;
                             distortion.Mix(r.efcCh, ref sL, ref sR);
+                            chorus.Mix(r.efcCh, ref sL, ref sR);
                             int revSampleL = (int)(sL * reverb.SendLevel[r.efcCh]);
                             int revSampleR = (int)(sR * reverb.SendLevel[r.efcCh]);
                             fmvgen.StoreSample(ref buffer[dest + 0], sL);

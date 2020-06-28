@@ -13,6 +13,7 @@ namespace MDSound
         private const uint DefaultYM2609ClockValue = 8000000;
         private reverb[] reverb = new reverb[2];
         private distortion[] distortion = new distortion[2];
+        private chorus[] chorus = new chorus[2];
 
         public override string Name { get { return "YM2609"; } set { } }
         public override string ShortName { get { return "OPNA2"; } set { } }
@@ -35,7 +36,8 @@ namespace MDSound
         {
             reverb[ChipID] = new reverb((int)clock, 37);
             distortion[ChipID] = new distortion((int)clock, 37);
-            chip[ChipID] = new fmvgen.OPNA2(reverb[ChipID], distortion[ChipID]);
+            chorus[ChipID] = new chorus((int)clock, 37);
+            chip[ChipID] = new fmvgen.OPNA2(reverb[ChipID], distortion[ChipID], chorus[ChipID]);
             chip[ChipID].Init(DefaultYM2609ClockValue, clock);
 
             return clock;
@@ -45,7 +47,8 @@ namespace MDSound
         {
             reverb[ChipID] = new reverb((int)clock, 37);
             distortion[ChipID] = new distortion((int)clock, 37);
-            chip[ChipID] = new fmvgen.OPNA2(reverb[ChipID],distortion[ChipID]);
+            chorus[ChipID] = new chorus((int)clock, 37);
+            chip[ChipID] = new fmvgen.OPNA2(reverb[ChipID], distortion[ChipID], chorus[ChipID]);
 
             if (option != null && option.Length > 0 && option[0] is Func<string, Stream>)
             {

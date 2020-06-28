@@ -858,6 +858,25 @@ namespace test
                     lstChip.Add(chip);
                 }
 
+                if (GetLE32(0x90) != 0 && 0x90 < vgmDataOffset - 3)
+                {
+                    chip = new MDSound.MDSound.Chip();
+                    chip.type = MDSound.MDSound.enmInstrumentType.OKIM6258;
+                    chip.ID = 0;
+                    MDSound.okim6258 okim6258 = new MDSound.okim6258();
+                    chip.Instrument = okim6258;
+                    chip.Update = okim6258.Update;
+                    chip.Start = okim6258.Start;
+                    chip.Stop = okim6258.Stop;
+                    chip.Reset = okim6258.Reset;
+                    chip.SamplingRate = SamplingRate;
+                    chip.Clock = GetLE32(0x90) & 0xbfffffff;
+                    chip.Volume = 0;
+                    chip.Option =new object[] { (int)vgmBuf[0x94] };
+                    okim6258.okim6258_set_srchg_cb(0, ChangeChipSampleRate, chip);
+                    lstChip.Add(chip);
+                }
+
                 if (GetLE32(0x98) != 0 && 0x98 < vgmDataOffset - 3)
                 {
                     chip = new MDSound.MDSound.Chip();
@@ -1153,7 +1172,7 @@ namespace test
                     rDat = vgmBuf[vgmAdr + 2];
                     vgmAdr += 3;
                     //Console.Write(" Adr[{0:x}]:cmd[{1:x}]:Adr[{2:x}]:Dar[{3:x}]\r\n", vgmAdr, cmd,rAdr,rDat);
-                    //mds.WriteYM2151(0, rAdr, rDat);
+                    mds.WriteYM2151(0, rAdr, rDat);
                     break;
                 case 0x55: //YM2203
                     rAdr = vgmBuf[vgmAdr + 1];
@@ -1554,7 +1573,10 @@ namespace test
                     //mds.WriteMultiPCM(0, rAdr, rDat);
                     break;
                 case 0xb7:
+                    rAdr = vgmBuf[vgmAdr + 1];
+                    rDat = vgmBuf[vgmAdr + 2];
                     vgmAdr += 3;
+                    mds.WriteOKIM6258(0, rAdr, rDat);
                     break;
                 case 0xb8:
                     rAdr = vgmBuf[vgmAdr + 1];

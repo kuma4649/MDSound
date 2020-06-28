@@ -7,12 +7,14 @@
         protected byte[] duty = new byte[3];
         private reverb reverb;
         private distortion distortion;
+        private chorus chorus;
         private int efcStartCh;
 
-        public PSG2(reverb reverb, distortion distortion, int efcStartCh)
+        public PSG2(reverb reverb, distortion distortion,chorus chorus, int efcStartCh)
         {
             this.reverb = reverb;
             this.distortion = distortion;
+            this.chorus = chorus;
             this.efcStartCh = efcStartCh;
         }
 
@@ -156,6 +158,7 @@
                                     int L = (panpot[k] & 2) != 0 ? sample : 0;
                                     int R = (panpot[k] & 1) != 0 ? sample : 0;
                                     distortion.Mix(efcStartCh + k, ref L, ref R);
+                                    chorus.Mix(efcStartCh + k, ref L, ref R);
                                     revSampleL += (int)(L * reverb.SendLevel[efcStartCh + k] * 0.6);
                                     revSampleR += (int)(R * reverb.SendLevel[efcStartCh + k] * 0.6);
 
@@ -231,6 +234,7 @@
                                     R += (panpot[k] & 1) != 0 ? sample : 0;
 
                                     distortion.Mix(efcStartCh + k, ref L, ref R);
+                                    chorus.Mix(efcStartCh + k, ref L, ref R);
                                     revSampleL += (int)(L * reverb.SendLevel[efcStartCh + k] * 0.6);
                                     revSampleR += (int)(R * reverb.SendLevel[efcStartCh + k] * 0.6);
 
@@ -322,6 +326,7 @@
                                 L += (panpot[k] & 2) != 0 ? sample : 0;
                                 R += (panpot[k] & 1) != 0 ? sample : 0;
                                 distortion.Mix(efcStartCh + k, ref L, ref R);
+                                chorus.Mix(efcStartCh + k, ref L, ref R);
                                 revSampleL += (int)(L * reverb.SendLevel[efcStartCh + k] * 0.6);
                                 revSampleR += (int)(R * reverb.SendLevel[efcStartCh + k] * 0.6);
 
