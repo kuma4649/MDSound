@@ -277,8 +277,9 @@ namespace MDSound
             lock (lockobj)
             {
                 int a, b;
+                int i;
 
-                for (int i = 0; i < sampleCount; i += 2)
+                for (i = 0; i < sampleCount && offset + i < buf.Length; i += 2)
                 {
 
                     frame?.Invoke();
@@ -305,7 +306,7 @@ namespace MDSound
 
                 }
 
-                return sampleCount;
+                return Math.Min(i, sampleCount);
 
             }
         }
