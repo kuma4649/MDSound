@@ -99,7 +99,7 @@ namespace MDSound
         //????
         private const double MULTIPCM_CLOCKDIV = (180.0);
 
-        private class _Sample
+        public class _Sample
         {
             public UInt32 Start;
             public UInt32 Loop;
@@ -110,9 +110,9 @@ namespace MDSound
             public byte AM;
         };
 
-        private enum _STATE { ATTACK, DECAY1, DECAY2, RELEASE }
+        public enum _STATE { ATTACK, DECAY1, DECAY2, RELEASE }
 
-        private class _EG
+        public class _EG
         {
             public Int32 volume; //
             public _STATE state;
@@ -125,7 +125,7 @@ namespace MDSound
             public Int32 DL;     //Decay level
         };
 
-        private class _LFO
+        public class _LFO
         {
             public UInt16 phase;
             public UInt32 phase_step;
@@ -134,7 +134,7 @@ namespace MDSound
         };
 
 
-        private class _SLOT
+        public class _SLOT
         {
             public byte Num;
             public byte[] Regs = new byte[8];
@@ -155,7 +155,7 @@ namespace MDSound
         };
 
         //private _MultiPCM MultiPCM;
-        private class _MultiPCM
+        public class _MultiPCM
         {
             //sound_stream * stream;
             public _Sample[] Samples = new _Sample[0x200];        //Max 512 samples
@@ -574,11 +574,11 @@ namespace MDSound
         }
 
         //READ8_DEVICE_HANDLER( multipcm_r )
-        public byte multipcm_r(byte ChipID, Int32 offset)
+        public _MultiPCM multipcm_r(int ChipID)//, Int32 offset)
         {
             //  MultiPCM *ptChip = get_safe_token(device);
             //	MultiPCM *ptChip = &MultiPCMData[ChipID];
-            return 0;
+            return MultiPCMData[ChipID];
         }
 
         //static DEVICE_START( multipcm )

@@ -272,13 +272,13 @@ namespace MDSound
         }
 
 
+        private int a, b, i;
+
         public int Update(short[] buf, int offset, int sampleCount, Action frame)
         {
             lock (lockobj)
             {
-                int a, b;
-                int i;
-
+        
                 for (i = 0; i < sampleCount && offset + i < buf.Length; i += 2)
                 {
 
@@ -402,7 +402,7 @@ namespace MDSound
         int[][] StreamPnt = new int[0x02][] { new int[0x100], new int[0x100] };
         public static string debugMsg;
 
-        private void ResampleChipStream(Chip[] insts, int[][] RetSample, uint Length)
+        private unsafe void ResampleChipStream(Chip[] insts, int[][] RetSample, uint Length)
         {
             if (insts == null || insts.Length < 1) return;
             if (Length > tempSample[0].Length)
@@ -3171,6 +3171,24 @@ namespace MDSound
             {
                 if (!dicInst.ContainsKey(enmInstrumentType.C352)) return null;
                 return ((c352)dicInst[enmInstrumentType.C352][ChipIndex]).flags[chipID];
+            }
+        }
+
+        public multipcm._MultiPCM ReadMultiPCMRegister(int chipID)
+        {
+            lock (lockobj)
+            {
+                if (!dicInst.ContainsKey(enmInstrumentType.MultiPCM)) return null;
+                return ((multipcm)(dicInst[enmInstrumentType.MultiPCM][0])).multipcm_r(chipID);
+            }
+        }
+
+        public multipcm._MultiPCM ReadMultiPCMRegister(int ChipIndex,int chipID)
+        {
+            lock (lockobj)
+            {
+                if (!dicInst.ContainsKey(enmInstrumentType.MultiPCM)) return null;
+                return ((multipcm)(dicInst[enmInstrumentType.MultiPCM][ChipIndex])).multipcm_r(chipID);
             }
         }
 
