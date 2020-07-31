@@ -114,8 +114,12 @@ namespace MDSound.np.chip
         public Int32 max_volume;
         public UInt32 _freq;
         public double freq;
+        public int freqp;
+        public bool halt;
         public bool key;
         public Int32 tone;
+        public int freqshift;
+
         public new IDeviceInfo Clone() {
             TrackInfoBasic tib = new TrackInfoBasic();
             tib.output = output;
@@ -134,6 +138,9 @@ namespace MDSound.np.chip
         public new Int32 GetVolume() { return volume; }
         public new Int32 GetMaxVolume() { return max_volume; }
         public new Int32 GetTone() { return tone; }
+        public bool GetHalt() { return halt; }
+        public int GetFreqp() { return freqp; }
+        public int GetFreqShift() { return freqshift; }
     };
 
 }

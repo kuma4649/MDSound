@@ -35,8 +35,17 @@ namespace MDSound.np.chip
             freq_shift = 0;
 
             for (int c = 0; c < 2; ++c)
+            {
                 for (int t = 0; t < 3; ++t)
+                {
                     sm[c][t] = 128;
+                }
+            }
+
+            for (int t = 0; t < 3; ++t)
+            {
+                trkinfo[t] = new TrackInfoBasic();
+            }
         }
 
         ~nes_vrc6()
@@ -61,6 +70,7 @@ namespace MDSound.np.chip
                 trkinfo[trk].freq = freq2[trk] != 0 ? clock / 16 / (freq2[trk] + 1) : 0;
                 trkinfo[trk].tone = duty[trk];
                 trkinfo[trk].key = (volume[trk] > 0) && enable[trk] != 0 && gate[trk] == 0;
+                trkinfo[trk].freqp = (int)freq[trk];
                 return trkinfo[trk];
             }
             else if (trk == 2)
@@ -71,11 +81,32 @@ namespace MDSound.np.chip
                 trkinfo[2].freq = freq2[2] != 0 ? clock / 14 / (freq2[2] + 1) : 0;
                 trkinfo[2].tone = -1;
                 trkinfo[2].key = (enable[2] > 0);
+                trkinfo[2].halt = halt;
+                trkinfo[2].freqshift = freq_shift;
+                trkinfo[2].freqp = (int)freq[2];
                 return trkinfo[2];
             }
             else
                 return null;
         }
+
+        public ITrackInfo[] GetTracksInfo()
+        {
+            try
+            {
+                for (int i = 0; i < 3; i++)
+                {
+                     GetTrackInfo(i);
+                }
+
+                return trkinfo;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
 
         public override void SetClock(double c)
         {
