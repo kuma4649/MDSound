@@ -61,6 +61,7 @@ namespace MDSound.np.chip
             {
                 sm[0][i] = 128;
                 sm[1][i] = 128;
+                trkinfo[i] = new TrackInfoN106();
             }
             Reset();
         }
@@ -106,13 +107,31 @@ namespace MDSound.np.chip
 
                 t.key = (t.volume > 0) && (t._freq > 0);
                 t.freq = ((double)(t._freq) * clock) / (double)(15 * 65536 * channels * t.wavelen);
-
+                t.halt = get_channels() > trk;
                 for (int i = 0; i < t.wavelen; ++i)
                     t.wave[i] = (Int16)get_sample((UInt32)((i + t.tone) & 0xFF));
             }
 
             return t;
         }
+
+        public ITrackInfo[] GetTracksInfo()
+        {
+            try
+            {
+                for (int i = 0; i < 8; i++)
+                {
+                    GetTrackInfo(i);
+                }
+
+                return trkinfo;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
 
         public override void SetClock(double c)
         {

@@ -32,8 +32,8 @@ namespace MDSound.np.chip
         // 周波数をノート番号に変換．0x60がo4c 0は無効
         public Int32 GetNote(double freq)
         {
-            const double LOG2_440 = 8.7813597135246596040696824762152;
-            const double LOG_2 = 0.69314718055994530941723212145818;
+            const double LOG2_440 = 8.7813597135246596040696824762152;//ln(440) / ln(2)
+            const double LOG_2 = 0.69314718055994530941723212145818;//ln(2)
             const Int32 NOTE_440HZ = 0x69;
 
             if (freq > 1.0)
