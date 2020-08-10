@@ -584,7 +584,10 @@ namespace MDSound.fmgen
                 case 0x03:      // Start Address H
                     adpcmreg[addr - 0x02 + 0] = (byte)data;
                     startaddr = (uint)((adpcmreg[1] * 256 + adpcmreg[0]) << 6);
-                    memaddr = startaddr;
+                    if ((control1 & 0x40) != 0)
+                    {
+                        memaddr = startaddr;
+                    }
                     //		LOG1("  startaddr %.6x", startaddr);
                     break;
 
