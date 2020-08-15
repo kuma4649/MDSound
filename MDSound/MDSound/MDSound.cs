@@ -122,7 +122,9 @@ namespace MDSound
             mpcmX68k,
             YM3812,
             YM3526,
-            QSoundCtr
+            QSoundCtr,
+            PPZ8,
+            PPSDRV
         }
 
         public class Chip
@@ -450,6 +452,7 @@ namespace MDSound
                 if (inst.type == enmInstrumentType.Nes) mul = 0;
                 mul = (int)(16384.0 * Math.Pow(10.0, mul / 40.0));
 
+                //Console.WriteLine("{0} {1}", inst.type, inst.Resampler);
                 //Console.WriteLine("{0}", inst.Resampler);
                 switch (inst.Resampler)
                 {
