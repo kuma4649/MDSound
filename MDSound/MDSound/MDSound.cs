@@ -2005,6 +2005,110 @@ namespace MDSound
         #endregion
 
 
+        #region PPZ8
+
+        public void WritePPZ8(byte ChipID, int port, int address, int data, byte[] addtionalData)
+        {
+            lock (lockobj)
+            {
+                if (!dicInst.ContainsKey(enmInstrumentType.PPZ8)) return;
+
+                //if (port == 0x03)
+                //{
+                //    ((PPZ8)(dicInst[enmInstrumentType.PPZ8][0])).LoadPcm(ChipID, (byte)address, (byte)data, addtionalData);
+                //}
+                //else
+                //{
+                   ((PPZ8)(dicInst[enmInstrumentType.PPZ8][0])).Write(ChipID, port, address, data);
+                //}
+            }
+        }
+
+        public void WritePPZ8(int ChipIndex, byte ChipID, int port, int address, int data, byte[] addtionalData)
+        {
+            lock (lockobj)
+            {
+                if (!dicInst.ContainsKey(enmInstrumentType.PPZ8)) return;
+
+                //if (port == 0x03)
+                //{
+                //    ((PPZ8)(dicInst[enmInstrumentType.PPZ8][0])).LoadPcm(ChipID, (byte)address, (byte)data, addtionalData);
+                //}
+                //else
+                //{
+                ((PPZ8)(dicInst[enmInstrumentType.PPZ8][ChipIndex])).Write(ChipID, port, address, data);
+                //}
+            }
+        }
+
+        public void WritePPZ8PCMData(byte ChipID, int address, int data, byte[] PCMData)
+        {
+            lock (lockobj)
+            {
+                if (!dicInst.ContainsKey(enmInstrumentType.PPZ8)) return;
+
+                ((PPZ8)(dicInst[enmInstrumentType.PPZ8][0])).LoadPcm(ChipID, (byte)address, (byte)data, PCMData);
+            }
+        }
+
+        public void WritePPZ8PCMData(int ChipIndex, byte ChipID, int address, int data, byte[] PCMData)
+        {
+            lock (lockobj)
+            {
+                if (!dicInst.ContainsKey(enmInstrumentType.PPZ8)) return;
+
+                ((PPZ8)(dicInst[enmInstrumentType.PPZ8][ChipIndex])).LoadPcm(ChipID, (byte)address, (byte)data, PCMData);
+            }
+        }
+
+        #endregion
+
+
+        #region PPSDRV
+
+        public void WritePPSDRV(byte ChipID, int port, int address, int data, byte[] addtionalData)
+        {
+            lock (lockobj)
+            {
+                if (!dicInst.ContainsKey(enmInstrumentType.PPSDRV)) return;
+
+                ((PPSDRV)(dicInst[enmInstrumentType.PPSDRV][0])).Write(ChipID, port, address, data);
+            }
+        }
+
+        public void WritePPSDRV(int ChipIndex, byte ChipID, int port, int address, int data, byte[] addtionalData)
+        {
+            lock (lockobj)
+            {
+                if (!dicInst.ContainsKey(enmInstrumentType.PPSDRV)) return;
+
+                ((PPSDRV)(dicInst[enmInstrumentType.PPSDRV][ChipIndex])).Write(ChipID, port, address, data);
+            }
+        }
+
+        public void WritePPSDRVPCMData(byte ChipID, byte[] PCMData)
+        {
+            lock (lockobj)
+            {
+                if (!dicInst.ContainsKey(enmInstrumentType.PPSDRV)) return;
+
+                ((PPSDRV)(dicInst[enmInstrumentType.PPSDRV][0])).Load(ChipID, PCMData);
+            }
+        }
+
+        public void WritePPSDRVPCMData(int ChipIndex, byte ChipID, byte[] PCMData)
+        {
+            lock (lockobj)
+            {
+                if (!dicInst.ContainsKey(enmInstrumentType.PPSDRV)) return;
+
+                ((PPSDRV)(dicInst[enmInstrumentType.PPSDRV][ChipIndex])).Load(ChipID, PCMData);
+            }
+        }
+
+        #endregion
+
+
         #region QSound
 
         public void WriteQSound(byte ChipID, Int32 adr, byte dat)
