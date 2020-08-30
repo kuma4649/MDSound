@@ -31,6 +31,7 @@ namespace MDSound
         private List<int[]> ay8910Mask = new List<int[]>(new int[][] { new int[] { 0, 0 } });
         private List<int[]> huc6280Mask = new List<int[]>(new int[][] { new int[] { 0, 0 } });
         private List<uint[]> nesMask = new List<uint[]>(new uint[][] { new uint[] { 0, 0 } });
+        private List<int[]> saa1099Mask = new List<int[]>(new int[][] { new int[] { 0, 0 } });
 
         private int[][][] rf5c164Vol = new int[][][] {
             new int[8][] { new int[2], new int[2], new int[2], new int[2], new int[2], new int[2], new int[2], new int[2] }
@@ -124,7 +125,8 @@ namespace MDSound
             YM3526,
             QSoundCtr,
             PPZ8,
-            PPSDRV
+            PPSDRV,
+            SAA1099
         }
 
         public class Chip
@@ -812,6 +814,94 @@ namespace MDSound
         {
             if (!dicInst.ContainsKey(enmInstrumentType.AY8910)) return null;
             return ((ay8910)dicInst[enmInstrumentType.AY8910][ChipIndex]).visVolume;
+        }
+
+        #endregion
+
+        #region SAA1099
+
+        public void WriteSAA1099(byte ChipID, byte Adr, byte Data)
+        {
+            lock (lockobj)
+            {
+                if (!dicInst.ContainsKey(enmInstrumentType.SAA1099)) return;
+
+                ((saa1099)(dicInst[enmInstrumentType.SAA1099][0])).Write(ChipID, 0, Adr, Data);
+            }
+        }
+
+        public void WriteSAA1099(int ChipIndex, byte ChipID, byte Adr, byte Data)
+        {
+            lock (lockobj)
+            {
+                if (!dicInst.ContainsKey(enmInstrumentType.SAA1099)) return;
+
+                ((saa1099)(dicInst[enmInstrumentType.SAA1099][ChipIndex])).Write(ChipID, 0, Adr, Data);
+            }
+        }
+
+
+        public void setVolumeSAA1099(int vol)
+        {
+            if (!dicInst.ContainsKey(enmInstrumentType.SAA1099)) return;
+
+            foreach (Chip c in insts)
+            {
+                if (c.type != enmInstrumentType.SAA1099) continue;
+                c.Volume = Math.Max(Math.Min(vol, 20), -192);
+            }
+        }
+
+        public void setSAA1099Mask(int chipID, int ch)
+        {
+            lock (lockobj)
+            {
+                saa1099Mask[0][chipID] |= ch;
+                if (!dicInst.ContainsKey(enmInstrumentType.SAA1099)) return;
+                ((saa1099)(dicInst[enmInstrumentType.SAA1099][0])).SAA1099_SetMute((byte)chipID, saa1099Mask[0][chipID]);
+            }
+        }
+
+        public void setSAA1099Mask(int ChipIndex, int chipID, int ch)
+        {
+            lock (lockobj)
+            {
+                saa1099Mask[ChipIndex][chipID] |= ch;
+                if (!dicInst.ContainsKey(enmInstrumentType.SAA1099)) return;
+                ((saa1099)(dicInst[enmInstrumentType.SAA1099][ChipIndex])).SAA1099_SetMute((byte)chipID, saa1099Mask[ChipIndex][chipID]);
+            }
+        }
+
+        public void resetSAA1099Mask(int chipID, int ch)
+        {
+            lock (lockobj)
+            {
+                saa1099Mask[0][chipID] &= ~ch;
+                if (!dicInst.ContainsKey(enmInstrumentType.SAA1099)) return;
+                ((saa1099)(dicInst[enmInstrumentType.SAA1099][0])).SAA1099_SetMute((byte)chipID, saa1099Mask[0][chipID]);
+            }
+        }
+
+        public void resetSAA1099Mask(int ChipIndex, int chipID, int ch)
+        {
+            lock (lockobj)
+            {
+                saa1099Mask[ChipIndex][chipID] &= ~ch;
+                if (!dicInst.ContainsKey(enmInstrumentType.SAA1099)) return;
+                ((saa1099)(dicInst[enmInstrumentType.SAA1099][ChipIndex])).SAA1099_SetMute((byte)chipID, saa1099Mask[ChipIndex][chipID]);
+            }
+        }
+
+        public int[][][] getSAA1099VisVolume()
+        {
+            if (!dicInst.ContainsKey(enmInstrumentType.SAA1099)) return null;
+            return ((saa1099)dicInst[enmInstrumentType.SAA1099][0]).visVolume;
+        }
+
+        public int[][][] getSAA1099VisVolume(int ChipIndex)
+        {
+            if (!dicInst.ContainsKey(enmInstrumentType.SAA1099)) return null;
+            return ((saa1099)dicInst[enmInstrumentType.SAA1099][ChipIndex]).visVolume;
         }
 
         #endregion
