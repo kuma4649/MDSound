@@ -912,7 +912,7 @@ namespace MDSound
 
         #region X1_010
 
-        public void WriteX1_010(byte ChipID, byte Adr, byte Data)
+        public void WriteX1_010(byte ChipID, int Adr, byte Data)
         {
             lock (lockobj)
             {
@@ -922,7 +922,7 @@ namespace MDSound
             }
         }
 
-        public void WriteX1_010(int ChipIndex, byte ChipID, byte Adr, byte Data)
+        public void WriteX1_010(int ChipIndex, byte ChipID, int Adr, byte Data)
         {
             lock (lockobj)
             {

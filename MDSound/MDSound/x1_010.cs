@@ -160,7 +160,7 @@ namespace MDSound
 		private int CHIP_SAMPLE_RATE;
 
 		private static int MAX_CHIPS = 0x02;
-		private x1_010_state[] X1010Data = new x1_010_state[MAX_CHIPS];
+		private x1_010_state[] X1010Data = new x1_010_state[2] { new x1_010_state(), new x1_010_state() };// MAX_CHIPS];
 
 		/*
 		private x1_010_state get_safe_token(device_t device)
