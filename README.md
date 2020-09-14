@@ -4,33 +4,34 @@
 [概要]  
  このDLLは、VGM Playerのソースなどからメガドライブなどに搭載されている以下の音源チップの動作をC#向けコードに移植したものです。  
   FM音源  
-    YM2612   OPN2  
-	YM3438   OPN2(cmos)  
+    YM2612     OPN2  
+	YM3438     OPN2(cmos)  
     YM2151(mame)     OPM  
     YM2151(FMGEN)    OPM  
     YM2151(X68sound) OPM  
-    YM2203   OPN  
-    YM2608   OPNA  
-    YM2610/B OPNB  
-    YM2413   OPLL  
-    YMF262   OPL3  
-    YMF278B  OPL4  
+    YM2203     OPN  
+    YM2608     OPNA  
+    YM2610/B   OPNB  
+    YM2413     OPLL  
+    YMF262     OPL3  
+    YMF278B    OPL4  
   PCM音源  
-    RF5C164  RF5C  
-    PWM      PWM  
-    C140     C140  
-    OKIM6258 OKI65  
+    RF5C164    RF5C  
+    PWM        PWM  
+    C140       C140  
+    OKIM6258   OKI65  
     MPCM(OKIM6258)   MPCM  
-    OKIM6295 OKI69  
-    SEGAPCM  SEGAPCM  
-    C352     C352  
-    K054539  K054  
+    OKIM6295   OKI69  
+    SEGAPCM    SEGAPCM  
+    C352       C352  
+    K054539    K054  
     NES_DMC  
-    PPZ8     PPZ8  
-    PPSDRV   PPSDRV  
+    PPZ8       PPZ8  
+    PPSDRV     PPSDRV  
+    PC-9801-86 P86  
   波形メモリ音源  
     HuC6280(FM的個所有)  HuC6  
-    K051649  K051  
+    K051649    K051  
     NES_FDS(FM的個所有)  
   PSG音源  
     SN76489  

@@ -128,7 +128,8 @@ namespace MDSound
             PPZ8,
             PPSDRV,
             SAA1099,
-            X1_010
+            X1_010,
+            P86
         }
 
         public class Chip
@@ -2306,6 +2307,65 @@ namespace MDSound
                 if (!dicInst.ContainsKey(enmInstrumentType.PPSDRV)) return;
 
                 ((PPSDRV)(dicInst[enmInstrumentType.PPSDRV][ChipIndex])).Load(ChipID, PCMData);
+            }
+        }
+
+        #endregion
+
+
+        #region P86
+
+        public void WriteP86(byte ChipID, int port, int address, int data, byte[] addtionalData)
+        {
+            lock (lockobj)
+            {
+                if (!dicInst.ContainsKey(enmInstrumentType.P86)) return;
+
+                //if (port == 0x03)
+                //{
+                //    ((P86)(dicInst[enmInstrumentType.P86][0])).LoadPcm(ChipID, (byte)address, (byte)data, addtionalData);
+                //}
+                //else
+                //{
+                ((P86)(dicInst[enmInstrumentType.P86][0])).Write(ChipID, port, address, data);
+                //}
+            }
+        }
+
+        public void WriteP86(int ChipIndex, byte ChipID, int port, int address, int data, byte[] addtionalData)
+        {
+            lock (lockobj)
+            {
+                if (!dicInst.ContainsKey(enmInstrumentType.P86)) return;
+
+                //if (port == 0x03)
+                //{
+                //    ((P86)(dicInst[enmInstrumentType.P86][0])).LoadPcm(ChipID, (byte)address, (byte)data, addtionalData);
+                //}
+                //else
+                //{
+                ((P86)(dicInst[enmInstrumentType.P86][ChipIndex])).Write(ChipID, port, address, data);
+                //}
+            }
+        }
+
+        public void WriteP86PCMData(byte ChipID, int address, int data, byte[] PCMData)
+        {
+            lock (lockobj)
+            {
+                if (!dicInst.ContainsKey(enmInstrumentType.P86)) return;
+
+                ((P86)(dicInst[enmInstrumentType.P86][0])).LoadPcm(ChipID, (byte)address, (byte)data, PCMData);
+            }
+        }
+
+        public void WriteP86PCMData(int ChipIndex, byte ChipID, int address, int data, byte[] PCMData)
+        {
+            lock (lockobj)
+            {
+                if (!dicInst.ContainsKey(enmInstrumentType.P86)) return;
+
+                ((P86)(dicInst[enmInstrumentType.P86][ChipIndex])).LoadPcm(ChipID, (byte)address, (byte)data, PCMData);
             }
         }
 
