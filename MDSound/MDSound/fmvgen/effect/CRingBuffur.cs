@@ -9,13 +9,14 @@ namespace MDSound.fmvgen
 		private int rpos; // 読み込み位置
 		private int wpos; // 書き込み位置
 		private float[] buf = null;// RB_SIZE]; // 内部バッファ
-		private const int RB_SIZE = 44100 * 4;
+		private int RB_SIZE = 44100 * 4;
 
-		public CRingBuffur()
+		public CRingBuffur(int clock, float RB = 4.0f)
 		{
 			// 初期化を行う
+			RB_SIZE = (int)(clock * RB);
 			rpos = 0;
-			wpos = RB_SIZE / 2; // とりあえずバッファサイズの半分ぐらいにしておく
+			wpos = (int)(RB_SIZE / 2.0); // とりあえずバッファサイズの半分ぐらいにしておく
 
 			buf = new float[RB_SIZE];
 		}

@@ -1,4 +1,7 @@
-﻿namespace MDSound.fmvgen
+﻿using System;
+using System.Diagnostics;
+
+namespace MDSound.fmvgen
 {
     public class PSG2 : fmgen.PSG
     {
@@ -9,6 +12,8 @@
         private distortion distortion;
         private chorus chorus;
         private int efcStartCh;
+        private byte[][] user = new byte[6][] { new byte[64], new byte[64], new byte[64], new byte[64], new byte[64], new byte[64] };
+        private int userDefCounter = 0;
 
         public PSG2(reverb reverb, distortion distortion,chorus chorus, int efcStartCh)
         {
@@ -87,6 +92,13 @@
                         ecount = 0;
                         envelop = enveloptable[data & 15];
                         break;
+
+                    case 14:    // Define Wave Data
+                        if ((data & 0x80) != 0) userDefCounter = 0;
+                        user[((data & 0x70) >> 4) % 6][userDefCounter & 63] = (byte)(data & 0xf);
+                        //Console.WriteLine("{3} : WF {0} {1} {2} ", ((data & 0x70) >> 4) % 6, userDefCounter & 63, (byte)(data & 0xf), data);
+                        userDefCounter++;
+                        break;
                 }
             }
         }
@@ -127,7 +139,6 @@
                             sampleR = 0;
                             revSampleL = 0;
                             revSampleR = 0;
-                            sample = 0;
 
                             for (int j = 0; j < (1 << oversampling); j++)
                             {
@@ -135,24 +146,35 @@
 
                                 for (int k = 0; k < 3; k++)
                                 {
-                                    n = ((int)(scount[k] >> (toneshift + oversampling - 3)) & chenable[k]);
                                     if (duty[k] < 8)
                                     {
+                                        n = ((int)(scount[k] >> (toneshift + oversampling - 3)) & chenable[k]);
                                         //矩形波
                                         x = n > duty[k] ? 0 : -1;
                                         sample = (int)((olevel[k] + x) ^ x);
                                     }
                                     else if (duty[k] == 8)
                                     {
+                                        n = ((int)(scount[k] >> (toneshift + oversampling - 3)) & chenable[k]);
                                         //三角波
                                         x = n < 8 ? (n - 4) : (15 - 4 - n);
                                         sample = (int)((olevel[k] * x) >> 1);
                                     }
                                     else if (duty[k] == 9)
                                     {
+                                        n = ((int)(scount[k] >> (toneshift + oversampling - 3)) & chenable[k]);
                                         //のこぎり波
-                                        x = n - 7;
+                                        x = n - 8;
                                         sample = (int)((olevel[k] * x) >> 2);
+                                    }
+                                    else 
+                                    {
+                                        //ユーザー定義
+                                        uint pos = (scount[k] >> (toneshift + oversampling - 3 - 2)) & 63;
+                                        n = ((int)user[duty[k] - 10][pos] & chenable[k]);
+                                        x = n - 8;
+                                        sample = (int)(((int)olevel[k] * x) >> 2);
+                                        //if (k == 0) Console.WriteLine("{0} {1} {2}  ", pos, n, sample);
                                     }
 
                                     int L = (panpot[k] & 2) != 0 ? sample : 0;

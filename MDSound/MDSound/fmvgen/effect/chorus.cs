@@ -9,7 +9,7 @@ namespace MDSound
     {
 		//コーラス・フランジャーの実装例(https://vstcpp.wpblog.jp/?p=1797 より)
 
-		private int clock;
+		private float clock;
 		private int maxCh;
 		private ChInfo[] chInfo = null;
 		private int currentCh = 0;
@@ -34,22 +34,23 @@ namespace MDSound
 			public float theta;
 			//public float speed;
 
-			public ChInfo()
+			public ChInfo(int clock)
 			{
+				delaysample = 10;
+				theta = 0; // ディレイ読み込み位置を揺らすためのsin関数の角度 θ。初期値は0
+
 				sw = false;
-				ringbufL = new CRingBuffur();
-				ringbufR = new CRingBuffur();
+				ringbufL = new CRingBuffur(clock, 0.02f);
+				ringbufR = new CRingBuffur(clock, 0.02f);
 				ringbufL.SetInterval(delaysample);
 				ringbufR.SetInterval(delaysample);
 
-				delaysample = 1000;
-				theta = 0; // ディレイ読み込み位置を揺らすためのsin関数の角度 θ。初期値は0
 			}
 		}
 
 		public chorus(int clock,int maxCh)
         {
-			this.clock = clock;
+			this.clock = (float)clock;
 			this.maxCh = maxCh;
 			Init();
 
@@ -60,7 +61,7 @@ namespace MDSound
 			chInfo = new ChInfo[maxCh];
 			for (int i = 0; i < chInfo.Length; i++)
 			{
-				chInfo[i] = new ChInfo();
+				chInfo[i] = new ChInfo((int)clock);
 			}
 
 		}
@@ -84,7 +85,7 @@ namespace MDSound
 			ChInfo ci = chInfo[ch];
 			float finL = inL / 21474.83647f;
 			float finR = inR / 21474.83647f;
-			float speed = (2.0f * 3.14159265f * ci.rate) / 44100.0f; // 揺らぎのスピード。角速度ωと同じ。
+			float speed = (2.0f * 3.14159265f * ci.rate) / clock; // 揺らぎのスピード。角速度ωと同じ。
 
 			// inL[]、inR[]、outL[]、outR[]はそれぞれ入力信号と出力信号のバッファ(左右)
 			// wavelenghtはバッファのサイズ、サンプリング周波数は44100Hzとする
@@ -112,6 +113,7 @@ namespace MDSound
 			// ディレイ信号として入力信号とフィードバック信号をリングバッファに書き込み
 			ci.ringbufL.Write((1.0f - ci.feedback) * finL + ci.feedback * tmpL);
 			ci.ringbufR.Write((1.0f - ci.feedback) * finR + ci.feedback * tmpR);
+
 
 			// リングバッファの状態を更新する
 			ci.ringbufL.Update();
