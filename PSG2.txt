@@ -26,13 +26,13 @@
      +07  |===========|      /Noise       |    /Tone         |  /Enable
     ____  |___________|___________________|__________________|  _______________________
           |     |     |     |      |                         |
-     +08  |  L  |  R  |=====|  M   |         Level           |  Channel-A Amplitude / Panpot
+     +08  |  L  |  R  |PHRST|  M   |         Level           |  Channel-A Amplitude / Phase reset / Panpot
           |_____|_____|_____|______|_________________________|
           |     |     |     |      |                         |
-     +09  |  L  |  R  |=====|  M   |         Level           |  Channel-B Amplitude / Panpot
+     +09  |  L  |  R  |PHRST|  M   |         Level           |  Channel-B Amplitude / Phase reset / Panpot
           |_____|_____|_____|______|_________________________|
           |     |     |     |      |                         |
-     +0A  |  L  |  R  |=====|  M   |         Level           |  Channel-C Amplitude / Panpot
+     +0A  |  L  |  R  |PHRST|  M   |         Level           |  Channel-C Amplitude / Phase reset / Panpot
     ____  |_____|_____|_____|______|_________________________|  _______________________
           |                                                  |
      +0B  |                    Fine Tune                     |

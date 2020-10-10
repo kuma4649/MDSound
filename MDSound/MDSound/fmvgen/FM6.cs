@@ -272,6 +272,7 @@ namespace MDSound.fmvgen
 
                     case 5: // 50-5E KS/AR
                         op.SetKS((data >> 6) & 3);
+                        op.SetPhaseReset(data & 0x20);
                         op.SetAR((data & 0x1f) * 2);
                         break;
 

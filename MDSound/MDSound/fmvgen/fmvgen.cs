@@ -215,6 +215,7 @@ namespace MDSound.fmvgen
             private uint rr_;           // Release Rate  (0-63)
             private uint ks_;           // Keyscale      (0-3)
             private uint ssg_type_; // SSG-Type Envelop Control
+            private uint phaseReset_;   // phaseReset(0/1)
 
             public uint fb_;
             public byte algLink_;
@@ -301,7 +302,7 @@ namespace MDSound.fmvgen
                 out_ = out2_ = 0;
 
                 param_changed_ = true;
-                PARAMCHANGE(0);
+                //PARAMCHANGE(0);
             }
 
             public void MakeTable()
@@ -362,7 +363,7 @@ namespace MDSound.fmvgen
                 dp_ = dp;
                 bn_ = bn;
                 param_changed_ = true;
-                PARAMCHANGE(1);
+                //PARAMCHANGE(1);
             }
 
             //	準備
@@ -523,7 +524,7 @@ namespace MDSound.fmvgen
                 dp_ = (f & 2047) << (int)((f >> 11) & 7);
                 bn_ = notetable[(f >> 7) & 127];
                 param_changed_ = true;
-                PARAMCHANGE(2);
+                //PARAMCHANGE(2);
             }
 
             // 入力: s = 20+FM_PGBITS = 29
@@ -750,7 +751,7 @@ namespace MDSound.fmvgen
                 if (!keyon_)
                 {
                     keyon_ = true;
-                    if (eg_phase_ == EGPhase.off || eg_phase_ == EGPhase.release)
+                    if ((eg_phase_ == EGPhase.off || eg_phase_ == EGPhase.release) || phaseReset_ != 0)
                     {
                         ssg_phase_ = -1;
                         ShiftPhase(EGPhase.attack);
@@ -782,7 +783,7 @@ namespace MDSound.fmvgen
             {
                 detune_ = dt * 0x20;
                 param_changed_ = true;
-                PARAMCHANGE(4);
+                //PARAMCHANGE(4);
             }
 
             //	DT2 (0-3)
@@ -790,7 +791,7 @@ namespace MDSound.fmvgen
             {
                 detune2_ = dt2 & 3;
                 param_changed_ = true;
-                PARAMCHANGE(5);
+                //PARAMCHANGE(5);
             }
 
             //	Multiple (0-15)
@@ -798,7 +799,7 @@ namespace MDSound.fmvgen
             {
                 multiple_ = mul;
                 param_changed_ = true;
-                PARAMCHANGE(6);
+                //PARAMCHANGE(6);
             }
 
             //	Total Level (0-127) (0.75dB step)
@@ -808,7 +809,7 @@ namespace MDSound.fmvgen
                 {
                     tl_ = tl;
                     param_changed_ = true;
-                    PARAMCHANGE(7);
+                    //PARAMCHANGE(7);
                 }
                 tl_latch_ = tl;
             }
@@ -818,7 +819,7 @@ namespace MDSound.fmvgen
             {
                 ar_ = ar;
                 param_changed_ = true;
-                PARAMCHANGE(8);
+                //PARAMCHANGE(8);
             }
 
             //	Decay Rate (0-63)
@@ -826,7 +827,7 @@ namespace MDSound.fmvgen
             {
                 dr_ = dr;
                 param_changed_ = true;
-                PARAMCHANGE(9);
+                //PARAMCHANGE(9);
             }
 
             //	Sustain Rate (0-63)
@@ -834,7 +835,7 @@ namespace MDSound.fmvgen
             {
                 sr_ = sr;
                 param_changed_ = true;
-                PARAMCHANGE(10);
+                //PARAMCHANGE(10);
             }
 
             //	Sustain Level (0-127)
@@ -842,7 +843,7 @@ namespace MDSound.fmvgen
             {
                 sl_ = sl;
                 param_changed_ = true;
-                PARAMCHANGE(11);
+                //PARAMCHANGE(11);
             }
 
             //	Release Rate (0-63)
@@ -850,7 +851,7 @@ namespace MDSound.fmvgen
             {
                 rr_ = rr;
                 param_changed_ = true;
-                PARAMCHANGE(12);
+                //PARAMCHANGE(12);
             }
 
             //	Keyscale (0-3)
@@ -858,7 +859,13 @@ namespace MDSound.fmvgen
             {
                 ks_ = ks;
                 param_changed_ = true;
-                PARAMCHANGE(13);
+                //PARAMCHANGE(13);
+            }
+
+            public void SetPhaseReset(uint prst)
+            {
+                phaseReset_ = (uint)(prst != 0 ? 1 : 0);
+                param_changed_ = true;
             }
 
             //	SSG-type Envelop (0-15)
@@ -874,49 +881,49 @@ namespace MDSound.fmvgen
             {
                 amon_ = amon;
                 param_changed_ = true;
-                PARAMCHANGE(14);
+                //PARAMCHANGE(14);
             }
 
             public void SetFB(uint fb)
             {
                 fb_ = Channel4.fbtable[fb];
                 param_changed_ = true;
-                PARAMCHANGE(15);
+                //PARAMCHANGE(15);
             }
 
             public void SetALGLink(uint AlgLink)
             {
                 algLink_ = (byte)AlgLink;
                 param_changed_ = true;
-                PARAMCHANGE(16);
+                //PARAMCHANGE(16);
             }
 
             public void SetWaveTypeL(byte wt)
             {
                 wt_ = (byte)((wt_ & 2) | (wt & 1));
                 param_changed_ = true;
-                PARAMCHANGE(17);
+                //PARAMCHANGE(17);
             }
 
             public void SetWaveTypeH(byte wt)
             {
                 wt_ = (byte)((wt_ & 1) | ((wt & 1) << 1));
                 param_changed_ = true;
-                PARAMCHANGE(17);
+                //PARAMCHANGE(17);
             }
 
             public void Mute(bool mute)
             {
                 mute_ = mute;
                 param_changed_ = true;
-                PARAMCHANGE(15);
+                //PARAMCHANGE(15);
             }
 
             public void SetMS(uint ms)
             {
                 ms_ = ms;
                 param_changed_ = true;
-                PARAMCHANGE(16);
+                //PARAMCHANGE(16);
             }
 
 
@@ -1066,15 +1073,15 @@ namespace MDSound.fmvgen
                     op[i].SetFNum(f);
             }
 
+            uint[] kctable = new uint[16]
+            {
+                    5197, 5506, 5833, 6180, 6180, 6547, 6937, 7349,
+                    7349, 7786, 8249, 8740, 8740, 9259, 9810, 10394,
+            };
+
             //	KC/KF を設定
             public void SetKCKF(uint kc, uint kf)
             {
-                uint[] kctable = new uint[16]
-                {
-                    5197, 5506, 5833, 6180, 6180, 6547, 6937, 7349,
-                    7349, 7786, 8249, 8740, 8740, 9259, 9810, 10394,
-                };
-
                 int oct = (int)(19 - ((kc >> 4) & 7));
 
                 //printf("%p", this);
@@ -1107,10 +1114,7 @@ namespace MDSound.fmvgen
                 else op[3].KeyOff();
             }
 
-            //	アルゴリズムを設定
-            public void SetAlgorithm(uint algo)
-            {
-                byte[][] table1 = new byte[8][] {
+            byte[][] table1 = new byte[8][] {
                     new byte[6] { 0, 1, 1, 2, 2, 3 },
                     new byte[6] { 1, 0, 0, 1, 1, 2 },
                     new byte[6] { 1, 1, 1, 0, 0, 2 },
@@ -1121,6 +1125,9 @@ namespace MDSound.fmvgen
                     new byte[6] { 1, 0, 1, 0, 1, 0 }
                 };
 
+            //	アルゴリズムを設定
+            public void SetAlgorithm(uint algo)
+            {
                 //In[0] = buf[table1[algo][0]];
                 //Out[0] = buf[table1[algo][1]];
                 //In[1] = buf[table1[algo][2]];
@@ -1375,7 +1382,7 @@ namespace MDSound.fmvgen
             {
                 for (int i = 0; i < 4; i++)
                     op[i].param_changed_ = true;
-                PARAMCHANGE(3);
+                //PARAMCHANGE(3);
             }
 
             public void SetChip(Chip chip)

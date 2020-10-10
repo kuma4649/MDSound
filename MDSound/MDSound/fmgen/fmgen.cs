@@ -464,7 +464,7 @@ namespace MDSound.fmgen
                 out_ = out2_ = 0;
 
                 param_changed_ = true;
-                PARAMCHANGE(0);
+                //PARAMCHANGE(0);
             }
 
             public void MakeTable()
@@ -512,7 +512,7 @@ namespace MDSound.fmgen
                 dp_ = dp;
                 bn_ = bn;
                 param_changed_ = true;
-                PARAMCHANGE(1);
+                //PARAMCHANGE(1);
             }
 
             //	準備
@@ -675,7 +675,7 @@ namespace MDSound.fmgen
                 dp_ = (f & 2047) << (int)((f >> 11) & 7);
                 bn_ = notetable[(f >> 7) & 127];
                 param_changed_ = true;
-                PARAMCHANGE(2);
+                //PARAMCHANGE(2);
             }
 
             // 入力: s = 20+FM_PGBITS = 29
@@ -914,7 +914,7 @@ namespace MDSound.fmgen
             {
                 detune_ = dt * 0x20;
                 param_changed_ = true;
-                PARAMCHANGE(4);
+                //PARAMCHANGE(4);
             }
 
             //	DT2 (0-3)
@@ -922,7 +922,7 @@ namespace MDSound.fmgen
             {
                 detune2_ = dt2 & 3;
                 param_changed_ = true;
-                PARAMCHANGE(5);
+                //PARAMCHANGE(5);
             }
 
             //	Multiple (0-15)
@@ -930,7 +930,7 @@ namespace MDSound.fmgen
             {
                 multiple_ = mul;
                 param_changed_ = true;
-                PARAMCHANGE(6);
+                //PARAMCHANGE(6);
             }
 
             //	Total Level (0-127) (0.75dB step)
@@ -940,7 +940,7 @@ namespace MDSound.fmgen
                 {
                     tl_ = tl;
                     param_changed_ = true;
-                    PARAMCHANGE(7);
+                    //PARAMCHANGE(7);
                 }
                 tl_latch_ = tl;
             }
@@ -950,7 +950,7 @@ namespace MDSound.fmgen
             {
                 ar_ = ar;
                 param_changed_ = true;
-                PARAMCHANGE(8);
+                //PARAMCHANGE(8);
             }
 
             //	Decay Rate (0-63)
@@ -958,7 +958,7 @@ namespace MDSound.fmgen
             {
                 dr_ = dr;
                 param_changed_ = true;
-                PARAMCHANGE(9);
+                //PARAMCHANGE(9);
             }
 
             //	Sustain Rate (0-63)
@@ -966,7 +966,7 @@ namespace MDSound.fmgen
             {
                 sr_ = sr;
                 param_changed_ = true;
-                PARAMCHANGE(10);
+                //PARAMCHANGE(10);
             }
 
             //	Sustain Level (0-127)
@@ -974,7 +974,7 @@ namespace MDSound.fmgen
             {
                 sl_ = sl;
                 param_changed_ = true;
-                PARAMCHANGE(11);
+                //PARAMCHANGE(11);
             }
 
             //	Release Rate (0-63)
@@ -982,7 +982,7 @@ namespace MDSound.fmgen
             {
                 rr_ = rr;
                 param_changed_ = true;
-                PARAMCHANGE(12);
+                //PARAMCHANGE(12);
             }
 
             //	Keyscale (0-3)
@@ -990,7 +990,7 @@ namespace MDSound.fmgen
             {
                 ks_ = ks;
                 param_changed_ = true;
-                PARAMCHANGE(13);
+                //PARAMCHANGE(13);
             }
 
             //	SSG-type Envelop (0-15)
@@ -1006,21 +1006,21 @@ namespace MDSound.fmgen
             {
                 amon_ = amon;
                 param_changed_ = true;
-                PARAMCHANGE(14);
+                //PARAMCHANGE(14);
             }
 
             public void Mute(bool mute)
             {
                 mute_ = mute;
                 param_changed_ = true;
-                PARAMCHANGE(15);
+                //PARAMCHANGE(15);
             }
 
             public void SetMS(uint ms)
             {
                 ms_ = ms;
                 param_changed_ = true;
-                PARAMCHANGE(16);
+                //PARAMCHANGE(16);
             }
 
 
@@ -1405,7 +1405,7 @@ namespace MDSound.fmgen
             {
                 for (int i = 0; i < 4; i++)
                     op[i].param_changed_ = true;
-                PARAMCHANGE(3);
+                //PARAMCHANGE(3);
             }
 
             public void SetChip(Chip chip)

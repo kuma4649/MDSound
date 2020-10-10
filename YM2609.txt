@@ -45,13 +45,13 @@ Virtual Instrument YM2609(Register Map)
      +07  |===========|      /Noise       |    /Tone         |  /Enable
     ____  |___________|___________________|__________________|  _______________________
           |     |     |     |      |                         |
-     +08  |  L  |  R  |=====|  M   |         Level           |  Channel-A Amplitude / Panpot
+     +08  |  L  |  R  |PHRST|  M   |         Level           |  Channel-A Amplitude / Phase reset / Panpot
           |_____|_____|_____|______|_________________________|
           |     |     |     |      |                         |
-     +09  |  L  |  R  |=====|  M   |         Level           |  Channel-B Amplitude / Panpot
+     +09  |  L  |  R  |PHRST|  M   |         Level           |  Channel-B Amplitude / Phase reset / Panpot
           |_____|_____|_____|______|_________________________|
           |     |     |     |      |                         |
-     +0A  |  L  |  R  |=====|  M   |         Level           |  Channel-C Amplitude / Panpot
+     +0A  |  L  |  R  |PHRST|  M   |         Level           |  Channel-C Amplitude / Phase reset / Panpot
     ____  |_____|_____|_____|______|_________________________|  _______________________
           |                                                  |
      +0B  |                    Fine Tune                     |
@@ -183,7 +183,7 @@ Virtual Instrument YM2609(Register Map)
     40-4E  |WT H|               TL          |  Wave Type(H)/Total Level
            |____|___________________________|  __________________________
            |        |   |                   |
-    50-5E  |   KS   |===|       AR          |  Key Scale/Attack Rate
+    50-5E  |   KS   |PRS|       AR          |  Key Scale/Phase reset/Attack Rate
            |________|___|___________________|  __________________________
            |    |       |                   |
     60-6E  | AM |  DT2  |       DR          |  AMON/DT2/Decay Rate
