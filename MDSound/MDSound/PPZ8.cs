@@ -9,6 +9,15 @@ namespace MDSound
         public override string Name { get => "PPZ8"; set { } }
         public override string ShortName { get => "PPZ8"; set { } }
 
+        public PPZ8()
+        {
+            visVolume = new int[2][][] {
+                new int[1][] { new int[2] { 0, 0 } }
+                , new int[1][] { new int[2] { 0, 0 } }
+            };
+
+        }
+
         public override void Reset(byte ChipID)
         {
             pcmData = new byte[2][][] { new byte[2][], new byte[2][] };
@@ -137,6 +146,19 @@ namespace MDSound
                 new PPZChannelWork(),new PPZChannelWork(),new PPZChannelWork(),new PPZChannelWork()
             }
         };
+        private PPZChannelWork[][] chWkBk = new PPZChannelWork[2][]
+        {
+            new PPZChannelWork[8]
+            {
+                new PPZChannelWork(),new PPZChannelWork(),new PPZChannelWork(),new PPZChannelWork(),
+                new PPZChannelWork(),new PPZChannelWork(),new PPZChannelWork(),new PPZChannelWork()
+            },
+            new PPZChannelWork[8]
+            {
+                new PPZChannelWork(),new PPZChannelWork(),new PPZChannelWork(),new PPZChannelWork(),
+                new PPZChannelWork(),new PPZChannelWork(),new PPZChannelWork(),new PPZChannelWork()
+            }
+        };
         public int[] bank = new int[] { 0, 0 };
         public int[] ptr = new int[] { 0, 0 };
         private bool[] interrupt = new bool[] { false, false };
@@ -170,6 +192,7 @@ namespace MDSound
             public uint srcFrequency;
             public ushort volume;
             public uint frequency;
+            public bool KeyOn;
 
             public int _loopStartOffset;
             public int _loopEndOffset;
@@ -302,6 +325,7 @@ namespace MDSound
 
             interrupt[chipID] = false;
             chWk[chipID][al].playing = true;
+            chWk[chipID][al].KeyOn = true;
         }
 
 
@@ -583,6 +607,9 @@ namespace MDSound
                 outputs[0][j] += l;
                 outputs[1][j] += r;
             }
+
+            visVolume[chipID][0][0] = outputs[0][0];
+            visVolume[chipID][0][1] = outputs[1][0];
         }
 
 
@@ -680,6 +707,29 @@ namespace MDSound
             return 0;
         }
 
+        public PPZChannelWork[] GetPPZ8_State(byte chipID)
+        {
+            for(int ch = 0; ch < 8; ch++)
+            {
+                chWkBk[chipID][ch].bank = chWk[chipID][ch].bank;
+                chWkBk[chipID][ch].delta = chWk[chipID][ch].delta;
+                chWkBk[chipID][ch].end = chWk[chipID][ch].end;
+                chWkBk[chipID][ch].frequency = chWk[chipID][ch].frequency;
+                chWkBk[chipID][ch].loopEndOffset = chWk[chipID][ch].loopEndOffset;
+                chWkBk[chipID][ch].loopStartOffset = chWk[chipID][ch].loopStartOffset;
+                chWkBk[chipID][ch].num = chWk[chipID][ch].num;
+                chWkBk[chipID][ch].pan = chWk[chipID][ch].pan;
+                chWkBk[chipID][ch].panL = chWk[chipID][ch].panL;
+                chWkBk[chipID][ch].panR = chWk[chipID][ch].panR;
+                chWkBk[chipID][ch].playing = chWk[chipID][ch].playing;
+                chWkBk[chipID][ch].ptr = chWk[chipID][ch].ptr;
+                chWkBk[chipID][ch].srcFrequency = chWk[chipID][ch].srcFrequency;
+                chWkBk[chipID][ch].volume = chWk[chipID][ch].volume;
+                chWkBk[chipID][ch].KeyOn = chWk[chipID][ch].KeyOn;
 
+                chWk[chipID][ch].KeyOn = false;
+            }
+            return chWkBk[chipID];
+        }
     }
 }

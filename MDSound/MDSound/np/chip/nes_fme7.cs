@@ -79,6 +79,7 @@ namespace MDSound.np.chip
 
         public override bool Read(uint adr, ref uint val, uint id = 0)
         {
+            val = emu2149.PSG_readReg(psg, adr);
             return false;
         }
 

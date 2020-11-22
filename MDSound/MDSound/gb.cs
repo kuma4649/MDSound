@@ -1411,5 +1411,10 @@ namespace MDSound
             gb_sound_w(ChipID, (uint)adr, (byte)data);
             return 0;
         }
+
+        public gb_sound_t GetSoundData(byte chipId)
+        {
+            return GBSoundData[chipId];
+        }
     }
 }

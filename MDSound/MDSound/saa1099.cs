@@ -11,10 +11,13 @@ namespace MDSound
 
         public saa1099()
         {
-
+            visVolume = new int[2][][] {
+                new int[1][] { new int[2] { 0, 0 } }
+                , new int[1][] { new int[2] { 0, 0 } }
+            };
         }
 
-		public override void Reset(byte ChipID)
+        public override void Reset(byte ChipID)
 		{
             device_reset_saa1099(ChipID);
 		}
@@ -426,6 +429,10 @@ namespace MDSound
                 outputs[LEFT][j] = output_l / 6;
                 outputs[RIGHT][j] = output_r / 6;
             }
+
+            visVolume[ChipID][0][0] = outputs[0][0];
+            visVolume[ChipID][0][1] = outputs[1][0];
+
         }
 
 

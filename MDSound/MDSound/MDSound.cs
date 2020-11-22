@@ -2265,6 +2265,18 @@ namespace MDSound
             }
         }
 
+        public int[][][] getPPZ8VisVolume()
+        {
+            if (!dicInst.ContainsKey(enmInstrumentType.PPZ8)) return null;
+            return ((PPZ8)dicInst[enmInstrumentType.PPZ8][0]).visVolume;
+        }
+
+        public int[][][] getPPZ8VisVolume(int ChipIndex)
+        {
+            if (!dicInst.ContainsKey(enmInstrumentType.PPZ8)) return null;
+            return ((PPZ8)dicInst[enmInstrumentType.PPZ8][ChipIndex]).visVolume;
+        }
+
         #endregion
 
 
@@ -2511,6 +2523,28 @@ namespace MDSound
 
                 ((gb)(dicInst[enmInstrumentType.DMG][ChipIndex])).Write(ChipID, 0, Adr, Data);
             }
+        }
+
+        public gb.gb_sound_t ReadDMG(byte ChipID)
+        {
+            lock (lockobj)
+            {
+                if (!dicInst.ContainsKey(enmInstrumentType.DMG)) return null;
+
+                return ((gb)(dicInst[enmInstrumentType.DMG][0])).GetSoundData(ChipID);
+            }
+
+        }
+
+        public gb.gb_sound_t ReadDMG(int ChipIndex,byte ChipID)
+        {
+            lock (lockobj)
+            {
+                if (!dicInst.ContainsKey(enmInstrumentType.DMG)) return null;
+
+                return ((gb)(dicInst[enmInstrumentType.DMG][ChipIndex])).GetSoundData(ChipID);
+            }
+
         }
 
         #endregion
@@ -3337,6 +3371,32 @@ namespace MDSound
             }
         }
 
+        public void SetVolumeSAA1099(int vol)
+        {
+            if (!dicInst.ContainsKey(enmInstrumentType.SAA1099)) return;
+
+            if (insts == null) return;
+
+            foreach (Chip c in insts)
+            {
+                if (c.type != enmInstrumentType.SAA1099) continue;
+                c.Volume = Math.Max(Math.Min(vol, 20), -192);
+            }
+        }
+
+        public void SetVolumePPZ8(int vol)
+        {
+            if (!dicInst.ContainsKey(enmInstrumentType.PPZ8)) return;
+
+            if (insts == null) return;
+
+            foreach (Chip c in insts)
+            {
+                if (c.type != enmInstrumentType.PPZ8) continue;
+                c.Volume = Math.Max(Math.Min(vol, 20), -192);
+            }
+        }
+
         public void SetVolumeNES(int vol)
         {
             if (!dicInst.ContainsKey(enmInstrumentType.Nes)) return;
@@ -3660,6 +3720,26 @@ namespace MDSound
                 return rf5c164Vol[chipID];
             }
         }
+
+        public PPZ8.PPZChannelWork[] ReadPPZ8Status(int chipID)
+        {
+            lock (lockobj)
+            {
+                if (!dicInst.ContainsKey(enmInstrumentType.PPZ8)) return null;
+                return ((PPZ8)dicInst[enmInstrumentType.PPZ8][0]).GetPPZ8_State((byte)chipID);
+            }
+        }
+
+        public PPZ8.PPZChannelWork[] ReadPPZ8Status(int ChipIndex, int chipID)
+        {
+            lock (lockobj)
+            {
+                if (!dicInst.ContainsKey(enmInstrumentType.PPZ8)) return null;
+                return ((PPZ8)dicInst[enmInstrumentType.PPZ8][ChipIndex]).GetPPZ8_State((byte)chipID);
+            }
+        }
+
+
 
         public int[] ReadYM2612KeyOn(byte chipID)
         {
