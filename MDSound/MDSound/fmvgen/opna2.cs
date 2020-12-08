@@ -618,7 +618,7 @@ namespace MDSound.fmvgen
 
                 using (Stream st = appendFileReaderCallback?.Invoke(fileName))
                 {
-                    buf = ReadAllBytes(st);
+                    buf = common.ReadAllBytes(st);
                 }
 
                 if (buf == null)
@@ -628,7 +628,7 @@ namespace MDSound.fmvgen
                     string fileNameRym = "2608_RYM.WAV";
                     using (Stream st = appendFileReaderCallback?.Invoke(fileNameRym))
                     {
-                        buf = ReadAllBytes(st);
+                        buf = common.ReadAllBytes(st);
                     }
                 }
 
@@ -698,29 +698,6 @@ namespace MDSound.fmvgen
                 return false;
             }
             return true;
-        }
-
-        /// <summary>
-        /// ストリームから一括でバイナリを読み込む
-        /// </summary>
-        private byte[] ReadAllBytes(Stream stream)
-        {
-            if (stream == null) return null;
-
-            var buf = new byte[8192];
-            using (var ms = new MemoryStream())
-            {
-                while (true)
-                {
-                    var r = stream.Read(buf, 0, buf.Length);
-                    if (r < 1)
-                    {
-                        break;
-                    }
-                    ms.Write(buf, 0, r);
-                }
-                return ms.ToArray();
-            }
         }
 
         // ---------------------------------------------------------------------------

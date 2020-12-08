@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 
@@ -7,7 +8,8 @@ namespace MDSound
 {
     public class ymf278b : Instrument
     {
-        private string romPath = "";
+        private string romPath = null;
+        private Func<string, Stream> romStream = null;
 
         public override void Reset(byte ChipID)
         {
@@ -26,9 +28,18 @@ namespace MDSound
 
         public override uint Start(byte ChipID, uint clock, uint FMClockValue, params object[] option)
         {
-            if(option!=null && option.Length>0 && option[0] is string)
+            if(option!=null && option.Length>0)
             {
-                romPath = (string)option[0];
+                if (option[0] is string)
+                {
+                    romPath = (string)option[0];
+                    romStream = null;
+                }
+                if (option[0] is Func<string, Stream>)
+                {
+                    romPath = null;
+                    romStream = (Func<string, Stream>)option[0];
+                }
             }
             return (UInt32)device_start_ymf278b(ChipID, (Int32)FMClockValue);
         }
@@ -1247,34 +1258,41 @@ namespace MDSound
                 //memset(ROMFile, 0xFF, ROMFileSize);
 
                 //FileName = FindFile(ROM_FILENAME);
-                if (System.IO.File.Exists(ROM_FILENAME))
+
+                ROMFile = null;
+                if (romStream == null)
                 {
-                    try
+                    if (File.Exists(ROM_FILENAME))
                     {
-                        ROMFile = System.IO.File.ReadAllBytes(ROM_FILENAME);// hFile = fopen(FileName, "rb");
-                                                                            //free(FileName);
-                    }
-                    catch
-                    {
-                        ROMFile = null;
+                        try
+                        {
+                            ROMFile = File.ReadAllBytes(ROM_FILENAME);
+                        }
+                        catch
+                        {
+                        }
                     }
                 }
                 else
                 {
-                    ROMFile = null;
+                    using (Stream st = romStream?.Invoke(ROM_FILENAME))
+                        ROMFile = common.ReadAllBytes(st);
                 }
-                if (ROMFile != null)
-                {
-                    //RetVal = fread(ROMFile, 0x01, ROMFileSize, hFile);
-                    //fclose(hFile);
-                    //if (ROMFile.Length != ROMFileSize)
-                        //Console.WriteLine("Error while reading OPL4 Sample ROM ({0})!", ROM_FILENAME);
-                }
-                else
-                {
-                    //Console.WriteLine("Warning! OPL4 Sample ROM ({0}) not found!", ROM_FILENAME);
-                }
+
+                //if (ROMFile != null)
+                //{
+                //    RetVal = fread(ROMFile, 0x01, ROMFileSize, hFile);
+                //    fclose(hFile);
+                //    if (ROMFile.Length != ROMFileSize)
+                //        Console.WriteLine("Error while reading OPL4 Sample ROM ({0})!", ROM_FILENAME);
+                //}
+                //else
+                //{
+                //    Console.WriteLine("Warning! OPL4 Sample ROM ({0}) not found!", ROM_FILENAME);
+                //}
             }
+
+
 
             chip.ROMSize = ROMFileSize;
             if (ROMFile != null && ROMFile.Length > 0)

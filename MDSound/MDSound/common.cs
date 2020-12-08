@@ -21,5 +21,29 @@ namespace MDSound
             }
 #endif
         }
+
+        /// <summary>
+        /// ストリームから一括でバイナリを読み込む
+        /// </summary>
+        public static byte[] ReadAllBytes(Stream stream)
+        {
+            if (stream == null) return null;
+
+            var buf = new byte[8192];
+            using (var ms = new MemoryStream())
+            {
+                while (true)
+                {
+                    var r = stream.Read(buf, 0, buf.Length);
+                    if (r < 1)
+                    {
+                        break;
+                    }
+                    ms.Write(buf, 0, r);
+                }
+                return ms.ToArray();
+            }
+        }
+
     }
 }

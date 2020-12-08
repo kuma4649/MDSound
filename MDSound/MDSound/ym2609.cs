@@ -53,7 +53,10 @@ namespace MDSound
 
             if (option != null && option.Length > 0 && option[0] is Func<string, Stream>)
             {
-                chip[ChipID].Init(FMClockValue, clock, false, (Func<string, Stream>)option[0]);
+                if (option[0] is Func<string, Stream>)
+                    chip[ChipID].Init(FMClockValue, clock, false, (Func<string, Stream>)option[0]);
+                else if (option[0] is string)
+                    chip[ChipID].Init(FMClockValue, clock, false, (string)option[0]);
             }
             else
             {

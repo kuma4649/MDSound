@@ -1560,7 +1560,7 @@ namespace MDSound.fmgen
 
                     using (Stream st = appendFileReaderCallback?.Invoke(buf))
                     {
-                        file = ReadAllBytes(st);
+                        file = common.ReadAllBytes(st);
                     }
 
                     if (file == null)
@@ -1570,7 +1570,7 @@ namespace MDSound.fmgen
                         {
                             using (Stream st = appendFileReaderCallback?.Invoke(rymBuf))
                             {
-                                file = ReadAllBytes(st);
+                                file = common.ReadAllBytes(st);
                             }
                             if (file != null)
                             {
@@ -1644,29 +1644,6 @@ namespace MDSound.fmgen
                 return false;
             }
             return true;
-        }
-
-        /// <summary>
-        /// ストリームから一括でバイナリを読み込む
-        /// </summary>
-        private byte[] ReadAllBytes(Stream stream)
-        {
-            if (stream == null) return null;
-
-            var buf = new byte[8192];
-            using (var ms = new MemoryStream())
-            {
-                while (true)
-                {
-                    var r = stream.Read(buf, 0, buf.Length);
-                    if (r < 1)
-                    {
-                        break;
-                    }
-                    ms.Write(buf, 0, r);
-                }
-                return ms.ToArray();
-            }
         }
 
         // ---------------------------------------------------------------------------

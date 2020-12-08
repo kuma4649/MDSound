@@ -1241,7 +1241,7 @@ namespace MDSound
             }
         }
 
-        private OPLL OPLL_new(uint clk, uint rate)
+        private OPLL OPLL_new(uint clk, uint rate, params object[] option)
         {
 
             SL = new uint[16]{
@@ -1281,6 +1281,12 @@ namespace MDSound
 
             OPLL_reset(opll);
             OPLL_reset_patch(opll, 0);
+
+            if (option != null && option.Length > 0 && option[0] is byte[])
+            {
+                byte[] ary = (byte[])option[0];
+                OPLL_setPatch(opll, ary);
+            }
 
             return opll;
         }
@@ -2456,7 +2462,7 @@ namespace MDSound
 
         public override uint Start(byte ChipID, uint SamplingRate, uint FMClockValue, params object[] Option)
         {
-            opll_[ChipID] = OPLL_new(FMClockValue, SamplingRate);
+            opll_[ChipID] = OPLL_new(FMClockValue, SamplingRate, Option);
             //OPLL_set_quality(opll_[ChipID], 1);
             OPLL_set_quality(opll_[ChipID], 0);
             return SamplingRate;
