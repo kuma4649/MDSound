@@ -13,7 +13,7 @@ namespace test
     {
 
         private static uint SamplingRate = 44100;
-        private static uint samplingBuffer = 1024;
+        private static uint samplingBuffer = 1024*8;
         private static short[] frames = new short[samplingBuffer * 4];
         private static MDSound.MDSound mds = null;
         
@@ -108,12 +108,20 @@ namespace test
 
             mds = new MDSound.MDSound(SamplingRate, samplingBuffer, null);
 
+            MDSound.Log.level = MDSound.LogLevel.TRACE;
+            MDSound.Log.writeLine = LogWrite;
+
             sdlCbHandle = GCHandle.Alloc(sdlCb);
             sdlCbPtr = Marshal.GetFunctionPointerForDelegate(sdlCb);
             sdl = new SdlDotNet.Audio.AudioStream((int)SamplingRate, AudioFormat.Signed16Little, SoundChannel.Stereo, (short)samplingBuffer, sdlCb, null)
             {
                 Paused = true
             };
+        }
+
+        private void LogWrite(MDSound.LogLevel level,string msg)
+        {
+            log.Write(msg);
         }
 
 
@@ -147,6 +155,7 @@ namespace test
             }
 
             DriverSeqCounter = sm.GetDriverSeqCounterDelay();
+            DriverSeqCounter = 0;
 
             Play(tbFile.Text);
 
@@ -514,7 +523,8 @@ namespace test
                 //chip.type = MDSound.MDSound.enmInstrumentType.YM3438;
                 chip.ID = 0;
                 //MDSound.ym2612 ym2612 = new MDSound.ym2612();
-                MDSound.ym3438 ym2612 = new MDSound.ym3438();
+                //MDSound.ym3438 ym2612 = new MDSound.ym3438();
+                MDSound.ym2612mame ym2612 = new MDSound.ym2612mame();
                 chip.Instrument = ym2612;
                 chip.Update = ym2612.Update;
                 chip.Start = ym2612.Start;
@@ -1164,7 +1174,7 @@ namespace test
                     rAdr = vgmBuf[vgmAdr + 1];
                     rDat = vgmBuf[vgmAdr + 2];
                     vgmAdr += 3;
-                    //mds.WriteYM2612(0, p, rAdr, rDat);
+                    mds.WriteYM2612(0, p, rAdr, rDat);
 
                     break;
                 case 0x54: //YM2151
@@ -1482,7 +1492,7 @@ namespace test
                 case 0x8d: //Write adr2A and Wait 13 sample
                 case 0x8e: //Write adr2A and Wait 14 sample
                 case 0x8f: //Write adr2A and Wait 15 sample
-                           //mds.WriteYM2612(0, 0, 0x2a, vgmBuf[vgmPcmPtr++]);
+                    mds.WriteYM2612(0, 0, 0x2a, vgmBuf[vgmPcmPtr++]);
                     DriverSeqCounter += (long)(cmd - 0x80);
                     vgmAdr++;
                     break;
@@ -1709,7 +1719,7 @@ namespace test
 
                 while (vgmStreams[i].wkDataStep >= 1.0)
                 {
-                    //mds.WriteYM2612(0,vgmStreams[i].port, vgmStreams[i].cmd, vgmBuf[vgmPcmBaseAdr + vgmStreams[i].wkDataAdr]);
+                    mds.WriteYM2612(0,vgmStreams[i].port, vgmStreams[i].cmd, vgmBuf[vgmPcmBaseAdr + vgmStreams[i].wkDataAdr]);
                     vgmStreams[i].wkDataAdr++;
                     vgmStreams[i].dataLength--;
                     vgmStreams[i].wkDataStep -= 1.0;

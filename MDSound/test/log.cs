@@ -86,7 +86,8 @@ namespace test
 
                 using (StreamWriter writer = new StreamWriter(path, true, sjisEnc))
                 {
-                    writer.WriteLine(timefmt + msg);
+                    //writer.WriteLine(timefmt + msg);
+                    writer.WriteLine(msg);
                     if (consoleEchoBack) Console.WriteLine(timefmt + msg);
                 }
             }

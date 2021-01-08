@@ -653,7 +653,7 @@ namespace MDSound
 			rom_addr = (uint)((bank << 16) | (address << 0));
 
 			sample_data = rom_addr < chip.romData.Length ? chip.romData[rom_addr] : (byte)0;
-			//common.write("adr:{0} dat:{1}", rom_addr, sample_data);
+			//common.write("adr:{0:x10} dat:{1:x02}", rom_addr, sample_data);
 
 			return (short)((sample_data << 8) | (sample_data << 0));    // MAME currently expands the 8 bit ROM data to 16 bits this way.
 		}

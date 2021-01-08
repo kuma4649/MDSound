@@ -57,6 +57,7 @@
   
  ・VGMPlay  
  ・MAME  
+ ・Gens  
  ・Ootake  
  ・fmgen  
  ・NSFPlay  
