@@ -129,7 +129,8 @@ namespace MDSound
             PPSDRV,
             SAA1099,
             X1_010,
-            P86
+            P86,
+            YM2612mame
         }
 
         public class Chip
@@ -1114,6 +1115,33 @@ namespace MDSound
 
                 dicInst[enmInstrumentType.YM3438][ChipIndex].Write(ChipID, 0, (byte)(0 + (Port & 1) * 2), Adr);
                 dicInst[enmInstrumentType.YM3438][ChipIndex].Write(ChipID, 0, (byte)(1 + (Port & 1) * 2), Data);
+            }
+        }
+
+        #endregion
+
+
+        #region YM2612
+
+        public void WriteYM2612mame(byte ChipID, byte Port, byte Adr, byte Data)
+        {
+            lock (lockobj)
+            {
+                if (!dicInst.ContainsKey(enmInstrumentType.YM2612mame)) return;
+
+                dicInst[enmInstrumentType.YM2612mame][0].Write(ChipID, 0, (byte)(0 + (Port & 1) * 2), Adr);
+                dicInst[enmInstrumentType.YM2612mame][0].Write(ChipID, 0, (byte)(1 + (Port & 1) * 2), Data);
+            }
+        }
+
+        public void WriteYM2612mame(int ChipIndex, byte ChipID, byte Port, byte Adr, byte Data)
+        {
+            lock (lockobj)
+            {
+                if (!dicInst.ContainsKey(enmInstrumentType.YM2612mame)) return;
+
+                dicInst[enmInstrumentType.YM2612mame][ChipIndex].Write(ChipID, 0, (byte)(0 + (Port & 1) * 2), Adr);
+                dicInst[enmInstrumentType.YM2612mame][ChipIndex].Write(ChipID, 0, (byte)(1 + (Port & 1) * 2), Data);
             }
         }
 

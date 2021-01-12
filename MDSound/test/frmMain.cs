@@ -496,6 +496,23 @@ namespace test
                 lstChip.Add(chip);
             }
 
+            chip = new MDSound.MDSound.Chip
+            {
+                type = MDSound.MDSound.enmInstrumentType.YM2413,
+                ID = 0
+            };
+            MDSound.SinWave sin = new MDSound.SinWave();
+            chip.Instrument = sin;
+            chip.Update = sin.Update;
+            chip.Start = sin.Start;
+            chip.Stop = sin.Stop;
+            chip.Reset = sin.Reset;
+            chip.SamplingRate = SamplingRate;
+            chip.Clock = 0;
+            chip.Volume = 0;
+            chip.Option = null;
+            lstChip.Add(chip);
+
             if (GetLE32(0x10) != 0)
             {
                 chip = new MDSound.MDSound.Chip
@@ -534,7 +551,7 @@ namespace test
                 chip.Clock = GetLE32(0x2c); 
                 chip.Volume = 0;
                 chip.Option = null;
-                lstChip.Add(chip);
+                //lstChip.Add(chip);
             }
 
             if (GetLE32(0x30) != 0)
