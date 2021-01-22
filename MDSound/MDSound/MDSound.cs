@@ -2575,6 +2575,58 @@ namespace MDSound
 
         }
 
+        public void setDMGMask(byte ChipID, int ch)
+        {
+            lock (lockobj)
+            {
+                if (!dicInst.ContainsKey(enmInstrumentType.DMG)) return;
+                if (dicInst[enmInstrumentType.DMG][0] == null) return;
+
+                uint maskStatus = ((gb)(dicInst[enmInstrumentType.DMG][0])).gameboy_sound_get_mute_mask(ChipID);
+                maskStatus |= (uint)(1 << ch);//ch:0 - 3
+                ((gb)(dicInst[enmInstrumentType.DMG][0])).gameboy_sound_set_mute_mask(ChipID, maskStatus);
+            }
+        }
+
+        public void resetDMGMask(byte ChipID, int ch)
+        {
+            lock (lockobj)
+            {
+                if (!dicInst.ContainsKey(enmInstrumentType.DMG)) return;
+                if (dicInst[enmInstrumentType.DMG][0] == null) return;
+
+                uint maskStatus = ((gb)(dicInst[enmInstrumentType.DMG][0])).gameboy_sound_get_mute_mask(ChipID);
+                maskStatus &= (uint)(~(1 << ch));//ch:0 - 3
+                ((gb)(dicInst[enmInstrumentType.DMG][0])).gameboy_sound_set_mute_mask(ChipID, maskStatus);
+            }
+        }
+
+        public void setDMGMask(int ChipIndex, byte ChipID, int ch)
+        {
+            lock (lockobj)
+            {
+                if (!dicInst.ContainsKey(enmInstrumentType.DMG)) return;
+                if (dicInst[enmInstrumentType.DMG][ChipIndex] == null) return;
+
+                uint maskStatus = ((gb)(dicInst[enmInstrumentType.DMG][ChipIndex])).gameboy_sound_get_mute_mask(ChipID);
+                maskStatus |= (uint)(1 << ch);//ch:0 - 3
+                ((gb)(dicInst[enmInstrumentType.DMG][ChipIndex])).gameboy_sound_set_mute_mask(ChipID, maskStatus);
+            }
+        }
+
+        public void resetDMGMask(int ChipIndex, byte ChipID, int ch)
+        {
+            lock (lockobj)
+            {
+                if (!dicInst.ContainsKey(enmInstrumentType.DMG)) return;
+                if (dicInst[enmInstrumentType.DMG][ChipIndex] == null) return;
+
+                uint maskStatus = ((gb)(dicInst[enmInstrumentType.DMG][ChipIndex])).gameboy_sound_get_mute_mask(ChipID);
+                maskStatus &= (uint)(~(1 << ch));//ch:0 - 3
+                ((gb)(dicInst[enmInstrumentType.DMG][ChipIndex])).gameboy_sound_set_mute_mask(ChipID, maskStatus);
+            }
+        }
+
         #endregion
 
 

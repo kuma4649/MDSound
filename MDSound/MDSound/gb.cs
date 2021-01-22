@@ -1377,11 +1377,12 @@ namespace MDSound
         public void gameboy_sound_set_mute_mask(byte ChipID, UInt32 MuteMask)
         {
             gb_sound_t gb = GBSoundData[ChipID];
+            if (gb == null) return;
 
-            gb.snd_1.Muted = (byte)((MuteMask >> 0) & 0x01);
-            gb.snd_2.Muted = (byte)((MuteMask >> 1) & 0x01);
-            gb.snd_3.Muted = (byte)((MuteMask >> 2) & 0x01);
-            gb.snd_4.Muted = (byte)((MuteMask >> 3) & 0x01);
+            if (gb.snd_1 != null) gb.snd_1.Muted = (byte)((MuteMask >> 0) & 0x01);
+            if (gb.snd_2 != null) gb.snd_2.Muted = (byte)((MuteMask >> 1) & 0x01);
+            if (gb.snd_3 != null) gb.snd_3.Muted = (byte)((MuteMask >> 2) & 0x01);
+            if (gb.snd_4 != null) gb.snd_4.Muted = (byte)((MuteMask >> 3) & 0x01);
 
             return;
         }
@@ -1389,6 +1390,12 @@ namespace MDSound
         public UInt32 gameboy_sound_get_mute_mask(byte ChipID)
         {
             gb_sound_t gb = GBSoundData[ChipID];
+            if (gb == null) return 0;
+            if (gb.snd_1 == null) return 0;
+            if (gb.snd_2 == null) return 0;
+            if (gb.snd_3 == null) return 0;
+            if (gb.snd_4 == null) return 0;
+
             UInt32 muteMask;
 
             muteMask = (UInt32)((gb.snd_1.Muted << 0) |
