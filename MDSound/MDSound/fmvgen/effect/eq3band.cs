@@ -49,14 +49,11 @@ namespace MDSound.fmvgen.effect
 		private CMyFilter midL = new CMyFilter(), midR = new CMyFilter();
 		private CMyFilter highL = new CMyFilter(), highR = new CMyFilter(); // フィルタークラス(https://vstcpp.wpblog.jp/?page_id=728 より)
 
-		private float[] freqTable;
-		private float[] gainTable;
-		private float[] QTable;
 
 		public eq3band(int samplerate = 44100)
 		{
 			this.samplerate = samplerate;
-			makeTable();
+			if (CMyFilter.freqTable == null) CMyFilter.makeTable();
 			updateParam();
 		}
 
@@ -102,39 +99,39 @@ namespace MDSound.fmvgen.effect
 					lowSw = data != 0;
 					break;
 				case 1:
-					lowfreq = freqTable[data];
+					lowfreq = CMyFilter.freqTable[data];
 					break;
 				case 2:
-					lowgain = gainTable[data];
+					lowgain = CMyFilter.gainTable[data];
 					break;
 				case 3:
-					lowQ = QTable[data];
+					lowQ = CMyFilter.QTable[data];
 					break;
 
 				case 4:
 					midSw = data != 0;
 					break;
 				case 5:
-					midfreq = freqTable[data];
+					midfreq = CMyFilter.freqTable[data];
 					break;
 				case 6:
-					midgain = gainTable[data];
+					midgain = CMyFilter.gainTable[data];
 					break;
 				case 7:
-					midQ = QTable[data];
+					midQ = CMyFilter.QTable[data];
 					break;
 
 				case 8:
 					highSw = data != 0;
 					break;
 				case 9:
-					highfreq = freqTable[data];
+					highfreq = CMyFilter.freqTable[data];
 					break;
 				case 10:
-					highgain = gainTable[data];
+					highgain = CMyFilter.gainTable[data];
 					break;
 				case 11:
-					highQ = QTable[data];
+					highQ = CMyFilter.QTable[data];
 					break;
 			}
 
@@ -156,59 +153,6 @@ namespace MDSound.fmvgen.effect
 			highR.HighShelf(highfreq, highQ, highgain, samplerate);
 		}
 
-		private void makeTable()
-        {
-			freqTable = new float[256];
-			gainTable = new float[256];
-			QTable = new float[256];
-
-			for (int i = 0; i < 256; i++)
-			{
-				//freqTableの作成(1～38500まで)
-				if (i < 256 / 8 * 3)
-				{
-					freqTable[i] = i + 1;
-				}
-				else if (i < 256 / 8 * 5)
-				{
-					freqTable[i] = (i - 256 / 8 * 3) * 10 + 100;
-				}
-				else if (i < 256 / 8 * 7)
-				{
-					freqTable[i] = (i - 256 / 8 * 5) * 100 + 800;
-				}
-				else
-				{
-					freqTable[i] = (i - 256 / 8 * 7) * 1000 + 7500;
-				}
-
-
-				//gainTableの作成(-20～+19.84375まで)
-				if (i < 128)
-				{
-					gainTable[i] = (float)(-20.0 / 128.0 * (128 - i));
-				}
-				else
-				{
-					gainTable[i] = (float)(20.0 / 128.0 * (i - 128));
-				}
-
-
-				//QTableの作成(0.1～20.0まで)
-				if (i < 256 / 8 * 3)
-				{
-					QTable[i] = (float)(1.0 / (256 / 8 * 3) * (i+1)); // 0-95 : 0.01041667 ～ 1.0
-				}
-				else if (i < 256 / 8 * 6)
-				{
-					QTable[i] = (float)(10.0 / (256 / 8 * 3) * (i+1 - 256 / 8 * 3) + 1.0); // 96-191 : 1.104167 ～ 11.0
-				}
-				else
-				{
-					QTable[i] = (float)(10.0 / (256 / 8 * 2) * (i + 1 - 256 / 8 * 6) + 11.0); // 192-255 : 11.15625 ～ 21.0
-				}
-			}
-		}
 
 	}
 }

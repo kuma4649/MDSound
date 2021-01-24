@@ -52,13 +52,15 @@ namespace MDSound.fmvgen
         private reverb reverb;
         private distortion distortion;
         private chorus chorus;
+        private effect.HPFLPF hpflpf;
         private int efcCh;
 
-        public ADPCMB(reverb reverb, distortion distortion, chorus chorus, int efcCh)
+        public ADPCMB(reverb reverb, distortion distortion, chorus chorus,effect.HPFLPF hpflpf, int efcCh)
         {
             this.reverb = reverb;
             this.distortion = distortion;
             this.chorus = chorus;
+            this.hpflpf = hpflpf;
             this.efcCh = efcCh;
         }
 
@@ -91,6 +93,7 @@ namespace MDSound.fmvgen
                         int sR = (int)((int)(s & maskr) * panR);
                         distortion.Mix(efcCh, ref sL, ref sR);
                         chorus.Mix(efcCh, ref sL, ref sR);
+                        hpflpf.Mix(efcCh, ref sL, ref sR);
                         int revSampleL = (int)(sL * reverb.SendLevel[efcCh]);
                         int revSampleR = (int)(sR * reverb.SendLevel[efcCh]);
                         fmvgen.StoreSample(ref dest[ptrDest + 0], sL);

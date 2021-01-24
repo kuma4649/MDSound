@@ -12,16 +12,18 @@ namespace MDSound.fmvgen
         private reverb reverb;
         private distortion distortion;
         private chorus chorus;
+        private effect.HPFLPF hpflpf;
         private int efcStartCh;
         private byte[][] user = new byte[6][] { new byte[64], new byte[64], new byte[64], new byte[64], new byte[64], new byte[64] };
         private int userDefCounter = 0;
         private Func<int, uint, int>[] tblGetSample;
 
-        public PSG2(reverb reverb, distortion distortion,chorus chorus, int efcStartCh)
+        public PSG2(reverb reverb, distortion distortion,chorus chorus,effect.HPFLPF hpflpf, int efcStartCh)
         {
             this.reverb = reverb;
             this.distortion = distortion;
             this.chorus = chorus;
+            this.hpflpf = hpflpf;
             this.efcStartCh = efcStartCh;
             makeTblGetSample();
         }
@@ -159,6 +161,7 @@ namespace MDSound.fmvgen
                                     int R = (panpot[k] & 1) != 0 ? sample : 0;
                                     distortion.Mix(efcStartCh + k, ref L, ref R);
                                     chorus.Mix(efcStartCh + k, ref L, ref R);
+                                    hpflpf.Mix(efcStartCh + k, ref L, ref R);
                                     revSampleL += (int)(L * reverb.SendLevel[efcStartCh + k] * 0.6);
                                     revSampleR += (int)(R * reverb.SendLevel[efcStartCh + k] * 0.6);
 
@@ -214,6 +217,7 @@ namespace MDSound.fmvgen
 
                                     distortion.Mix(efcStartCh + k, ref L, ref R);
                                     chorus.Mix(efcStartCh + k, ref L, ref R);
+                                    hpflpf.Mix(efcStartCh + k, ref L, ref R);
                                     revSampleL += (int)(L * reverb.SendLevel[efcStartCh + k] * 0.6);
                                     revSampleR += (int)(R * reverb.SendLevel[efcStartCh + k] * 0.6);
 
@@ -284,6 +288,7 @@ namespace MDSound.fmvgen
                                 R += (panpot[k] & 1) != 0 ? sample : 0;
                                 distortion.Mix(efcStartCh + k, ref L, ref R);
                                 chorus.Mix(efcStartCh + k, ref L, ref R);
+                                hpflpf.Mix(efcStartCh + k, ref L, ref R);
                                 revSampleL += (int)(L * reverb.SendLevel[efcStartCh + k] * 0.6);
                                 revSampleR += (int)(R * reverb.SendLevel[efcStartCh + k] * 0.6);
 

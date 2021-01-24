@@ -39,6 +39,7 @@ namespace MDSound.fmvgen
         private reverb reverb = null;
         private distortion distortion = null;
         private chorus chorus = null;
+        private effect.HPFLPF hpflpf = null;
         private int revStartCh = 0;
 
         private sbyte[] table2 = new sbyte[]
@@ -56,11 +57,12 @@ namespace MDSound.fmvgen
         private bool currentIsLSB;
         //protected float[] panTable = new float[4] { 1.0f, 0.5012f, 0.2512f, 0.1000f };
 
-        public ADPCMA(reverb reverb, distortion distortion,chorus chorus, int revStartCh)
+        public ADPCMA(reverb reverb, distortion distortion,chorus chorus,effect.HPFLPF hpflpf, int revStartCh)
         {
             this.reverb = reverb;
             this.distortion = distortion;
             this.chorus = chorus;
+            this.hpflpf = hpflpf;
             this.revStartCh = revStartCh;
             this.buf = null;
             this.size = 0;
@@ -157,6 +159,7 @@ namespace MDSound.fmvgen
                             int sampleR = (int)(((r.adpcmx * vol) >> 10) * r.panR);
                             distortion.Mix(revStartCh + i, ref sampleL, ref sampleR);
                             chorus.Mix(revStartCh + i, ref sampleL, ref sampleR);
+                            hpflpf.Mix(revStartCh + i, ref sampleL, ref sampleR);
                             fmvgen.StoreSample(ref buffer[dest + 0], sampleL);
                             fmvgen.StoreSample(ref buffer[dest + 1], sampleR);
                             revSampleL += (int)(sampleL * reverb.SendLevel[revStartCh + i] * 0.6);
