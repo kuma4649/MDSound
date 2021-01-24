@@ -9,7 +9,7 @@ namespace MDSound.fmvgen
     //	YM2609(OPNA2) ---------------------------------------------------
     public class OPNA2 : fmgen.OPNABase
     {
-        public static readonly float[] panTable = new float[4] { 1.0f, 0.5012f, 0.2512f, 0.1000f };
+        public static readonly float[] panTable = new float[4] { 1.0f, 0.7512f, 0.4512f, 0.0500f };
 
         // リズム音源関係
         private Rhythm[] rhythm = null;
@@ -27,6 +27,7 @@ namespace MDSound.fmvgen
         private reverb reverb;
         private distortion distortion;
         private chorus chorus;
+        private effect.eq3band ep3band;
 
         public class Rhythm
         {
@@ -68,11 +69,12 @@ namespace MDSound.fmvgen
         // ---------------------------------------------------------------------------
         //	構築
         //
-        public OPNA2(reverb reverb, distortion distortion,chorus chorus)
+        public OPNA2(reverb reverb, distortion distortion,chorus chorus,effect.eq3band ep3band)
         {
             this.reverb = reverb;
             this.distortion = distortion;
             this.chorus = chorus;
+            this.ep3band = ep3band;
 
             fm6 = new FM6[2] { 
                 new FM6(0, reverb, distortion, chorus, 0), 
@@ -232,7 +234,7 @@ namespace MDSound.fmvgen
             adpcmb[2].Mix(buffer, nsamples);
             RhythmMix(buffer, nsamples);
             adpcma.Mix(buffer, (uint)nsamples);
-
+            ep3band.Mix(buffer, nsamples);
             //distortion.Mix(buffer, 1);
         }
 
@@ -332,6 +334,11 @@ namespace MDSound.fmvgen
             else if (addr >= 0x10 && addr < 0x20)
             {
                 RhythmSetReg(addr, (byte)data);
+                return;
+            }
+            else if (addr >= 0xc0 && addr < 0xcc)
+            {
+                ep3band.SetReg(addr & 0xf, (byte)data);
                 return;
             }
             else if (addr >= 0x100 && addr < 0x111)

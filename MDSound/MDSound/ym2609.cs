@@ -14,6 +14,7 @@ namespace MDSound
         private reverb[] reverb = new reverb[2];
         private distortion[] distortion = new distortion[2];
         private chorus[] chorus = new chorus[2];
+        private fmvgen.effect.eq3band[] ep3band=new fmvgen.effect.eq3band[2];
         private const int MaxCh= 39;
 
         public override string Name { get { return "YM2609"; } set { } }
@@ -38,7 +39,8 @@ namespace MDSound
             reverb[ChipID] = new reverb((int)clock, MaxCh);
             distortion[ChipID] = new distortion((int)clock, MaxCh);
             chorus[ChipID] = new chorus((int)clock, MaxCh);
-            chip[ChipID] = new fmvgen.OPNA2(reverb[ChipID], distortion[ChipID], chorus[ChipID]);
+            ep3band[ChipID] = new fmvgen.effect.eq3band((int)clock);
+            chip[ChipID] = new fmvgen.OPNA2(reverb[ChipID], distortion[ChipID], chorus[ChipID], ep3band[ChipID]);
             chip[ChipID].Init(DefaultYM2609ClockValue, clock);
 
             return clock;
@@ -49,7 +51,8 @@ namespace MDSound
             reverb[ChipID] = new reverb((int)clock, MaxCh);
             distortion[ChipID] = new distortion((int)clock, MaxCh);
             chorus[ChipID] = new chorus((int)clock, MaxCh);
-            chip[ChipID] = new fmvgen.OPNA2(reverb[ChipID], distortion[ChipID], chorus[ChipID]);
+            ep3band[ChipID] = new fmvgen.effect.eq3band((int)clock);
+            chip[ChipID] = new fmvgen.OPNA2(reverb[ChipID], distortion[ChipID], chorus[ChipID], ep3band[ChipID]);
 
             if (option != null && option.Length > 0 && option[0] is Func<string, Stream>)
             {

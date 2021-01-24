@@ -6,6 +6,7 @@ namespace MDSound
 {
     class CMyFilter
     {
+		public static float convInt = 21474.83647f;
 
 		// フィルタの係数
 		private float a0, a1, a2, b0, b1, b2;
@@ -50,6 +51,21 @@ namespace MDSound
 			return out_;
 		}
 
+		public void LowPass(float freq, float q, float samplerate)
+		{
+			// フィルタ係数計算で使用する中間値を求める。
+			float omega = 2.0f * 3.14159265f * freq / samplerate;
+			float alpha = (float)(Math.Sin(omega) / (2.0f * q));
+
+			// フィルタ係数を求める。
+			a0 = 1.0f + alpha;
+			a1 = (float)(-2.0f * Math.Cos(omega));
+			a2 = 1.0f - alpha;
+			b0 = (float)((1.0f - Math.Cos(omega)) / 2.0f);
+			b1 = (float)(1.0f - Math.Cos(omega));
+			b2 = (float)((1.0f - Math.Cos(omega)) / 2.0f);
+		}
+
 		public void HighPass(float freq, float q, float samplerate)
 		{
 			// フィルタ係数計算で使用する中間値を求める。
@@ -64,5 +80,103 @@ namespace MDSound
 			b1 = (float)(-(1.0f + Math.Cos(omega)));
 			b2 = (float)((1.0f + Math.Cos(omega)) / 2.0f);
 		}
+
+
+		public void BandPass(float freq, float bw, float samplerate)
+		{
+			// フィルタ係数計算で使用する中間値を求める。
+			float omega = 2.0f * 3.14159265f * freq / samplerate;
+			float alpha = (float)(Math.Sin(omega) * Math.Sinh(Math.Log(2.0f) / 2.0 * bw * omega / Math.Sin(omega)));
+
+			// フィルタ係数を求める。
+			a0 = 1.0f + alpha;
+			a1 = (float)(-2.0f * Math.Cos(omega));
+			a2 = 1.0f - alpha;
+			b0 = alpha;
+			b1 = 0.0f;
+			b2 = -alpha;
+		}
+
+
+		public void Notch(float freq, float bw, float samplerate)
+		{
+			// フィルタ係数計算で使用する中間値を求める。
+			float omega = 2.0f * 3.14159265f * freq / samplerate;
+			float alpha = (float)(Math.Sin(omega) * Math.Sinh(Math.Log(2.0f) / 2.0 * bw * omega / Math.Sin(omega)));
+
+			// フィルタ係数を求める。
+			a0 = 1.0f + alpha;
+			a1 = (float)(-2.0f * Math.Cos(omega));
+			a2 = 1.0f - alpha;
+			b0 = 1.0f;
+			b1 = (float)(-2.0f * Math.Cos(omega));
+			b2 = 1.0f;
+		}
+
+		public void LowShelf(float freq, float q, float gain, float samplerate)
+		{
+			// フィルタ係数計算で使用する中間値を求める。
+			float omega = 2.0f * 3.14159265f * freq / samplerate;
+			float alpha = (float)(Math.Sin(omega) / (2.0f * q));
+			float A = (float)(Math.Pow(10.0f, (gain / 40.0f)));
+			float beta = (float)(Math.Sqrt(A) / q);
+
+			// フィルタ係数を求める。
+			a0 = (float)((A + 1.0f) + (A - 1.0f) * Math.Cos(omega) + beta * Math.Sin(omega));
+			a1 = (float)(-2.0f * ((A - 1.0f) + (A + 1.0f) * Math.Cos(omega)));
+			a2 = (float)((A + 1.0f) + (A - 1.0f) * Math.Cos(omega) - beta * Math.Sin(omega));
+			b0 = (float)(A * ((A + 1.0f) - (A - 1.0f) * Math.Cos(omega) + beta * Math.Sin(omega)));
+			b1 = (float)(2.0f * A * ((A - 1.0f) - (A + 1.0f) * Math.Cos(omega)));
+			b2 = (float)(A * ((A + 1.0f) - (A - 1.0f) * Math.Cos(omega) - beta * Math.Sin(omega)));
+		}
+
+		public void HighShelf(float freq, float q, float gain, float samplerate)
+		{
+			// フィルタ係数計算で使用する中間値を求める。
+			float omega = 2.0f * 3.14159265f * freq / samplerate;
+			float alpha = (float)(Math.Sin(omega) / (2.0f * q));
+			float A = (float)(Math.Pow(10.0f, (gain / 40.0f)));
+			float beta = (float)(Math.Sqrt(A) / q);
+
+			// フィルタ係数を求める。
+			a0 = (float)((A + 1.0f) - (A - 1.0f) * Math.Cos(omega) + beta * Math.Sin(omega));
+			a1 = (float)(2.0f * ((A - 1.0f) - (A + 1.0f) * Math.Cos(omega)));
+			a2 = (float)((A + 1.0f) - (A - 1.0f) * Math.Cos(omega) - beta * Math.Sin(omega));
+			b0 = (float)(A * ((A + 1.0f) + (A - 1.0f) * Math.Cos(omega) + beta * Math.Sin(omega)));
+			b1 = (float)(-2.0f * A * ((A - 1.0f) + (A + 1.0f) * Math.Cos(omega)));
+			b2 = (float)(A * ((A + 1.0f) + (A - 1.0f) * Math.Cos(omega) - beta * Math.Sin(omega)));
+		}
+
+		public void Peaking(float freq, float bw, float gain, float samplerate)
+		{
+			// フィルタ係数計算で使用する中間値を求める。
+			float omega = 2.0f * 3.14159265f * freq / samplerate;
+			float alpha = (float)(Math.Sin(omega) * Math.Sinh(Math.Log(2.0f) / 2.0 * bw * omega / Math.Sin(omega)));
+			float A = (float)(Math.Pow(10.0f, (gain / 40.0f)));
+
+			// フィルタ係数を求める。
+			a0 = 1.0f + alpha / A;
+			a1 = (float)(-2.0f * Math.Cos(omega));
+			a2 = 1.0f - alpha / A;
+			b0 = 1.0f + alpha * A;
+			b1 = (float)(-2.0f * Math.Cos(omega));
+			b2 = 1.0f - alpha * A;
+		}
+
+		public void AllPass(float freq, float q, float samplerate)
+		{
+			// フィルタ係数計算で使用する中間値を求める。
+			float omega = 2.0f * 3.14159265f * freq / samplerate;
+			float alpha = (float)(Math.Sin(omega) / (2.0f * q));
+
+			// フィルタ係数を求める。
+			a0 = 1.0f + alpha;
+			a1 = (float)(-2.0f * Math.Cos(omega));
+			a2 = 1.0f - alpha;
+			b0 = 1.0f - alpha;
+			b1 = (float)(-2.0f * Math.Cos(omega));
+			b2 = 1.0f + alpha;
+		}
+
 	}
 }
