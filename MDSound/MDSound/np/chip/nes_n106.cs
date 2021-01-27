@@ -277,7 +277,7 @@ namespace MDSound.np.chip
             {
                 for (int i = (8 - channels); i < 8; ++i)
                 {
-                    if (0 == ((mask >> i) & 1))
+                    if (0 == ((mask >> (7-i)) & 1))
                     {
                         b[0] += fout[i] * sm[0][i];
                         b[1] += fout[i] * sm[1][i];

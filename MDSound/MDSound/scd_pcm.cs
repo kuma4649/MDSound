@@ -476,6 +476,13 @@ namespace MDSound
             return;
         }
 
+        public void rf5c164_set_mute_Ch(byte ChipID, int ch, int mute)
+        {
+            pcm_chip_ chip = PCM_Chip[ChipID];
+            chip.Channel[ch].Muted = (uint)(mute & 0x1);
+            return;
+        }
+
         public override int Write(byte ChipID, int port, int adr, int data)
         {
             rf5c164_w(ChipID, (uint)adr, (byte)data);
