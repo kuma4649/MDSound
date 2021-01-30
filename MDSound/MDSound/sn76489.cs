@@ -90,7 +90,7 @@ namespace MDSound
         /*static SN76489_Context SN76489[MAX_SN76489];*/
         private const int MAX_CHIPS = 2;
 
-        private SN76489_Context[] LastChipInit = new SN76489_Context[MAX_CHIPS] { null, null };
+        private SN76489_Context LastChipInit = null;
         public SN76489_Context[] SN76489_Chip = new SN76489_Context[MAX_CHIPS] { new SN76489_Context(), new SN76489_Context() };
 
         //static unsigned short int FNumLimit;
@@ -197,17 +197,17 @@ namespace MDSound
                 if ((PSGClockValue & 0x80000000) > 0 && LastChipInit != null)
                 {
                     // Activate special NeoGeoPocket Mode
-                    LastChipInit[ChipID].NgpFlags = 0x80 | 0x00;
+                    LastChipInit.NgpFlags = 0x80 | 0x00;
                     chip.NgpFlags = 0x80 | 0x01;
-                    chip.NgpChip2 = LastChipInit[ChipID];
-                    LastChipInit[ChipID].NgpChip2 = chip;
-                    LastChipInit[ChipID] = null;
+                    chip.NgpChip2 = LastChipInit;
+                    LastChipInit.NgpChip2 = chip;
+                    LastChipInit = null;
                 }
                 else
                 {
                     chip.NgpFlags = 0x00;
                     chip.NgpChip2 = null;
-                    LastChipInit[ChipID] = chip;
+                    LastChipInit = chip;
                 }
             }
 

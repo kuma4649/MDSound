@@ -48,9 +48,9 @@ namespace MDSound
             return clock;
         }
 
-        void ym2612_update_request(fm.FM_base param)
+        void ym2612_update_request(byte ChipID, fm.FM_base param)
         {
-            YM2612_Chip[0].ym2612_update_one((fm.FM_base)ym2612[0], new int[2][] , 0);
+            YM2612_Chip[ChipID].ym2612_update_one((fm.FM_base)ym2612[ChipID], new int[2][], 0);
         }
 
         public override void Stop(byte ChipID)
@@ -67,7 +67,7 @@ namespace MDSound
         {
             if (YM2612_Chip[ChipID] == null) return 0;
 
-            return YM2612_Chip[ChipID].ym2612_write(ym2612[ChipID], (byte)adr, (byte)data);
+            return YM2612_Chip[ChipID].ym2612_write(ChipID, ym2612[ChipID], (byte)adr, (byte)data);
         }
     }
 }

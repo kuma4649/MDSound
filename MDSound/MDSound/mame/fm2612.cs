@@ -2774,7 +2774,7 @@ namespace MDSound.mame
 		/* n = number  */
 		/* a = address */
 		/* v = value   */
-		public int ym2612_write(fm.FM_base chip, int a, byte v)
+		public int ym2612_write(byte ChipID, fm.FM_base chip, int a, byte v)
 		{
 			//Log.WriteLine(LogLevel.TRACE, string.Format("a:{0:x} v:{1:x}",a,v));
 			
@@ -2806,7 +2806,7 @@ namespace MDSound.mame
 							switch (addr)
 							{
 								case 0x2a:  /* DAC data (YM2612) */
-									ym2612_update_req(F2612.OPN.ST.param);
+									ym2612_update_req(ChipID, F2612.OPN.ST.param);
 									F2612.dacout = ((int)v - 0x80) << 6;   /* level unknown */
 									break;
 								case 0x2b:  /* DAC Sel  (YM2612) */
@@ -2818,7 +2818,7 @@ namespace MDSound.mame
 									F2612.dac_test = (byte)(v & 0x20);
 									break;
 								default:    /* OPN section */
-									ym2612_update_req(F2612.OPN.ST.param);
+									ym2612_update_req(ChipID, F2612.OPN.ST.param);
 									/* write register */
 									OPNWriteMode(F2612.OPN, addr, v);
 									break;
@@ -2843,7 +2843,7 @@ namespace MDSound.mame
 
 					addr = F2612.OPN.ST.address;
 					F2612.REGS[addr | 0x100] = v;
-					ym2612_update_req(F2612.OPN.ST.param);
+					ym2612_update_req(ChipID, F2612.OPN.ST.param);
 					OPNWriteReg(F2612.OPN, addr | 0x100, v);
 					break;
 			}
@@ -2867,7 +2867,7 @@ namespace MDSound.mame
 			return 0;
 		}
 
-		private int ym2612_timer_over(fm.FM_base chip, int c)
+		private int ym2612_timer_over(byte ChipID, fm.FM_base chip, int c)
 		{
 			YM2612 F2612 = (YM2612)chip;
 
@@ -2877,7 +2877,7 @@ namespace MDSound.mame
 			}
 			else
 			{   /* Timer A */
-				ym2612_update_req(F2612.OPN.ST.param);
+				ym2612_update_req(ChipID, F2612.OPN.ST.param);
 				/* timer update */
 				TimerAOver(F2612.OPN.ST);
 				/* CSM mode key,TL controll */
@@ -2921,7 +2921,7 @@ namespace MDSound.mame
 		}
 
 		public fm.callBack_update_request ym2612_update_request;
-		private void ym2612_update_req(YM2612 chip) { ym2612_update_request(chip); }
+		private void ym2612_update_req(byte ChipID, YM2612 chip) { ym2612_update_request(ChipID, chip); }
 
 		private void state_save_register_device_item(running_device device, int v, byte fn_h)
 		{

@@ -198,27 +198,27 @@ namespace MDSound
 
         //#if BUILD_YM2203
         /* in 2203intf.c */
-        public delegate void callBack_update_request(FM_base param);
+        public delegate void callBack_update_request(byte ChipID, FM_base param);
         public callBack_update_request ym2203_update_request;
-        private void ym2203_update_req(YM2203 chip) { ym2203_update_request(chip); }
+        private void ym2203_update_req(byte ChipID, YM2203 chip) { ym2203_update_request(ChipID, chip); }
         //#endif /* BUILD_YM2203 */
 
         //#if BUILD_YM2608
         /* in 2608intf.c */
         public callBack_update_request ym2608_update_request;
-        private void ym2608_update_req(YM2608 chip) { ym2608_update_request(chip); }
+        private void ym2608_update_req(byte ChipID, YM2608 chip) { ym2608_update_request(ChipID, chip); }
         //#endif /* BUILD_YM2608 */
 
         //#if (BUILD_YM2610 || BUILD_YM2610B)
         /* in 2610intf.c */
         public callBack_update_request ym2610_update_request;
-        private void ym2610_update_req(YM2610 chip) { ym2610_update_request(chip); }
+        private void ym2610_update_req(byte ChipID, YM2610 chip) { ym2610_update_request(ChipID, chip); }
         //#endif /* (BUILD_YM2610||BUILD_YM2610B) */
 
         //#if (BUILD_YM2612 || BUILD_YM3438)
         /* in 2612intf.c */
         public callBack_update_request ym2612_update_request;
-        private void ym2612_update_req(mame.fm2612.YM2612 chip) { ym2612_update_request(chip); }
+        private void ym2612_update_req(byte ChipID, mame.fm2612.YM2612 chip) { ym2612_update_request(ChipID,chip); }
         //#endif /* (BUILD_YM2612||BUILD_YM3438) */
 
         /* compiler dependence */
@@ -2650,7 +2650,7 @@ namespace MDSound
         }
 
         /* YM2203 I/O interface */
-        private int ym2203_write(YM2203 chip, int a, byte v)
+        private int ym2203_write(byte ChipID, YM2203 chip, int a, byte v)
         {
             YM2203 F2203 = (YM2203)chip;
             FM_OPN OPN = F2203.OPN;
@@ -2677,12 +2677,12 @@ namespace MDSound
                         OPN.ST.SSG.write(OPN.ST.param, (short)a, v);
                         break;
                     case 0x20:  /* 0x20-0x2f : Mode section */
-                        ym2203_update_req((YM2203)OPN.ST.param);
+                        ym2203_update_req(ChipID, (YM2203)OPN.ST.param);
                         /* write register */
                         OPNWriteMode(OPN, addr, v);
                         break;
                     default:    /* 0x30-0xff : OPN section */
-                        ym2203_update_req((YM2203)OPN.ST.param);
+                        ym2203_update_req(ChipID, (YM2203)OPN.ST.param);
                         /* write register */
                         OPNWriteReg(OPN, addr, v);
                         break;
@@ -2709,7 +2709,7 @@ namespace MDSound
             return ret;
         }
 
-        private int ym2203_timer_over(YM2203 chip, int c)
+        private int ym2203_timer_over(byte ChipID, YM2203 chip, int c)
         {
             YM2203 F2203 = (YM2203)chip;
 
@@ -2719,7 +2719,7 @@ namespace MDSound
             }
             else
             {   /* Timer A */
-                ym2203_update_req((YM2203)F2203.OPN.ST.param);
+                ym2203_update_req(ChipID, (YM2203)F2203.OPN.ST.param);
                 /* timer update */
                 TimerAOver(F2203.OPN.ST);
                 /* CSM mode key,TL control */
@@ -4046,7 +4046,7 @@ namespace MDSound
         /* n = number  */
         /* a = address */
         /* v = value   */
-        private int ym2608_write(YM2608 chip, int a, byte v)
+        private int ym2608_write(byte ChipID, YM2608 chip, int a, byte v)
         {
             YM2608 F2608 = (YM2608)chip;
             FM_OPN OPN = F2608.OPN;
@@ -4085,7 +4085,7 @@ namespace MDSound
                             OPN.ST.SSG.write(OPN.ST.param, (short)a, v);
                             break;
                         case 0x10:  /* 0x10-0x1f : Rhythm section */
-                            ym2608_update_req((YM2608)OPN.ST.param);
+                            ym2608_update_req(ChipID, (YM2608)OPN.ST.param);
                             FM_ADPCMAWrite(F2608, addr - 0x10, v);
                             break;
                         case 0x20:  /* Mode Register */
@@ -4095,13 +4095,13 @@ namespace MDSound
                                     YM2608IRQMaskWrite(OPN, F2608, v);
                                     break;
                                 default:
-                                    ym2608_update_req((YM2608)OPN.ST.param);
+                                    ym2608_update_req(ChipID, (YM2608)OPN.ST.param);
                                     OPNWriteMode(OPN, addr, v);
                                     break;
                             }
                             break;
                         default:    /* OPN section */
-                            ym2608_update_req((YM2608)OPN.ST.param);
+                            ym2608_update_req(ChipID, (YM2608)OPN.ST.param);
                             OPNWriteReg(OPN, addr, v);
                             break;
                     }
@@ -4118,7 +4118,7 @@ namespace MDSound
 
                     addr = OPN.ST.address;
                     F2608.REGS[addr | 0x100] = v;
-                    ym2608_update_req((YM2608)OPN.ST.param);
+                    ym2608_update_req(ChipID, (YM2608)OPN.ST.param);
                     switch (addr & 0xf0)
                     {
                         case 0x00:  /* DELTAT PORT */
@@ -4193,7 +4193,7 @@ namespace MDSound
             return ret;
         }
 
-        private int ym2608_timer_over(YM2608 chip, int c)
+        private int ym2608_timer_over(byte ChipID, YM2608 chip, int c)
         {
             YM2608 F2608 = (YM2608)chip;
 
@@ -4213,7 +4213,7 @@ namespace MDSound
                     break;
                 case 0:
                     {   /* Timer A */
-                        ym2608_update_req((YM2608)F2608.OPN.ST.param);
+                        ym2608_update_req(ChipID, (YM2608)F2608.OPN.ST.param);
                         /* timer update */
                         TimerAOver(F2608.OPN.ST);
                         /* CSM mode key,TL controll */
@@ -4835,7 +4835,7 @@ namespace MDSound
         /* n = number  */
         /* a = address */
         /* v = value   */
-        private int ym2610_write(YM2610 chip, int a, byte v)
+        private int ym2610_write(byte ChipID, YM2610 chip, int a, byte v)
         {
             YM2610 F2610 = (YM2610)chip;
             FM_OPN OPN = F2610.OPN;
@@ -4867,7 +4867,7 @@ namespace MDSound
                             OPN.ST.SSG.write(OPN.ST.param, (short)a, v);
                             break;
                         case 0x10: /* DeltaT ADPCM */
-                            ym2610_update_req((YM2610)OPN.ST.param);
+                            ym2610_update_req(ChipID, (YM2610)OPN.ST.param);
 
                             switch (addr)
                             {
@@ -4909,11 +4909,11 @@ namespace MDSound
 
                             break;
                         case 0x20:  /* Mode Register */
-                            ym2610_update_req((YM2610)OPN.ST.param);
+                            ym2610_update_req(ChipID, (YM2610)OPN.ST.param);
                             OPNWriteMode(OPN, addr, v);
                             break;
                         default:    /* OPN section */
-                            ym2610_update_req((YM2610)OPN.ST.param);
+                            ym2610_update_req(ChipID, (YM2610)OPN.ST.param);
                             /* write register */
                             OPNWriteReg(OPN, addr, v);
                             break;
@@ -4929,7 +4929,7 @@ namespace MDSound
                     if (F2610.addr_A1 != 1)
                         break;  /* verified on real YM2608 */
 
-                    ym2610_update_req((YM2610)OPN.ST.param);
+                    ym2610_update_req(ChipID, (YM2610)OPN.ST.param);
                     addr = OPN.ST.address;
                     F2610.REGS[addr | 0x100] = v;
                     if (addr < 0x30)
@@ -4971,7 +4971,7 @@ namespace MDSound
             return ret;
         }
 
-        private int ym2610_timer_over(YM2610 chip, int c)
+        private int ym2610_timer_over(byte ChipID, YM2610 chip, int c)
         {
             YM2610 F2610 = (YM2610)chip;
 
@@ -4981,7 +4981,7 @@ namespace MDSound
             }
             else
             {   /* Timer A */
-                ym2610_update_req((YM2610)F2610.OPN.ST.param);
+                ym2610_update_req(ChipID, (YM2610)F2610.OPN.ST.param);
                 /* timer update */
                 TimerAOver(F2610.OPN.ST);
                 /* CSM mode key,TL controll */
