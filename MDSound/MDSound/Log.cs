@@ -14,7 +14,7 @@ namespace MDSound
         public static void WriteLine(LogLevel level, string msg)
         {
             //if ((off & (int)level) != 0) return;
-            return;
+            //return;
             if (level <= Log.level)
             {
                 if (writeMethod != null)

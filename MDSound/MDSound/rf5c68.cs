@@ -88,6 +88,9 @@ namespace MDSound
             public UInt16 step;
             public UInt16 loopst;
             public byte Muted;
+
+            public bool key = false;//発音中ならtrue
+            public bool keyOn = false;//キーオンしたときにtrue(falseは受け取り側が行う)
         };
         //public _pcm_channel pcm_channel;
 
@@ -122,7 +125,7 @@ namespace MDSound
         //static void rf5c68_mem_stream_flush(rf5c68_state* chip);
 
         private const int MAX_CHIPS = 0x02;
-        private rf5c68_state[] RF5C68Data = new rf5c68_state[MAX_CHIPS] { new rf5c68_state(), new rf5c68_state() };
+        public rf5c68_state[] RF5C68Data = new rf5c68_state[MAX_CHIPS] { new rf5c68_state(), new rf5c68_state() };
 
         /*INLINE rf5c68_state *get_safe_token(const device_config *device)
         {
@@ -202,7 +205,7 @@ namespace MDSound
                 pcm_channel chan = chip.chan[i];
 
                 /* if this channel is active, accumulate samples */
-                if (chan.enable != 0 && chan.Muted == 0)
+                if (chan.enable != 0)// && chan.Muted == 0)
                 {
                     int lv = (chan.pan & 0x0f) * chan.env;
                     int rv = ((chan.pan >> 4) & 0x0f) * chan.env;
@@ -229,21 +232,28 @@ namespace MDSound
 
                             /* if we loop to a loop point, we're effectively dead */
                             if (sample == 0xff)
+                            {
+                                chan.key = false;
                                 break;
+                            }
                         }
+                        chan.key = true;
                         chan.addr += chan.step;
 
-                        /* add to the buffer */
-                        if ((sample & 0x80) != 0)
+                        if (chan.Muted == 0)
                         {
-                            sample &= 0x7f;
-                            left[j] += (sample * lv) >> 5;
-                            right[j] += (sample * rv) >> 5;
-                        }
-                        else
-                        {
-                            left[j] -= (sample * lv) >> 5;
-                            right[j] -= (sample * rv) >> 5;
+                            /* add to the buffer */
+                            if ((sample & 0x80) != 0)
+                            {
+                                sample &= 0x7f;
+                                left[j] += (sample * lv) >> 5;
+                                right[j] += (sample * rv) >> 5;
+                            }
+                            else
+                            {
+                                left[j] -= (sample * lv) >> 5;
+                                right[j] -= (sample * rv) >> 5;
+                            }
                         }
 
                         //Console.WriteLine("Ch:{0} L:{1} R:{2}", i, outputs[0][j], outputs[1][j]);
@@ -424,7 +434,12 @@ namespace MDSound
                 case 0x08:  /* channel on/off reg */
                     for (i = 0; i < 8; i++)
                     {
+                        byte old = chip.chan[i].enable;
+                        
                         chip.chan[i].enable = (byte)((~data >> i) & 1);
+
+                        if (old == 0 && chip.chan[i].enable != 0) chip.chan[i].keyOn = true;
+
                         if (chip.chan[i].enable == 0)
                             chip.chan[i].addr = (uint)(chip.chan[i].start << (8 + 11));
                     }

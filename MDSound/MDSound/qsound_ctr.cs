@@ -449,6 +449,7 @@ namespace MDSound
 		private void qsoundc_set_mute_mask(byte ChipID, uint MuteMask)
 		{
 			qsound_chip chip = QSoundData[ChipID];
+			if (chip == null) return;
 			chip.muteMask = MuteMask;
 
 			return;

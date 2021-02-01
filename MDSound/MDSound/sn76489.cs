@@ -194,7 +194,7 @@ namespace MDSound
                     centre_panning(chip.panning[i]);
                 //SN76489_Reset(chip);
 
-                if ((PSGClockValue & 0x80000000) > 0 && LastChipInit != null)
+                if ((PSGClockValue & 0x80000000) != 0 && LastChipInit != null)
                 {
                     // Activate special NeoGeoPocket Mode
                     LastChipInit.NgpFlags = 0x80 | 0x00;
@@ -258,7 +258,6 @@ namespace MDSound
         public override void Update(byte ChipID, int[][] buffer, int length)
         {
             SN76489_Context chip = SN76489_Chip[ChipID];
-            //Console.WriteLine("PSGStereo:0:{0}", SN76489_Chip[0].PSGStereo);
             //Console.WriteLine("PSGStereo:1:{0}", SN76489_Chip[1].PSGStereo);
 
             int i, j;
@@ -270,6 +269,7 @@ namespace MDSound
             NGPMode = (chip.NgpFlags >> 7) & 0x01;
             if (NGPMode == 0)
             {
+                chip2 = null;
                 chip_t = chip_n = chip;
             }
             else
@@ -291,7 +291,7 @@ namespace MDSound
             {
                 /* Tone channels */
                 for (i = 0; i <= 2; ++i)
-                    if ((chip_t.Mute >> i & 1) > 0)
+                    if ((chip_t.Mute >> i & 1) != 0)
                     {
                         if (chip_t.IntermediatePos[i] != float.MinValue)
                             /* Intermediate position (antialiasing) */
@@ -305,13 +305,13 @@ namespace MDSound
                         chip.Channels[i] = 0;
 
                 /* Noise channel */
-                if ((chip_n.Mute >> 3 & 1) > 0)
+                if ((chip_n.Mute >> 3 & 1) != 0)
                 {
                     //chip->Channels[3] = PSGVolumeValues[chip->Registers[7]] * ( chip_n->NoiseShiftRegister & 0x1 ) * 2; /* double noise volume */
                     // Now the noise is bipolar, too. -Valley Bell
                     chip.Channels[3] = PSGVolumeValues[chip.Registers[7]] * ((chip_n.NoiseShiftRegister & 0x1) * 2 - 1);
                     // due to the way the white noise works here, it seems twice as loud as it should be
-                    if ((chip.Registers[6] & 0x4) > 0)
+                    if ((chip.Registers[6] & 0x4) != 0)
                         chip.Channels[3] >>= 1;
                 }
                 else
@@ -358,6 +358,7 @@ namespace MDSound
                         chip.volume[i][0] = Math.Abs(bl);// Math.Max(bl, chip.volume[i][0]);
                         chip.volume[i][1] = Math.Abs(br);// Math.Max(br, chip.volume[i][1]);
                     }
+                    //Log.WriteLine(LogLevel.TRACE,string.Format("{0}", chip.Channels[3]));
                 }
                 else
                 {
@@ -442,7 +443,7 @@ namespace MDSound
                     {
                         /* On the positive edge of the square wave (only once per cycle) */
                         int Feedback;
-                        if ((chip.Registers[6] & 0x4) > 0)
+                        if ((chip.Registers[6] & 0x4) !=0)
                         {
                             /* White noise */
                             /* Calculate parity of fed-back bits for feedback */
@@ -485,7 +486,7 @@ namespace MDSound
         {
             SN76489_Context chip = SN76489_Chip[ChipID];
 
-            if ((data & 0x80) > 0)
+            if ((data & 0x80) != 0)
             {
                 /* Latch/data byte  %1 cc t dddd */
                 chip.LatchedRegister = (data >> 4) & 0x07;

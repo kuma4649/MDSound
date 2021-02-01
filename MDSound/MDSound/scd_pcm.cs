@@ -202,7 +202,7 @@ namespace MDSound
                 case 0x07:
                     /* control register */
                     /* mod is H */
-                    if ((Data & 0x40) > 0)
+                    if ((Data & 0x40) != 0)
                     {
                         /* select channel */
                         chip.Cur_Chan = (int)(Data & 0x07);

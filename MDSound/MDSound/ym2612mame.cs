@@ -61,6 +61,9 @@ namespace MDSound
         public override void Update(byte ChipID, int[][] outputs, int samples)
         {
             YM2612_Chip[ChipID].ym2612_update_one(ym2612[ChipID], outputs, samples);
+
+            visVolume[ChipID][0][0] = outputs[0][0];
+            visVolume[ChipID][0][1] = outputs[1][0];
         }
 
         public override int Write(byte ChipID, int port, int adr, int data)
