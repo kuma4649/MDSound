@@ -3728,6 +3728,27 @@ namespace MDSound
             }
         }
 
+        public ymf271.YMF271Chip ReadYMF271Register(int chipID)
+        {
+            lock (lockobj)
+            {
+                if (!dicInst.ContainsKey(enmInstrumentType.YMF271)) return null;
+                if (dicInst[enmInstrumentType.YMF271][0] == null) return null;
+                return ((ymf271)(dicInst[enmInstrumentType.YMF271][0])).YMF271Data[chipID];
+            }
+        }
+
+        public ymf271.YMF271Chip ReadYMF271Register(int ChipIndex, int chipID)
+        {
+            lock (lockobj)
+            {
+                if (!dicInst.ContainsKey(enmInstrumentType.YMF271)) return null;
+                if (dicInst[enmInstrumentType.YMF271][ChipIndex] == null) return null;
+                return ((ymf271)(dicInst[enmInstrumentType.YMF271][ChipIndex])).YMF271Data[chipID];
+            }
+        }
+
+
         public okim6258.okim6258_state ReadOKIM6258Status(int chipID)
         {
             lock(lockobj)

@@ -345,13 +345,13 @@ namespace MDSound
             public double lfo_phasemod;
         }
 
-        private class YMF271Group
+        public class YMF271Group
         {
             public byte sync, pfm;
             public byte Muted;
         }
 
-        private class YMF271Chip
+        public class YMF271Chip
         {
             // lookup tables
             public Int16[][] lut_waves = new Int16[8][];
@@ -408,7 +408,7 @@ namespace MDSound
 
 
         private const Int32 MAX_CHIPS = 0x10;
-        private YMF271Chip[] YMF271Data = new YMF271Chip[2] { new YMF271Chip(), new YMF271Chip(), };// MAX_CHIPS];
+        public YMF271Chip[] YMF271Data = new YMF271Chip[2] { new YMF271Chip(), new YMF271Chip(), };// MAX_CHIPS];
 
         public override string Name { get { return "YMF271"; } set { } }
         public override string ShortName { get { return "OPX"; } set { } }

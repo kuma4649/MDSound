@@ -483,7 +483,8 @@ namespace test
                     type = MDSound.MDSound.enmInstrumentType.SN76489,
                     ID = 0
                 };
-                MDSound.sn76489 sn76489 = new MDSound.sn76489();
+                //MDSound.sn76489 sn76489 = new MDSound.sn76489();
+                MDSound.SN76496 sn76489 = new MDSound.SN76496();
                 chip.Instrument = sn76489;
                 chip.Update = sn76489.Update;
                 chip.Start = sn76489.Start;
@@ -551,7 +552,7 @@ namespace test
                 chip.Clock = GetLE32(0x2c); 
                 chip.Volume = 0;
                 chip.Option = null;
-                //lstChip.Add(chip);
+                lstChip.Add(chip);
             }
 
             if (GetLE32(0x30) != 0)
@@ -1177,6 +1178,7 @@ namespace test
                 case 0x4f: //GG PSG
                 case 0x50: //PSG
                     mds.WriteSN76489(0, vgmBuf[vgmAdr + 1]);
+                    //mds.WriteSN76496(0, vgmBuf[vgmAdr + 1]);
                     vgmAdr += 2;
                     break;
                 case 0x51: //YM2413
