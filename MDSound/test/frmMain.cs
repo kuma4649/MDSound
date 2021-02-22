@@ -455,7 +455,7 @@ namespace test
             if (vgm != 0x206d6756) return;
 
             uint version = GetLE32(0x08);
-            if (version < 0x0150) return;
+            //if (version < 0x0150) return;
 
             vgmEof = GetLE32(0x04);
 
@@ -493,7 +493,24 @@ namespace test
                 chip.SamplingRate = SamplingRate;
                 chip.Clock = GetLE32(0x0c);
                 chip.Volume = 0;
-                chip.Option = null;
+                if (version < 0x0150)
+                {
+                    chip.Option = new object[]{
+                                (byte)9,
+                                (byte)0,
+                                (byte)16,
+                                (byte)0
+                    };
+                }
+                else
+                {
+                    chip.Option = new object[]{
+                                vgmBuf[0x28],
+                                vgmBuf[0x29],
+                                vgmBuf[0x2a],
+                                vgmBuf[0x2b]
+                    };
+                }
                 lstChip.Add(chip);
             }
 

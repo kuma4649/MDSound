@@ -751,13 +751,26 @@ namespace MDSound.fmvgen
                 if (!keyon_)
                 {
                     keyon_ = true;
-                    if ((eg_phase_ == EGPhase.off || eg_phase_ == EGPhase.release) || phaseReset_ != 0)
+
+                    if (phaseReset_ != 0)
                     {
+                        ShiftPhase(EGPhase.off);
                         ssg_phase_ = -1;
                         ShiftPhase(EGPhase.attack);
                         EGUpdate();
                         in2_ = out_ = out2_ = 0;
                         pg_count_ = 0;
+                    }
+                    else
+                    {
+                        if (eg_phase_ == EGPhase.off || eg_phase_ == EGPhase.release)
+                        {
+                            ssg_phase_ = -1;
+                            ShiftPhase(EGPhase.attack);
+                            EGUpdate();
+                            in2_ = out_ = out2_ = 0;
+                            pg_count_ = 0;
+                        }
                     }
                 }
             }

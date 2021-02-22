@@ -132,7 +132,9 @@ namespace MDSound
             SAA1099,
             X1_010,
             P86,
-            YM2612mame
+            YM2612mame,
+            SN76496,
+            POKEY
         }
 
         public class Chip
@@ -917,6 +919,31 @@ namespace MDSound
 
         #endregion
 
+        #region POKEY
+
+        public void WritePOKEY(byte ChipID, byte Adr, byte Data)
+        {
+            lock (lockobj)
+            {
+                if (!dicInst.ContainsKey(enmInstrumentType.POKEY)) return;
+
+                ((pokey)(dicInst[enmInstrumentType.POKEY][0])).Write(ChipID, 0, Adr, Data);
+            }
+        }
+
+        public void WritePOKEY(int ChipIndex, byte ChipID, byte Adr, byte Data)
+        {
+            lock (lockobj)
+            {
+                if (!dicInst.ContainsKey(enmInstrumentType.POKEY)) return;
+
+                ((pokey)(dicInst[enmInstrumentType.POKEY][ChipIndex])).Write(ChipID, 0, Adr, Data);
+            }
+        }
+
+        #endregion
+
+
 
         #region X1_010
 
@@ -1067,6 +1094,51 @@ namespace MDSound
                 if (!dicInst.ContainsKey(enmInstrumentType.SN76489)) return;
 
                 ((sn76489)(dicInst[enmInstrumentType.SN76489][ChipIndex])).SN76489_GGStereoWrite(ChipID, Data);
+            }
+        }
+
+        #endregion
+
+
+        #region SN76496
+
+        public void WriteSN76496(byte ChipID, byte Data)
+        {
+            lock (lockobj)
+            {
+                if (!dicInst.ContainsKey(enmInstrumentType.SN76496)) return;
+
+                dicInst[enmInstrumentType.SN76496][0].Write(ChipID, 0, 0, Data);
+            }
+        }
+
+        public void WriteSN76496(int ChipIndex, byte ChipID, byte Data)
+        {
+            lock (lockobj)
+            {
+                if (!dicInst.ContainsKey(enmInstrumentType.SN76496)) return;
+
+                dicInst[enmInstrumentType.SN76496][ChipIndex].Write(ChipID, 0, 0, Data);
+            }
+        }
+
+        public void WriteSN76496GGPanning(byte ChipID, byte Data)
+        {
+            lock (lockobj)
+            {
+                if (!dicInst.ContainsKey(enmInstrumentType.SN76496)) return;
+
+                ((SN76496)(dicInst[enmInstrumentType.SN76496][0])).SN76496_GGStereoWrite(ChipID, 0, 0, Data);
+            }
+        }
+
+        public void WriteSN76496GGPanning(int ChipIndex, byte ChipID, byte Data)
+        {
+            lock (lockobj)
+            {
+                if (!dicInst.ContainsKey(enmInstrumentType.SN76496)) return;
+
+                ((SN76496)(dicInst[enmInstrumentType.SN76496][ChipIndex])).SN76496_GGStereoWrite(ChipID, 0, 0, Data);
             }
         }
 
@@ -4581,14 +4653,28 @@ namespace MDSound
 
         public int[][][] getSN76489VisVolume()
         {
-            if (!dicInst.ContainsKey(enmInstrumentType.SN76489)) return null;
-            return ((sn76489)dicInst[enmInstrumentType.SN76489][0]).visVolume;
+            if (dicInst.ContainsKey(enmInstrumentType.SN76489))
+            {
+                return ((sn76489)dicInst[enmInstrumentType.SN76489][0]).visVolume;
+            }
+            else if (dicInst.ContainsKey(enmInstrumentType.SN76496))
+            {
+                return ((SN76496)dicInst[enmInstrumentType.SN76496][0]).visVolume;
+            }
+            return null;
         }
 
         public int[][][] getSN76489VisVolume(int ChipIndex)
         {
-            if (!dicInst.ContainsKey(enmInstrumentType.SN76489)) return null;
-            return ((sn76489)dicInst[enmInstrumentType.SN76489][ChipIndex]).visVolume;
+            if (dicInst.ContainsKey(enmInstrumentType.SN76489))
+            {
+                return ((sn76489)dicInst[enmInstrumentType.SN76489][ChipIndex]).visVolume;
+            }
+            else if (dicInst.ContainsKey(enmInstrumentType.SN76496))
+            {
+                return ((SN76496)dicInst[enmInstrumentType.SN76496][ChipIndex]).visVolume;
+            }
+            return null;
         }
 
         public int[][][] getHuC6280VisVolume()

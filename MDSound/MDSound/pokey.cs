@@ -16,12 +16,12 @@ namespace MDSound
 
         public override uint Start(byte ChipID, uint clock)
         {
-            return (uint)device_start_pokey(ChipID, (int)clock);
+            return (uint)device_start_pokey(ChipID, (int)1789772);
         }
 
         public override uint Start(byte ChipID, uint clock, uint ClockValue, params object[] option)
         {
-            return (uint)device_start_pokey(ChipID, (int)clock);
+            return (uint)device_start_pokey(ChipID, (int)ClockValue);
         }
 
         public override void Stop(byte ChipID)
@@ -809,6 +809,11 @@ namespace MDSound
 
             if (ChipID >= MAX_CHIPS)
                 return 0;
+
+            if (PokeyData[ChipID] == null)
+            {
+                PokeyData[ChipID] = new pokey_state();
+            }
 
             chip = PokeyData[ChipID];
 

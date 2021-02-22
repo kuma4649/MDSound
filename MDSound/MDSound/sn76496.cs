@@ -33,8 +33,32 @@ namespace MDSound
         // clockValue : masterClock
         public override uint Start(byte ChipID, uint clock, uint ClockValue, params object[] option)
         {
+            int stereo = 0;
+            int negate = 0;
+            int freq0 = 0;
+            int divider = 0;
+            int noisetaps = 9;
+            int shiftreg = 16;
+
+            if (option != null && option.Length==4)
+            {
+                noisetaps = (byte)option[0] + (byte)option[1] * 0x100;
+                shiftreg = (byte)option[2];
+
+                freq0 = ((byte)option[3] & 0x1) != 0 ? 1 : 0;
+                negate = ((byte)option[3] & 0x2) != 0 ? 1 : 0;
+                stereo = ((byte)option[3] & 0x4) != 0 ? 1 : 0;
+                divider = ((byte)option[3] & 0x8) != 0 ? 1 : 0;
+
+            }
+
+            if (ChipID == 0)
+            {
+                LastChipInit = null;
+            }
+
             sn76496_state chip;
-            uint i = (uint)sn76496_start(out chip, (int)ClockValue, 0, 0, 0, 0, 0, (int)clock);
+            uint i = (uint)sn76496_start(out chip, (int)ClockValue, shiftreg, noisetaps, negate, stereo, divider, freq0);
             sn76496_freq_limiter((int)(ClockValue & 0x3FFFFFFF), 0, (int)clock);
 
             while (ChipID >= chips.Count) chips.Add(null);
@@ -62,6 +86,12 @@ namespace MDSound
             return 0;
         }
 
+        public int SN76496_GGStereoWrite(byte ChipID, int port, int adr, int data)
+        {
+            if (chips[ChipID] == null) return 0;
+            sn76496_stereo_w(chips[ChipID], adr, (byte)data);//adr 未使用
+            return 0;
+        }
 
 
         //	/***************************************************************************
@@ -748,7 +778,7 @@ namespace MDSound
             }
 
             return (ulong)generic_start(sn_chip, clock, 1 << (shiftregwidth - 1), ntap[0], ntap[1],
-                                negate, stereo != 0 ? 1 : 0, clockdivider != 0 ? 1 : 8, freq0);
+                                negate, stereo == 0 ? 1 : 0, clockdivider != 0 ? 1 : 8, freq0);
         }
 
         private void sn76496_shutdown(sn76496_state chip)
