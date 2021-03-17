@@ -76,15 +76,28 @@ namespace MDSound.fmvgen.effect
             chInfo[ch].lowpassR.LowPass(chInfo[ch].lFreq, chInfo[ch].lQ, clock);
         }
 
+        private void updateParamHPF(int ch)
+        {
+            chInfo[ch].highpassL.HighPass(chInfo[ch].hFreq, chInfo[ch].hQ, clock);
+            chInfo[ch].highpassR.HighPass(chInfo[ch].hFreq, chInfo[ch].hQ, clock);
+        }
+
+        private void updateParamLPF(int ch)
+        {
+            chInfo[ch].lowpassL.LowPass(chInfo[ch].lFreq, chInfo[ch].lQ, clock);
+            chInfo[ch].lowpassR.LowPass(chInfo[ch].lFreq, chInfo[ch].lQ, clock);
+        }
+
         public void Mix(int ch, ref int inL, ref int inR, int wavelength = 1)
         {
             if (ch < 0) return;
             if (ch >= maxCh) return;
             if (chInfo == null) return;
             if (chInfo[ch] == null) return;
+            if (!chInfo[ch].hsw && !chInfo[ch].lsw) return;
 
-            fbuf[0] = inL / 21474.83647f;
-            fbuf[1] = inR / 21474.83647f;
+            fbuf[0] = inL / CMyFilter.convInt;
+            fbuf[1] = inR / CMyFilter.convInt;
 
             // 入力信号にフィルタを適用する
             if (chInfo[ch].hsw)
@@ -99,43 +112,46 @@ namespace MDSound.fmvgen.effect
                 fbuf[1] = chInfo[ch].lowpassR.Process(fbuf[1]);
             }
 
-            inL = (int)(fbuf[0] * 21474.83647f);
-            inR = (int)(fbuf[1] * 21474.83647f);
+            inL = (int)(fbuf[0] * CMyFilter.convInt);
+            inR = (int)(fbuf[1] * CMyFilter.convInt);
         }
 
         public void SetReg(uint adr, byte data)
         {
-            if (adr == 0)
+            switch (adr)
             {
-                currentCh = Math.Max(Math.Min(data & 0x3f, 38), 0);
-                if ((data & 0x80) != 0) Init();
-            }
-            else if (adr == 1)
-            {
-                chInfo[currentCh].lsw = (data != 0);
-            }
-            else if (adr == 2)
-            {
-                chInfo[currentCh].lFreq = CMyFilter.freqTable[data];
-            }
-            else if (adr == 3)
-            {
-                chInfo[currentCh].lQ = CMyFilter.QTable[data];
-            }
-            else if (adr == 4)
-            {
-                chInfo[currentCh].hsw = (data != 0);
-            }
-            else if (adr == 5)
-            {
-                chInfo[currentCh].hFreq = CMyFilter.freqTable[data];
-            }
-            else if (adr == 6)
-            {
-                chInfo[currentCh].hQ = CMyFilter.QTable[data];
-            }
+                case 0:
+                    currentCh = Math.Max(Math.Min(data & 0x3f, 38), 0);
+                    if ((data & 0x80) != 0) Init();
+                    updateParam(currentCh);
+                    break;
 
-            updateParam(currentCh);
+                case 1:
+                    chInfo[currentCh].lsw = (data != 0);
+                    updateParamLPF(currentCh);
+                    break;
+                case 2:
+                    chInfo[currentCh].lFreq = CMyFilter.freqTable[data];
+                    updateParamLPF(currentCh);
+                    break;
+                case 3:
+                    chInfo[currentCh].lQ = CMyFilter.QTable[data];
+                    updateParamLPF(currentCh);
+                    break;
+
+                case 4:
+                    chInfo[currentCh].hsw = (data != 0);
+                    updateParamHPF(currentCh);
+                    break;
+                case 5:
+                    chInfo[currentCh].hFreq = CMyFilter.freqTable[data];
+                    updateParamHPF(currentCh);
+                    break;
+                case 6:
+                    chInfo[currentCh].hQ = CMyFilter.QTable[data];
+                    updateParamHPF(currentCh);
+                    break;
+            }
         }
 
     }

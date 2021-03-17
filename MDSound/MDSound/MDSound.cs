@@ -2351,7 +2351,7 @@ namespace MDSound
             }
         }
 
-        public void WritePPZ8PCMData(byte ChipID, int address, int data, byte[] PCMData)
+        public void WritePPZ8PCMData(byte ChipID, int address, int data, byte[][] PCMData)
         {
             lock (lockobj)
             {
@@ -2361,7 +2361,7 @@ namespace MDSound
             }
         }
 
-        public void WritePPZ8PCMData(int ChipIndex, byte ChipID, int address, int data, byte[] PCMData)
+        public void WritePPZ8PCMData(int ChipIndex, byte ChipID, int address, int data, byte[][] PCMData)
         {
             lock (lockobj)
             {

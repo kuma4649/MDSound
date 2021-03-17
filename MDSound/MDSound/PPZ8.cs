@@ -314,12 +314,11 @@ namespace MDSound
                 }
 
                 //不要っぽい?
-                //chWk[al].srcFrequency = (ushort)(chWk[al].ptr
-                //    + pcmData[bank][num * 0x12 + 16 + 32]
-                //    + pcmData[bank][num * 0x12 + 17 + 32] * 0x100
+                //chWk[chipID][al].srcFrequency = (ushort)(chWk[chipID][al].ptr
+                //    + (pcmData[chipID][bank][num * 0x12 + 16 + 32] | (pcmData[chipID][bank][num * 0x12 + 17 + 32] << 8))
                 //    );
+                //chWk[chipID][al].frequency = chWk[chipID][al]._frequency;
 
-                //chWk[al].frequency = chWk[al]._frequency;
                 chWk[chipID][al].srcFrequency = chWk[chipID][al]._srcFrequency;
             }
 
@@ -349,7 +348,7 @@ namespace MDSound
         /// <param name="mode">0:.PVI (ADPCM)  1:.PZI(PCM)</param>
         /// <param name="pcmData">ファイル内容</param>
         /// <returns></returns>
-        public int LoadPcm(int chipID, byte bank, byte mode, byte[] pcmData)
+        public int LoadPcm(int chipID, byte bank, byte mode, byte[][] pcmData)
         {
 #if DEBUG
             Log.WriteLine(LogLevel.TRACE, string.Format("ppz8em: LoadPCM: bank:{0} mode:{1}", bank,mode));
@@ -358,17 +357,17 @@ namespace MDSound
             bank &= 1;
             mode &= 1;
             int ret;
-            this.pcmData[chipID][bank] = null;
+            this.pcmData[chipID] = pcmData;
 
             if (mode == 0) //PVI形式
-                ret = CheckPVI(pcmData);
+                ret = CheckPVI(pcmData[bank]);
             else //PZI形式
-                ret = CheckPZI(pcmData);
+                ret = CheckPZI(pcmData[bank]);
 
             if (ret == 0)
             {
-                this.pcmData[chipID][bank] = new byte[pcmData.Length];
-                Array.Copy(pcmData, this.pcmData[chipID][bank], pcmData.Length);
+                //this.pcmData[chipID][bank] = new byte[pcmData[bank].Length];
+                //Array.Copy(pcmData, this.pcmData[chipID][bank], pcmData[bank].Length);
                 isPVI[chipID][bank] = mode == 0;
                 if (isPVI[chipID][bank])
                 {
@@ -582,7 +581,7 @@ namespace MDSound
                         //* chWk[i].panL);
                     }
 
-                    int n = chWk[chipID][i].ptr >= pcmData[chipID][chWk[chipID][i].bank].Length ? 0x80 : pcmData[chipID][chWk[chipID][i].bank][chWk[chipID][i].ptr];
+                    int n = (uint)chWk[chipID][i].ptr >= pcmData[chipID][chWk[chipID][i].bank].Length ? 0x80 : pcmData[chipID][chWk[chipID][i].bank][chWk[chipID][i].ptr];
                     l += (int)(VolumeTable[chipID][chWk[chipID][i].volume][n] * chWk[chipID][i].panL);
                     r += (int)(VolumeTable[chipID][chWk[chipID][i].volume][n] * chWk[chipID][i].panR);
                     chWk[chipID][i].delta += ((ulong)chWk[chipID][i].srcFrequency * (ulong)chWk[chipID][i].frequency / (ulong)0x8000) / SamplingRate;
