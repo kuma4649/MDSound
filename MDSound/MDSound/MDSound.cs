@@ -306,6 +306,7 @@ namespace MDSound
                     buffer[0][0] = 0;
                     buffer[1][0] = 0;
                     ResampleChipStream(insts, buffer, 1);
+                    //if (buffer[0][0] != 0) Console.WriteLine("{0}", buffer[0][0]);
                     a += buffer[0][0];
                     b += buffer[1][0];
 
@@ -451,21 +452,28 @@ namespace MDSound
             //    StreamBufs[0][i] = 0;
             //    StreamBufs[1][i] = 0;
             //}
-            Array.Clear(StreamBufs[0], 0, 0x100);
-            Array.Clear(StreamBufs[1], 0, 0x100);
-            CurBufL = StreamBufs[0x00];
-            CurBufR = StreamBufs[0x01];
+
+            //Array.Clear(StreamBufs[0], 0, 0x100);
+            //Array.Clear(StreamBufs[1], 0, 0x100);
+            //CurBufL = StreamBufs[0x00];
+            //CurBufR = StreamBufs[0x01];
 
             // This Do-While-Loop gets and resamples the chip output of one or more chips.
             // It's a loop to support the AY8910 paired with the YM2203/YM2608/YM2610.
             for (int i = 0; i < insts.Length; i++)
             {
+                Array.Clear(StreamBufs[0], 0, 0x80);
+                Array.Clear(StreamBufs[1], 0, 0x80);
+                CurBufL = StreamBufs[0x00];
+                CurBufR = StreamBufs[0x01];
+
                 inst = insts[i];
                 //double volume = inst.Volume/100.0;
                 int mul = inst.Volume;
                 if (inst.type == enmInstrumentType.Nes) mul = 0;
                 mul = (int)(16384.0 * Math.Pow(10.0, mul / 40.0));
 
+                //if (i != 0 && insts[i].LSmpl[0] != 0) Console.WriteLine("{0} {1}", insts[i].LSmpl[0], insts[0].LSmpl == insts[i].LSmpl);
                 //Console.WriteLine("{0} {1}", inst.type, inst.Resampler);
                 //Console.WriteLine("{0}", inst.Resampler);
                 switch (inst.Resampler)
@@ -647,6 +655,7 @@ namespace MDSound
                             buff[0][0] = 0;
                             buff[1][0] = 0;
                             inst.Update(inst.ID, buff, 1);
+                            //Console.WriteLine("{0} : {1}", i, buff[0][0]);
 
                             StreamPnt[0][ind] += (short)((Limit(buff[0][0], 0x7fff, -0x8000) * mul) >> 14);
                             StreamPnt[1][ind] += (short)((Limit(buff[1][0], 0x7fff, -0x8000) * mul) >> 14);
@@ -734,6 +743,8 @@ namespace MDSound
                     RetSample[0][j] += tempSample[0][j];
                     RetSample[1][j] += tempSample[1][j];
                 }
+
+                //if (tempSample[0][0] != 0) Console.WriteLine("{0} {1} {2}", i, tempSample[0][0], inst.Resampler);
 
             }
 

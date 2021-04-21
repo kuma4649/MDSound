@@ -629,40 +629,40 @@ namespace test
                 lstChip.Add(chip);
             }
 
-            //if (getLE32(0x48) != 0)
-            //{
-            //    chip = new MDSound.MDSound.Chip();
-            //    chip.type = MDSound.MDSound.enmInstrumentType.YM2608;
-            //    chip.ID = 0;
-            //    MDSound.ym2608 ym2608 = new MDSound.ym2608();
-            //    chip.Instrument = ym2608;
-            //    chip.Update = ym2608.Update;
-            //    chip.Start = ym2608.Start;
-            //    chip.Stop = ym2608.Stop;
-            //    chip.Reset = ym2608.Reset;
-            //    chip.SamplingRate = SamplingRate;
-            //    chip.Clock = getLE32(0x48);
-            //    chip.Volume = 0;
-            //    chip.Option = null;
-            //    lstChip.Add(chip);
-            //}
             if (GetLE32(0x48) != 0 && 0x48 < vgmDataOffset - 3)
             {
                 chip = new MDSound.MDSound.Chip();
-                chip.type = MDSound.MDSound.enmInstrumentType.YM2609;
+                chip.type = MDSound.MDSound.enmInstrumentType.YM2608;
                 chip.ID = 0;
-                MDSound.ym2609 ym2609 = new MDSound.ym2609();
-                chip.Instrument = ym2609;
-                chip.Update = ym2609.Update;
-                chip.Start = ym2609.Start;
-                chip.Stop = ym2609.Stop;
-                chip.Reset = ym2609.Reset;
+                MDSound.ym2608 ym2608 = new MDSound.ym2608();
+                chip.Instrument = ym2608;
+                chip.Update = ym2608.Update;
+                chip.Start = ym2608.Start;
+                chip.Stop = ym2608.Stop;
+                chip.Reset = ym2608.Reset;
                 chip.SamplingRate = SamplingRate;
                 chip.Clock = GetLE32(0x48);
                 chip.Volume = 0;
                 chip.Option = null;
                 lstChip.Add(chip);
             }
+            //if (GetLE32(0x48) != 0 && 0x48 < vgmDataOffset - 3)
+            //{
+            //    chip = new MDSound.MDSound.Chip();
+            //    chip.type = MDSound.MDSound.enmInstrumentType.YM2609;
+            //    chip.ID = 0;
+            //    MDSound.ym2609 ym2609 = new MDSound.ym2609();
+            //    chip.Instrument = ym2609;
+            //    chip.Update = ym2609.Update;
+            //    chip.Start = ym2609.Start;
+            //    chip.Stop = ym2609.Stop;
+            //    chip.Reset = ym2609.Reset;
+            //    chip.SamplingRate = SamplingRate;
+            //    chip.Clock = GetLE32(0x48);
+            //    chip.Volume = 0;
+            //    chip.Option = null;
+            //    lstChip.Add(chip);
+            //}
 
             if (GetLE32(0x4c) != 0 && 0x4c < vgmDataOffset - 3)
             {

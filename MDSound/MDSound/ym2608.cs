@@ -67,9 +67,10 @@ namespace MDSound
             chip[ChipID] = null;
         }
 
+        int[] buffer = new int[2];
+
         public override void Update(byte ChipID, int[][] outputs, int samples)
         {
-            int[] buffer = new int[2];
             buffer[0] = 0;
             buffer[1] = 0;
             chip[ChipID].Mix(buffer, 1);

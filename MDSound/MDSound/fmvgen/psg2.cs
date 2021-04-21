@@ -8,6 +8,7 @@ namespace MDSound.fmvgen
 
         protected byte[] panpot = new byte[3];
         protected byte[] phaseReset = new byte[3];
+        protected bool[] phaseResetBefore = new bool[3];
         protected byte[] duty = new byte[3];
         private reverb reverb;
         private distortion distortion;
@@ -69,6 +70,11 @@ namespace MDSound.fmvgen
                     nperiod = data != 0 ? nperiodbase / data : nperiodbase;
                     break;
 
+                case 7:
+                    if ((data & 0x09) == 0) { phaseResetBefore[0] = false; }
+                    if ((data & 0x12) == 0) { phaseResetBefore[1] = false; }
+                    if ((data & 0x24) == 0) { phaseResetBefore[2] = false; }
+                    break;
                 case 8:
                     olevel[0] = (uint)((mask & 1) != 0 ? EmitTable[(data & 15) * 2 + 1] : 0);
                     panpot[0] = (byte)(data >> 6);
@@ -130,9 +136,9 @@ namespace MDSound.fmvgen
                 p[0] = ((mask & 1) != 0 && (reg[8] & 0x10) != 0) ? (uint?)null : 0;
                 p[1] = ((mask & 2) != 0 && (reg[9] & 0x10) != 0) ? (uint?)null : 1;
                 p[2] = ((mask & 4) != 0 && (reg[10] & 0x10) != 0) ? (uint?)null : 2;
-                if (phaseReset[0] != 0) { scount[0] = 0; phaseReset[0] = 0; }
-                if (phaseReset[1] != 0) { scount[1] = 0; phaseReset[1] = 0; }
-                if (phaseReset[2] != 0) { scount[2] = 0; phaseReset[2] = 0; }
+                if (!phaseResetBefore[0] && phaseReset[0] != 0 && (r7 & 0x09) != 0) { scount[0] = 0; phaseResetBefore[0] = true; }
+                if (!phaseResetBefore[1] && phaseReset[1] != 0 && (r7 & 0x12) != 0) { scount[1] = 0; phaseResetBefore[1] = true; }
+                if (!phaseResetBefore[2] && phaseReset[2] != 0 && (r7 & 0x24) != 0) { scount[2] = 0; phaseResetBefore[2] = true; }
 
                 int noise, sample, sampleL, sampleR, revSampleL, revSampleR;
                 uint env;
