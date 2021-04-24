@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace MDSound.fmvgen.effect
@@ -68,6 +69,7 @@ namespace MDSound.fmvgen.effect
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void updateParam(int ch)
         {
             chInfo[ch].highpassL.HighPass(chInfo[ch].hFreq, chInfo[ch].hQ, clock);
@@ -76,12 +78,14 @@ namespace MDSound.fmvgen.effect
             chInfo[ch].lowpassR.LowPass(chInfo[ch].lFreq, chInfo[ch].lQ, clock);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void updateParamHPF(int ch)
         {
             chInfo[ch].highpassL.HighPass(chInfo[ch].hFreq, chInfo[ch].hQ, clock);
             chInfo[ch].highpassR.HighPass(chInfo[ch].hFreq, chInfo[ch].hQ, clock);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void updateParamLPF(int ch)
         {
             chInfo[ch].lowpassL.LowPass(chInfo[ch].lFreq, chInfo[ch].lQ, clock);

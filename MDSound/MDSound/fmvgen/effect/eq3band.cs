@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace MDSound.fmvgen.effect
@@ -139,7 +140,7 @@ namespace MDSound.fmvgen.effect
 		}
 
 
-
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		private void updateParam()
 		{
 			// 低音域を持ち上げる(ローシェルフ)フィルタ設定(左右分)

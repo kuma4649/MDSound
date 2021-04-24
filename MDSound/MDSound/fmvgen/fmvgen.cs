@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace MDSound.fmvgen
@@ -358,6 +359,7 @@ namespace MDSound.fmvgen
                 tablehasmade = true;
             }
 
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void SetDPBN(uint dp, uint bn)
             {
                 dp_ = dp;
@@ -367,6 +369,7 @@ namespace MDSound.fmvgen
             }
 
             //	準備
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void Prepare()
             {
                 if (param_changed_)
@@ -417,6 +420,7 @@ namespace MDSound.fmvgen
             }
 
             //	envelop の eg_phase_ 変更
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void ShiftPhase(EGPhase nextphase)
             {
                 switch (nextphase)
@@ -519,6 +523,7 @@ namespace MDSound.fmvgen
             }
 
             //	Block/F-Num
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void SetFNum(uint f)
             {
                 dp_ = (f & 2047) << (int)((f >> 11) & 7);
@@ -528,17 +533,20 @@ namespace MDSound.fmvgen
             }
 
             // 入力: s = 20+FM_PGBITS = 29
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public uint Sine(int c,int s)
             {
                 return sinetable[c][wt_][((s) >> (20 + FM_PGBITS - FM_OPSINBITS)) & (FM_OPSINENTS - 1)];
             }
 
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public int SINE(int c,int s)
             {
                 return (int)sinetable[c][wt_][(s) & (FM_OPSINENTS - 1)];
             }
 
 
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public int LogToLin(uint a)
             {
                 //#if 1 // FM_CLENTS < 0xc00		// 400 for TL, 400 for ENV, 400 for LFO.
@@ -548,6 +556,7 @@ namespace MDSound.fmvgen
                 //#endif
             }
 
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void EGUpdate()
             {
                 if (ssg_type_ == 0)
@@ -560,6 +569,7 @@ namespace MDSound.fmvgen
                 }
             }
 
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void SetEGRate(uint rate)
             {
                 eg_rate_ = (int)rate;
@@ -567,6 +577,7 @@ namespace MDSound.fmvgen
             }
 
             //	EG 計算
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void EGCalc()
             {
                 eg_count_ = (2047 * 3) << FM_RATIOBITS;             // ##この手抜きは再現性を低下させる
@@ -615,6 +626,7 @@ namespace MDSound.fmvgen
                 eg_curve_count_++;
             }
 
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void EGStep()
             {
                 eg_count_ -= eg_count_diff_;
@@ -626,6 +638,7 @@ namespace MDSound.fmvgen
 
             //	PG 計算
             //	ret:2^(20+PGBITS) / cycle
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public uint PGCalc()
             {
                 uint ret = pg_count_;
@@ -634,6 +647,7 @@ namespace MDSound.fmvgen
                 return ret;
             }
 
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public uint PGCalcL()
             {
                 uint ret = pg_count_;
@@ -644,6 +658,7 @@ namespace MDSound.fmvgen
 
             //	OP 計算
             //	in: ISample (最大 8π)
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public int Calc(int ch,int In)
             {
                 EGStep();
@@ -665,6 +680,7 @@ namespace MDSound.fmvgen
                 return out_;
             }
 
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public int CalcL(int ch,int In)
             {
                 EGStep();
@@ -687,6 +703,7 @@ namespace MDSound.fmvgen
                 return out_;
             }
 
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public int CalcN(uint noise)
             {
                 EGStep();
@@ -703,6 +720,7 @@ namespace MDSound.fmvgen
 
             //	OP (FB) 計算
             //	Self Feedback の変調最大 = 4π
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public int CalcFB(int ch,uint fb)
             {
                 EGStep();
@@ -721,6 +739,7 @@ namespace MDSound.fmvgen
                 return out2_;
             }
 
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public int CalcFBL(int ch,uint fb)
             {
                 EGStep();
@@ -740,12 +759,14 @@ namespace MDSound.fmvgen
                 return out_;
             }
 
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void ResetFB()
             {
                 out_ = out2_ = 0;
             }
 
             //	キーオン
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void KeyOn()
             {
                 if (!keyon_)
@@ -776,6 +797,7 @@ namespace MDSound.fmvgen
             }
 
             //	キーオフ
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void KeyOff()
             {
                 if (keyon_)
@@ -786,12 +808,14 @@ namespace MDSound.fmvgen
             }
 
             //	オペレータは稼働中か？
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public int IsOn()
             {
                 return eg_phase_ - EGPhase.off;
             }
 
             //	Detune (0-7)
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void SetDT(uint dt)
             {
                 detune_ = dt * 0x20;
@@ -800,6 +824,7 @@ namespace MDSound.fmvgen
             }
 
             //	DT2 (0-3)
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void SetDT2(uint dt2)
             {
                 detune2_ = dt2 & 3;
@@ -808,6 +833,7 @@ namespace MDSound.fmvgen
             }
 
             //	Multiple (0-15)
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void SetMULTI(uint mul)
             {
                 multiple_ = mul;
@@ -816,6 +842,7 @@ namespace MDSound.fmvgen
             }
 
             //	Total Level (0-127) (0.75dB step)
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void SetTL(uint tl, bool csm)
             {
                 if (!csm)
@@ -828,6 +855,7 @@ namespace MDSound.fmvgen
             }
 
             //	Attack Rate (0-63)
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void SetAR(uint ar)
             {
                 ar_ = ar;
@@ -836,6 +864,7 @@ namespace MDSound.fmvgen
             }
 
             //	Decay Rate (0-63)
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void SetDR(uint dr)
             {
                 dr_ = dr;
@@ -844,6 +873,7 @@ namespace MDSound.fmvgen
             }
 
             //	Sustain Rate (0-63)
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void SetSR(uint sr)
             {
                 sr_ = sr;
@@ -852,6 +882,7 @@ namespace MDSound.fmvgen
             }
 
             //	Sustain Level (0-127)
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void SetSL(uint sl)
             {
                 sl_ = sl;
@@ -860,6 +891,7 @@ namespace MDSound.fmvgen
             }
 
             //	Release Rate (0-63)
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void SetRR(uint rr)
             {
                 rr_ = rr;
@@ -868,6 +900,7 @@ namespace MDSound.fmvgen
             }
 
             //	Keyscale (0-3)
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void SetKS(uint ks)
             {
                 ks_ = ks;
@@ -875,6 +908,7 @@ namespace MDSound.fmvgen
                 //PARAMCHANGE(13);
             }
 
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void SetPhaseReset(uint prst)
             {
                 phaseReset_ = (uint)(prst != 0 ? 1 : 0);
@@ -882,6 +916,7 @@ namespace MDSound.fmvgen
             }
 
             //	SSG-type Envelop (0-15)
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void SetSSGEC(uint ssgec)
             {
                 if ((ssgec & 8) != 0)
@@ -890,6 +925,7 @@ namespace MDSound.fmvgen
                     ssg_type_ = 0;
             }
 
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void SetAMON(bool amon)
             {
                 amon_ = amon;
@@ -897,6 +933,7 @@ namespace MDSound.fmvgen
                 //PARAMCHANGE(14);
             }
 
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void SetFB(uint fb)
             {
                 fb_ = Channel4.fbtable[fb];
@@ -904,6 +941,7 @@ namespace MDSound.fmvgen
                 //PARAMCHANGE(15);
             }
 
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void SetALGLink(uint AlgLink)
             {
                 algLink_ = (byte)AlgLink;
@@ -911,6 +949,7 @@ namespace MDSound.fmvgen
                 //PARAMCHANGE(16);
             }
 
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void SetWaveTypeL(byte wt)
             {
                 wt_ = (byte)((wt_ & 2) | (wt & 1));
@@ -918,6 +957,7 @@ namespace MDSound.fmvgen
                 //PARAMCHANGE(17);
             }
 
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void SetWaveTypeH(byte wt)
             {
                 wt_ = (byte)((wt_ & 1) | ((wt & 1) << 1));
@@ -925,6 +965,7 @@ namespace MDSound.fmvgen
                 //PARAMCHANGE(17);
             }
 
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void Mute(bool mute)
             {
                 mute_ = mute;
@@ -932,6 +973,7 @@ namespace MDSound.fmvgen
                 //PARAMCHANGE(15);
             }
 
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void SetMS(uint ms)
             {
                 ms_ = ms;
@@ -941,6 +983,7 @@ namespace MDSound.fmvgen
 
 
 
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void SetChip(Chip chip)
             {
                 chip_ = chip;
@@ -950,6 +993,7 @@ namespace MDSound.fmvgen
             {
             }
 
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void SetMode(bool modulator)
             {
             }
@@ -957,25 +1001,30 @@ namespace MDSound.fmvgen
             //		static void SetAML(uint l);
             //		static void SetPML(uint l);
 
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public int Out()
             {
                 return out_;
             }
 
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public int dbgGetIn2()
             {
                 return in2_;
             }
 
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void dbgStopPG()
             {
                 pg_diff_ = 0; pg_diff_lfo_ = 0;
             }
 
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             private void SSGShiftPhase(int mode)
             {
             }
 
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             private int FBCalc(int fb)
             {
                 return -1;
@@ -983,15 +1032,18 @@ namespace MDSound.fmvgen
 
             //	friends --------------------------------------------------------------
             //private class Channel4;
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             private void FM_NextPhase(Operator op)
             {
             }
 
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public static int[] dbgGetClTable()
             {
                 return cltable;
             }
 
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public uint[] dbgGetSineTable(int c,int t)
             {
                 return sinetable[c][t];
@@ -1047,6 +1099,7 @@ namespace MDSound.fmvgen
                 this.ch = ch;
             }
 
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void MakeTable()
             {
                 // 100/64 cent =  2^(i*100/64*1200)
@@ -1057,6 +1110,7 @@ namespace MDSound.fmvgen
             }
 
             // リセット
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void Reset()
             {
                 op[0].Reset();
@@ -1066,6 +1120,7 @@ namespace MDSound.fmvgen
             }
 
             //	Calc の用意
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public int Prepare()
             {
                 op[0].Prepare();
@@ -1080,6 +1135,7 @@ namespace MDSound.fmvgen
             }
 
             //	F-Number/BLOCK を設定
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void SetFNum(uint f)
             {
                 for (int i = 0; i < 4; i++)
@@ -1093,6 +1149,7 @@ namespace MDSound.fmvgen
             };
 
             //	KC/KF を設定
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void SetKCKF(uint kc, uint kf)
             {
                 int oct = (int)(19 - ((kc >> 4) & 7));
@@ -1115,6 +1172,7 @@ namespace MDSound.fmvgen
             }
 
             //	キー制御
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void KeyControl(uint key)
             {
                 if ((key & 0x1) != 0) op[0].KeyOn();
@@ -1139,6 +1197,7 @@ namespace MDSound.fmvgen
                 };
 
             //	アルゴリズムを設定
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void SetAlgorithm(uint algo)
             {
                 //In[0] = buf[table1[algo][0]];
@@ -1160,6 +1219,7 @@ namespace MDSound.fmvgen
             }
 
             //  合成
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public int Calc()
             {
                 int r = 0;
@@ -1244,6 +1304,7 @@ namespace MDSound.fmvgen
             }
 
             //  合成
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public int CalcL()
             {
                 chip_.SetPMV(pms[chip_.GetPML()]);
@@ -1329,6 +1390,7 @@ namespace MDSound.fmvgen
             }
 
             //  合成
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public int CalcN(uint noise)
             {
                 buf[1] = buf[2] = buf[3] = 0;
@@ -1342,6 +1404,7 @@ namespace MDSound.fmvgen
             }
 
             //  合成
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public int CalcLN(uint noise)
             {
                 chip_.SetPMV(pms[chip_.GetPML()]);
@@ -1356,6 +1419,7 @@ namespace MDSound.fmvgen
             }
 
             //	オペレータの種類 (LFO) を設定
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void SetType(OpType type)
             {
                 for (int i = 0; i < 4; i++)
@@ -1363,11 +1427,13 @@ namespace MDSound.fmvgen
             }
 
             //	セルフ・フィードバックレートの設定 (0-7)
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void SetFB(uint feedback)
             {
                 fb = fbtable[feedback];
             }
 
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void SetAC(bool sw)
             {
                 ac = sw;
@@ -1375,6 +1441,7 @@ namespace MDSound.fmvgen
             }
 
             //	OPNA 系 LFO の設定
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void SetMS(uint ms)
             {
                 op[0].SetMS(ms);
@@ -1384,6 +1451,7 @@ namespace MDSound.fmvgen
             }
 
             //	チャンネル・マスク
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void Mute(bool m)
             {
                 for (int i = 0; i < 4; i++)
@@ -1391,6 +1459,7 @@ namespace MDSound.fmvgen
             }
 
             //	内部パラメータを再計算
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void Refresh()
             {
                 for (int i = 0; i < 4; i++)
@@ -1398,6 +1467,7 @@ namespace MDSound.fmvgen
                 //PARAMCHANGE(3);
             }
 
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void SetChip(Chip chip)
             {
                 chip_ = chip;
@@ -1405,11 +1475,13 @@ namespace MDSound.fmvgen
                     op[i].SetChip(chip);
             }
 
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void dbgStopPG()
             {
                 for (int i = 0; i < 4; i++) op[i].dbgStopPG();
             }
 
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void buildAlg()
             {
                 byte mask = 0xf;

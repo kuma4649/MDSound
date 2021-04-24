@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -56,7 +57,6 @@ namespace MDSound
         private const uint FIXPNT_FACT = (1 << (int)FIXPNT_BITS);
         private const uint FIXPNT_MASK = (FIXPNT_FACT - 1);
 
-        private int[][] tempSample = new int[2][] { new int[1], new int[1] };
 
         public static int np_nes_apu_volume;
         public static int np_nes_dmc_volume;
@@ -70,12 +70,17 @@ namespace MDSound
 #if DEBUG
         System.Diagnostics.Stopwatch sw = System.Diagnostics.Stopwatch.StartNew();
 #endif
-
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private uint getfriction(uint x) { return ((x) & FIXPNT_MASK); }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private uint getnfriction(uint x) { return ((FIXPNT_FACT - (x)) & FIXPNT_MASK); }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private uint fpi_floor(uint x) { return (uint)((x) & ~FIXPNT_MASK); }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private uint fpi_ceil(uint x) { return (uint)((x + FIXPNT_MASK) & ~FIXPNT_MASK); }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private uint fp2i_floor(uint x) { return ((x) / FIXPNT_FACT); }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private uint fp2i_ceil(uint x) { return ((x + FIXPNT_MASK) / FIXPNT_FACT); }
 
 
@@ -167,6 +172,10 @@ namespace MDSound
             public int[] NSmpl;
 
             public object[] Option = null;
+
+            public int tVolume { get; internal set; }
+            public int VolumeBalance { get; internal set; } = 0x100;
+            public int tVolumeBalance { get; internal set; }
         }
 
         public MDSound()
@@ -195,6 +204,33 @@ namespace MDSound
                 if (insts == null) return;
 
                 dicInst.Clear();
+
+                //ボリューム値から実際の倍数を求める
+                int total = 0;
+                foreach (Chip inst in insts)
+                {
+                    if (inst.type == enmInstrumentType.Nes) inst.Volume = 0;
+                    int balance = GetRegulationVoulme(inst,out double mul);
+                    //16384 = 0x4000 = short.MAXValue + 1
+                    total += (int)((((int)(16384.0 * Math.Pow(10.0, 0 / 40.0)) * balance) >> 8) * mul) / insts.Length;
+                }
+                //総ボリューム値から最大ボリュームまでの倍数を求める
+                //volumeMul = (double)(16384.0 / insts.Length) / total;
+                volumeMul = (double)16384.0 / total;
+                //ボリューム値から実際の倍数を求める
+                foreach (Chip inst in insts)
+                {
+                    if ((inst.VolumeBalance & 0x8000) != 0)
+                        inst.tVolumeBalance =
+                            (GetRegulationVoulme(inst, out double mul) * (inst.VolumeBalance & 0x7fff) + 0x80) >> 8;
+                    else
+                        inst.tVolumeBalance =
+                            inst.VolumeBalance;
+                    //int n = (((int)(16384.0 * Math.Pow(10.0, inst.Volume / 40.0)) * inst.tVolumeBalance) >> 8) / insts.Length;
+                    int n = (((int)(16384.0 * Math.Pow(10.0, inst.Volume / 40.0)) * inst.tVolumeBalance) >> 8) ;
+                    inst.tVolume = Math.Max(Math.Min((int)(n * volumeMul), short.MaxValue), short.MinValue);
+                }
+
                 foreach (Chip inst in insts)
                 {
                     inst.SamplingRate = inst.Start(inst.ID, inst.SamplingRate, inst.Clock, inst.Option);
@@ -231,6 +267,225 @@ namespace MDSound
                 ay8910Mask = new List<int[]>();
                 if (dicInst.ContainsKey(enmInstrumentType.AY8910)) for (int i = 0; i < dicInst[enmInstrumentType.AY8910].Length; i++) ay8910Mask.Add(new int[] { 0, 0 });
             }
+        }
+
+        private int GetRegulationVoulme(Chip inst,out double mul)
+        {
+            mul = 1;
+            ushort[] CHIP_VOLS = new ushort[0x29]//CHIP_COUNT
+            {
+                0x80, 0x200/*0x155*/, 0x100, 0x100, 0x180, 0xB0, 0x100, 0x80,	// 00-07
+		        0x80, 0x100, 0x100, 0x100, 0x100, 0x100, 0x100, 0x98,			// 08-0F
+		        0x80, 0xE0/*0xCD*/, 0x100, 0xC0, 0x100, 0x40, 0x11E, 0x1C0,		// 10-17
+		        0x100/*110*/, 0xA0, 0x100, 0x100, 0x100, 0xB3, 0x100, 0x100,	// 18-1F
+		        0x20, 0x100, 0x100, 0x100, 0x40, 0x20, 0x100, 0x40,			// 20-27
+		        0x280
+            };
+
+            if (inst.type == enmInstrumentType.YM2413)
+            {
+                mul = 0.5;
+                return CHIP_VOLS[0x01];
+            }
+            else if (inst.type == enmInstrumentType.YM2612)
+            {
+                mul = 1;
+                return CHIP_VOLS[0x02];
+            }
+            else if (inst.type == enmInstrumentType.YM2151)
+            {
+                mul = 1;
+                return CHIP_VOLS[0x03];
+            }
+            else if (inst.type == enmInstrumentType.SEGAPCM)
+            {
+                mul = 1;
+                return CHIP_VOLS[0x04];
+            }
+            else if (inst.type == enmInstrumentType.RF5C68)
+            {
+                mul = 1;
+                return CHIP_VOLS[0x05];
+            }
+            else if (inst.type == enmInstrumentType.YM2203)
+            {
+                mul = 1;
+                //mul=0.5 //SSG
+                return CHIP_VOLS[0x06];
+            }
+            else if (inst.type == enmInstrumentType.YM2608)
+            {
+                mul = 1;
+                return CHIP_VOLS[0x07];
+            }
+            else if (inst.type == enmInstrumentType.YM2610)
+            {
+                mul = 1;
+                return CHIP_VOLS[0x08];
+            }
+            else if (inst.type == enmInstrumentType.YM3812)
+            {
+                mul = 2;
+                return CHIP_VOLS[0x09];
+            }
+            else if (inst.type == enmInstrumentType.YM3526)
+            {
+                mul = 2;
+                return CHIP_VOLS[0x0a];
+            }
+            else if (inst.type == enmInstrumentType.Y8950)
+            {
+                mul = 2;
+                return CHIP_VOLS[0x0b];
+            }
+            else if (inst.type == enmInstrumentType.YMF262)
+            {
+                mul = 2;
+                return CHIP_VOLS[0x0c];
+            }
+            else if (inst.type == enmInstrumentType.YMF278B)
+            {
+                mul = 1;
+                return CHIP_VOLS[0x0d];
+            }
+            else if (inst.type == enmInstrumentType.YMF271)
+            {
+                mul = 1;
+                return CHIP_VOLS[0x0e];
+            }
+            else if (inst.type == enmInstrumentType.YMZ280B)
+            {
+                mul = 0x20 / 19.0;
+                return CHIP_VOLS[0x0f];
+            }
+            else if (inst.type == enmInstrumentType.RF5C164)
+            {
+                mul = 0x2;
+                return CHIP_VOLS[0x10];
+            }
+            else if (inst.type == enmInstrumentType.PWM)
+            {
+                mul = 0x1;
+                return CHIP_VOLS[0x11];
+            }
+            else if (inst.type == enmInstrumentType.AY8910)
+            {
+                mul = 0x2;
+                return CHIP_VOLS[0x12];
+            }
+            else if (inst.type == enmInstrumentType.DMG)
+            {
+                mul = 0x2;
+                return CHIP_VOLS[0x13];
+            }
+            else if (inst.type == enmInstrumentType.Nes)
+            {
+                mul = 0x2;
+                return CHIP_VOLS[0x14];
+            }
+            else if (inst.type == enmInstrumentType.MultiPCM)
+            {
+                mul = 4;
+                return CHIP_VOLS[0x15];
+            }
+            //else if (inst.type == enmInstrumentType.UPD7759)
+            //{
+            //    mul = 1;
+            //    return CHIP_VOLS[0x16];
+            //}
+            else if (inst.type == enmInstrumentType.OKIM6258)
+            {
+                mul = 2;
+                return CHIP_VOLS[0x17];
+            }
+            else if (inst.type == enmInstrumentType.OKIM6295)
+            {
+                mul = 2;
+                return CHIP_VOLS[0x18];
+            }
+            else if (inst.type == enmInstrumentType.K051649)
+            {
+                mul = 1;
+                return CHIP_VOLS[0x19];
+            }
+            else if (inst.type == enmInstrumentType.K054539)
+            {
+                mul = 1;
+                return CHIP_VOLS[0x1a];
+            }
+            else if (inst.type == enmInstrumentType.HuC6280)
+            {
+                mul = 1;
+                return CHIP_VOLS[0x1b];
+            }
+            else if (inst.type == enmInstrumentType.C140)
+            {
+                mul = 1;
+                return CHIP_VOLS[0x1c];
+            }
+            else if (inst.type == enmInstrumentType.K053260)
+            {
+                mul = 1;
+                return CHIP_VOLS[0x1d];
+            }
+            else if (inst.type == enmInstrumentType.POKEY)
+            {
+                mul = 1;
+                return CHIP_VOLS[0x1e];
+            }
+            else if (inst.type == enmInstrumentType.QSound || inst.type == enmInstrumentType.QSoundCtr)
+            {
+                mul = 1;
+                return CHIP_VOLS[0x1f];
+            }
+            //else if (inst.type == enmInstrumentType.SCSP)
+            //{
+            //    mul = 8;
+            //    return CHIP_VOLS[0x20];
+            //}
+            //else if (inst.type == enmInstrumentType.WSwan)
+            //{
+            //    mul = 1;
+            //    return CHIP_VOLS[0x21];
+            //}
+            //else if (inst.type == enmInstrumentType.VSU)
+            //{
+            //    mul = 1;
+            //    return CHIP_VOLS[0x22];
+            //}
+            else if (inst.type == enmInstrumentType.SAA1099)
+            {
+                mul = 1;
+                return CHIP_VOLS[0x23];
+            }
+            //else if (inst.type == enmInstrumentType.ES5503)
+            //{
+            //    mul = 8;
+            //    return CHIP_VOLS[0x24];
+            //}
+            //else if (inst.type == enmInstrumentType.ES5506)
+            //{
+            //    mul = 16;
+            //    return CHIP_VOLS[0x25];
+            //}
+            else if (inst.type == enmInstrumentType.X1_010)
+            {
+                mul = 1;
+                return CHIP_VOLS[0x26];
+            }
+            else if (inst.type == enmInstrumentType.C352)
+            {
+                mul = 8;
+                return CHIP_VOLS[0x27];
+            }
+            else if (inst.type == enmInstrumentType.GA20)
+            {
+                mul = 1;
+                return CHIP_VOLS[0x28];
+            }
+
+            mul = 1;
+            return 0x100;
         }
 
         public string GetDebugMsg()
@@ -385,6 +640,7 @@ namespace MDSound
         //    }
         //}
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void Clip(ref int a, ref int b)
         {
             if ((uint)(a + 32767) > (uint)(32767 * 2))
@@ -411,13 +667,17 @@ namespace MDSound
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int Limit(int v, int max, int min)
         {
             return v > max ? max : (v < min ? min : v);
         }
 
-        int[][] StreamPnt = new int[0x02][] { new int[0x100], new int[0x100] };
+        private int[][] tempSample = new int[2][] { new int[1], new int[1] };
+        private int[][] StreamPnt = new int[2][] { new int[0x100], new int[0x100] };
+        private int ClearLength = 1;
         public static string debugMsg;
+        private double volumeMul;
 
         private unsafe void ResampleChipStream(Chip[] insts, int[][] RetSample, uint Length)
         {
@@ -425,6 +685,10 @@ namespace MDSound
             if (Length > tempSample[0].Length)
             {
                 tempSample = new int[2][] { new int[Length], new int[Length] };
+            }
+            if (Length > StreamPnt[0].Length)
+            {
+                StreamPnt = new int[2][] { new int[Length], new int[Length] };
             }
 
             Chip inst;
@@ -462,16 +726,16 @@ namespace MDSound
             // It's a loop to support the AY8910 paired with the YM2203/YM2608/YM2610.
             for (int i = 0; i < insts.Length; i++)
             {
-                Array.Clear(StreamBufs[0], 0, 0x80);
-                Array.Clear(StreamBufs[1], 0, 0x80);
+                Array.Clear(StreamBufs[0], 0, ClearLength);
+                Array.Clear(StreamBufs[1], 0, ClearLength);
                 CurBufL = StreamBufs[0x00];
                 CurBufR = StreamBufs[0x01];
 
                 inst = insts[i];
                 //double volume = inst.Volume/100.0;
-                int mul = inst.Volume;
-                if (inst.type == enmInstrumentType.Nes) mul = 0;
-                mul = (int)(16384.0 * Math.Pow(10.0, mul / 40.0));
+                int mul = inst.tVolume;
+                //if (inst.type == enmInstrumentType.Nes) mul = 0;
+                //mul = (int)(16384.0 * Math.Pow(10.0, mul / 40.0));//16384 = 0x4000 = short.MAXValue + 1
 
                 //if (i != 0 && insts[i].LSmpl[0] != 0) Console.WriteLine("{0} {1}", insts[i].LSmpl[0], insts[0].LSmpl == insts[i].LSmpl);
                 //Console.WriteLine("{0} {1}", inst.type, inst.Resampler);
@@ -484,8 +748,8 @@ namespace MDSound
                         inst.SmpNext = (uint)((ulong)inst.SmpP * inst.SamplingRate / SamplingRate);
                         if (inst.SmpLast >= inst.SmpNext)
                         {
-                            tempSample[0][0] = (short)((Limit(inst.LSmpl[0], 0x7fff, -0x8000) * mul) >> 14);
-                            tempSample[1][0] = (short)((Limit(inst.LSmpl[1], 0x7fff, -0x8000) * mul) >> 14);
+                            tempSample[0][0] = Limit((inst.LSmpl[0] * mul) >> 15, 0x7fff, -0x8000);
+                            tempSample[1][0] = Limit((inst.LSmpl[1] * mul) >> 15, 0x7fff, -0x8000);
 
                             //RetSample[0][0] += (int)(inst.LSmpl[0] * volume);
                             //RetSample[1][0] += (int)(inst.LSmpl[1] * volume);
@@ -493,7 +757,7 @@ namespace MDSound
                         else
                         {
                             SmpCnt = (int)(inst.SmpNext - inst.SmpLast);
-
+                            ClearLength = SmpCnt;
                             //inst.Update(inst.ID, StreamBufs, SmpCnt);
                             for (int ind = 0; ind < SmpCnt; ind++)
                             {
@@ -501,8 +765,10 @@ namespace MDSound
                                 buff[1][0] = 0;
                                 inst.Update?.Invoke(inst.ID, buff, 1);
 
-                                StreamBufs[0][ind] += (short)((Limit(buff[0][0], 0x7fff, -0x8000) * mul) >> 14);
-                                StreamBufs[1][ind] += (short)((Limit(buff[1][0], 0x7fff, -0x8000) * mul) >> 14);
+                                StreamBufs[0][ind] += Limit((buff[0][0] * mul) >> 15, 0x7fff, -0x8000);
+                                StreamBufs[1][ind] += Limit((buff[1][0] * mul) >> 15, 0x7fff, -0x8000);
+                                //StreamBufs[0][ind] += (short)((Limit(buff[0][0], 0x7fff, -0x8000) * mul) >> 14);
+                                //StreamBufs[1][ind] += (short)((Limit(buff[1][0], 0x7fff, -0x8000) * mul) >> 14);
 
                                 //StreamBufs[0][ind] += (int)(buff[0][0] * volume);
                                 //StreamBufs[1][ind] += (int)(buff[1][0] * volume);
@@ -510,8 +776,11 @@ namespace MDSound
 
                             if (SmpCnt == 1)
                             {
-                                tempSample[0][0] = (short)((Limit(CurBufL[0x00], 0x7fff, -0x8000) * mul) >> 14);
-                                tempSample[1][0] = (short)((Limit(CurBufR[0x00], 0x7fff, -0x8000) * mul) >> 14);
+                                tempSample[0][0] = Limit((CurBufL[0] * mul) >> 15, 0x7fff, -0x8000);
+                                tempSample[1][0] = Limit((CurBufR[0] * mul) >> 15, 0x7fff, -0x8000);
+
+                                //tempSample[0][0] = (short)((Limit(CurBufL[0x00], 0x7fff, -0x8000) * mul) >> 14);
+                                //tempSample[1][0] = (short)((Limit(CurBufR[0x00], 0x7fff, -0x8000) * mul) >> 14);
 
                                 //RetSample[0][0] += (int)(CurBufL[0x00] * volume);
                                 //RetSample[1][0] += (int)(CurBufR[0x00] * volume);
@@ -520,8 +789,11 @@ namespace MDSound
                             }
                             else if (SmpCnt == 2)
                             {
-                                tempSample[0][0] = (short)(((Limit((CurBufL[0x00] + CurBufL[0x01]), 0x7fff, -0x8000) * mul) >> 14) >> 1);
-                                tempSample[1][0] = (short)(((Limit((CurBufR[0x00] + CurBufR[0x01]), 0x7fff, -0x8000) * mul) >> 14) >> 1);
+                                tempSample[0][0] = Limit(((CurBufL[0] + CurBufL[1]) * mul) >> (15 + 1), 0x7fff, -0x8000);
+                                tempSample[1][0] = Limit(((CurBufR[0] + CurBufR[1]) * mul) >> (15 + 1), 0x7fff, -0x8000);
+
+                                //tempSample[0][0] = (short)(((Limit((CurBufL[0x00] + CurBufL[0x01]), 0x7fff, -0x8000) * mul) >> 14) >> 1);
+                                //tempSample[1][0] = (short)(((Limit((CurBufR[0x00] + CurBufR[0x01]), 0x7fff, -0x8000) * mul) >> 14) >> 1);
 
                                 //RetSample[0][0] += (int)((int)((CurBufL[0x00] + CurBufL[0x01]) * volume) >> 1);
                                 //RetSample[1][0] += (int)((int)((CurBufR[0x00] + CurBufR[0x01]) * volume) >> 1);
@@ -537,8 +809,10 @@ namespace MDSound
                                     TempS32L += CurBufL[CurSmpl];
                                     TempS32R += CurBufR[CurSmpl];
                                 }
-                                tempSample[0][0] = (short)(((Limit(TempS32L, 0x7fff, -0x8000) * mul) >> 14) / SmpCnt);
-                                tempSample[1][0] = (short)(((Limit(TempS32R, 0x7fff, -0x8000) * mul) >> 14) / SmpCnt);
+                                tempSample[0][0] = Limit(((TempS32L * mul) >> 15) / SmpCnt, 0x7fff, -0x8000);
+                                tempSample[1][0] = Limit(((TempS32R * mul) >> 15) / SmpCnt, 0x7fff, -0x8000);
+                                //tempSample[0][0] = (short)(((Limit(TempS32L, 0x7fff, -0x8000) * mul) >> 14) / SmpCnt);
+                                //tempSample[1][0] = (short)(((Limit(TempS32R, 0x7fff, -0x8000) * mul) >> 14) / SmpCnt);
 
                                 //RetSample[0][0] += (int)(TempS32L * volume / SmpCnt);
                                 //RetSample[1][0] += (int)(TempS32R * volume / SmpCnt);
@@ -574,8 +848,10 @@ namespace MDSound
                             buff[1][0] = 0;
                             inst.Update?.Invoke(inst.ID, buff, 1);
 
-                            StreamPnt[0][ind] += (short)((Limit(buff[0][0], 0x7fff, -0x8000) * mul) >> 14);
-                            StreamPnt[1][ind] += (short)((Limit(buff[1][0], 0x7fff, -0x8000) * mul) >> 14);
+                            StreamPnt[0][0] = Limit((buff[0][0] * mul) >> 15, 0x7fff, -0x8000);
+                            StreamPnt[1][0] = Limit((buff[1][0] * mul) >> 15, 0x7fff, -0x8000);
+                            //StreamPnt[0][ind] += (short)((Limit(buff[0][0], 0x7fff, -0x8000) * mul) >> 14);
+                            //StreamPnt[1][ind] += (short)((Limit(buff[1][0], 0x7fff, -0x8000) * mul) >> 14);
                             //StreamPnt[0][ind] += (int)(buff[0][0] * volume);
                             //StreamPnt[1][ind] += (int)(buff[1][0] * volume);
                         }
@@ -616,14 +892,17 @@ namespace MDSound
                     case 0x02:  // Copying
                         inst.SmpNext = inst.SmpP * inst.SamplingRate / SamplingRate;
                         //inst.Update(inst.ID, StreamBufs, (int)Length);
+                        ClearLength = (int)Length;
                         for (int ind = 0; ind < Length; ind++)
                         {
                             buff[0][0] = 0;
                             buff[1][0] = 0;
                             inst.Update?.Invoke(inst.ID, buff, 1);
 
-                            StreamBufs[0][ind] = (short)((Limit(buff[0][0], 0x7fff, -0x8000) * mul) >> 14);
-                            StreamBufs[1][ind] = (short)((Limit(buff[1][0], 0x7fff, -0x8000) * mul) >> 14);
+                            StreamBufs[0][ind] = Limit((buff[0][0] * mul) >> 15, 0x7fff, -0x8000);
+                            StreamBufs[1][ind] = Limit((buff[1][0] * mul) >> 15, 0x7fff, -0x8000);
+                            //StreamBufs[0][ind] = (short)((Limit(buff[0][0], 0x7fff, -0x8000) * mul) >> 14);
+                            //StreamBufs[1][ind] = (short)((Limit(buff[1][0], 0x7fff, -0x8000) * mul) >> 14);
 
                             //StreamBufs[0][ind] = (int)(buff[0][0] * volume);
                             //StreamBufs[1][ind] = (int)(buff[1][0] * volume);
@@ -657,8 +936,10 @@ namespace MDSound
                             inst.Update(inst.ID, buff, 1);
                             //Console.WriteLine("{0} : {1}", i, buff[0][0]);
 
-                            StreamPnt[0][ind] += (short)((Limit(buff[0][0], 0x7fff, -0x8000) * mul) >> 14);
-                            StreamPnt[1][ind] += (short)((Limit(buff[1][0], 0x7fff, -0x8000) * mul) >> 14);
+                            StreamPnt[0][ind] = Limit((buff[0][0] * mul) >> 15, 0x7fff, -0x8000);
+                            StreamPnt[1][ind] = Limit((buff[1][0] * mul) >> 15, 0x7fff, -0x8000);
+                            //StreamPnt[0][ind] += (short)((Limit(buff[0][0], 0x7fff, -0x8000) * mul) >> 14);
+                            //StreamPnt[1][ind] += (short)((Limit(buff[1][0], 0x7fff, -0x8000) * mul) >> 14);
                             //StreamPnt[0][ind] += (int)(buff[0][0] * volume);
                             //StreamPnt[1][ind] += (int)(buff[1][0] * volume);
                         }
@@ -751,6 +1032,95 @@ namespace MDSound
             return;
         }
 
+        private ushort GetChipVolume(VGMX_CHP_EXTRA16 TempCX, byte ChipID, byte ChipNum, byte ChipCnt, int SN76496VGMHeaderClock, string strSystemNameE, bool DoubleSSGVol)
+        {
+            // ChipID: ID of Chip
+            //		Bit 7 - Is Paired Chip
+            // ChipNum: chip number (0 - first chip, 1 - second chip)
+            // ChipCnt: chip volume divider (number of used chips)
+            ushort[] CHIP_VOLS = new ushort[0x29]//CHIP_COUNT
+            {
+                0x80, 0x200/*0x155*/, 0x100, 0x100, 0x180, 0xB0, 0x100, 0x80,	// 00-07
+		        0x80, 0x100, 0x100, 0x100, 0x100, 0x100, 0x100, 0x98,			// 08-0F
+		        0x80, 0xE0/*0xCD*/, 0x100, 0xC0, 0x100, 0x40, 0x11E, 0x1C0,		// 10-17
+		        0x100/*110*/, 0xA0, 0x100, 0x100, 0x100, 0xB3, 0x100, 0x100,	// 18-1F
+		        0x20, 0x100, 0x100, 0x100, 0x40, 0x20, 0x100, 0x40,			// 20-27
+		        0x280
+            };
+            ushort Volume;
+            byte CurChp;
+            //VGMX_CHP_EXTRA16 TempCX;
+            VGMX_CHIP_DATA16 TempCD;
+
+            Volume = CHIP_VOLS[ChipID & 0x7F];
+            switch (ChipID)
+            {
+                case 0x00:  // SN76496
+                            // if T6W28, set Volume Divider to 01
+                    if ((SN76496VGMHeaderClock & 0x80000000) != 0)
+                    {
+                        // The T6W28 consists of 2 "half" chips.
+                        ChipNum = 0x01;
+                        ChipCnt = 0x01;
+                    }
+                    break;
+                case 0x18:  // OKIM6295
+                            // CP System 1 patch
+                    if (!string.IsNullOrEmpty(strSystemNameE) && strSystemNameE.IndexOf("CP") == 0)
+                        Volume = 110;
+                    break;
+                case 0x86:  // YM2203's AY
+                    Volume /= 2;
+                    break;
+                case 0x87:  // YM2608's AY
+                            // The YM2608 outputs twice as loud as the YM2203 here.
+                            //Volume *= 1;
+                    break;
+                case 0x88:  // YM2610's AY
+                            //Volume *= 1;
+                    break;
+            }
+            if (ChipCnt > 1)
+                Volume /= ChipCnt;
+
+            //TempCX = VGMH_Extra.Volumes;
+            for (CurChp = 0x00; CurChp < TempCX.ChipCnt; CurChp++)
+            {
+                TempCD = TempCX.CCData[CurChp];
+                if (TempCD.Type == ChipID && (TempCD.Flags & 0x01) == ChipNum)
+                {
+                    // Bit 15 - absolute/relative volume
+                    //	0 - absolute
+                    //	1 - relative (0x0100 = 1.0, 0x80 = 0.5, etc.)
+                    if ((TempCD.Data & 0x8000) != 0)
+                        Volume = (ushort)((Volume * (TempCD.Data & 0x7FFF) + 0x80) >> 8);
+                    else
+                    {
+                        Volume = TempCD.Data;
+                        if ((ChipID & 0x80) != 0 && DoubleSSGVol)
+                            Volume *= 2;
+                    }
+                    break;
+                }
+            }
+
+            return Volume;
+        }
+
+        public class VGMX_CHIP_DATA16
+        {
+            public byte Type;
+            public byte Flags;
+            public ushort Data;
+        }
+
+        public class VGMX_CHP_EXTRA16
+        {
+            public byte ChipCnt;
+            public VGMX_CHIP_DATA16[] CCData;
+        }
+
+
 
 
         #region AY8910
@@ -784,6 +1154,10 @@ namespace MDSound
             {
                 if (c.type != enmInstrumentType.AY8910) continue;
                 c.Volume = Math.Max(Math.Min(vol, 20), -192);
+                //int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8) / insts.Length;
+                int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8);
+                //16384 = 0x4000 = short.MAXValue + 1
+                c.tVolume = Math.Max(Math.Min((int)(n * volumeMul), short.MaxValue), short.MinValue);
             }
         }
 
@@ -873,6 +1247,10 @@ namespace MDSound
             {
                 if (c.type != enmInstrumentType.SAA1099) continue;
                 c.Volume = Math.Max(Math.Min(vol, 20), -192);
+                //int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8) / insts.Length;
+                int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8);
+                //16384 = 0x4000 = short.MAXValue + 1
+                c.tVolume = Math.Max(Math.Min((int)(n * volumeMul), short.MaxValue), short.MinValue);
             }
         }
 
@@ -1008,6 +1386,10 @@ namespace MDSound
             {
                 if (c.type != enmInstrumentType.X1_010) continue;
                 c.Volume = Math.Max(Math.Min(vol, 20), -192);
+                //int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8) / insts.Length;
+                int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8);
+                //16384 = 0x4000 = short.MAXValue + 1
+                c.tVolume = Math.Max(Math.Min((int)(n * volumeMul), short.MaxValue), short.MinValue);
             }
         }
 
@@ -1552,6 +1934,26 @@ namespace MDSound
                 if (!dicInst.ContainsKey(enmInstrumentType.YMF278B)) return;
 
                 ((ymf278b)(dicInst[enmInstrumentType.YMF278B][ChipIndex])).ymf278b_write_rom(ChipID, (int)ROMSize, (int)DataStart, (int)DataLength, ROMData, (int)SrcStartAdr);
+            }
+        }
+
+        public void WriteYMF278BPCMRAMData(byte ChipID, uint RAMSize, uint DataStart, uint DataLength, byte[] RAMData, uint SrcStartAdr)
+        {
+            lock (lockobj)
+            {
+                if (!dicInst.ContainsKey(enmInstrumentType.YMF278B)) return;
+
+                ((ymf278b)(dicInst[enmInstrumentType.YMF278B][0])).ymf278b_write_ram(ChipID, (int)DataStart, (int)DataLength, RAMData, (int)SrcStartAdr);
+            }
+        }
+
+        public void WriteYMF278BPCMRAMData(int ChipIndex, byte ChipID, uint RAMSize, uint DataStart, uint DataLength, byte[] RAMData, uint SrcStartAdr)
+        {
+            lock (lockobj)
+            {
+                if (!dicInst.ContainsKey(enmInstrumentType.YMF278B)) return;
+
+                ((ymf278b)(dicInst[enmInstrumentType.YMF278B][ChipIndex])).ymf278b_write_ram(ChipID, (int)DataStart, (int)DataLength, RAMData, (int)SrcStartAdr);
             }
         }
 
@@ -2885,6 +3287,10 @@ namespace MDSound
             {
                 if (c.type != enmInstrumentType.YM2151) continue;
                 c.Volume = Math.Max(Math.Min(vol, 20), -192);
+                //int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8) / insts.Length;
+                int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8);
+                //16384 = 0x4000 = short.MAXValue + 1
+                c.tVolume = Math.Max(Math.Min((int)(n * volumeMul), short.MaxValue), short.MinValue);
             }
         }
 
@@ -2898,6 +3304,10 @@ namespace MDSound
             {
                 if (c.type != enmInstrumentType.YM2151mame) continue;
                 c.Volume = Math.Max(Math.Min(vol, 20), -192);
+                //int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8) / insts.Length;
+                int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8);
+                //16384 = 0x4000 = short.MAXValue + 1
+                c.tVolume = Math.Max(Math.Min((int)(n * volumeMul), short.MaxValue), short.MinValue);
             }
         }
 
@@ -2911,6 +3321,10 @@ namespace MDSound
             {
                 if (c.type != enmInstrumentType.YM2151x68sound) continue;
                 c.Volume = Math.Max(Math.Min(vol, 20), -192);
+                //int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8) / insts.Length;
+                int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8);
+                //16384 = 0x4000 = short.MAXValue + 1
+                c.tVolume = Math.Max(Math.Min((int)(n * volumeMul), short.MaxValue), short.MinValue);
             }
         }
 
@@ -2924,6 +3338,10 @@ namespace MDSound
             {
                 if (c.type != enmInstrumentType.YM2203) continue;
                 c.Volume = Math.Max(Math.Min(vol, 20), -192);
+                //int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8) / insts.Length;
+                int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8);
+                //16384 = 0x4000 = short.MAXValue + 1
+                c.tVolume = Math.Max(Math.Min((int)(n * volumeMul), short.MaxValue), short.MinValue);
             }
         }
 
@@ -2965,6 +3383,10 @@ namespace MDSound
             {
                 if (c.type != enmInstrumentType.YM2413) continue;
                 c.Volume = Math.Max(Math.Min(vol, 20), -192);
+                //int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8) / insts.Length;
+                int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8);
+                //16384 = 0x4000 = short.MAXValue + 1
+                c.tVolume = Math.Max(Math.Min((int)(n * volumeMul), short.MaxValue), short.MinValue);
             }
         }
 
@@ -2978,6 +3400,10 @@ namespace MDSound
             {
                 if (c.type != enmInstrumentType.HuC6280) continue;
                 c.Volume = Math.Max(Math.Min(vol, 20), -192);
+                //int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8) / insts.Length;
+                int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8);
+                //16384 = 0x4000 = short.MAXValue + 1
+                c.tVolume = Math.Max(Math.Min((int)(n * volumeMul), short.MaxValue), short.MinValue);
             }
         }
 
@@ -2991,6 +3417,10 @@ namespace MDSound
             {
                 if (c.type != enmInstrumentType.YM2608) continue;
                 c.Volume = Math.Max(Math.Min(vol, 20), -192);
+                //int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8) / insts.Length;
+                int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8);
+                //16384 = 0x4000 = short.MAXValue + 1
+                c.tVolume = Math.Max(Math.Min((int)(n * volumeMul), short.MaxValue), short.MinValue);
             }
         }
 
@@ -3116,6 +3546,10 @@ namespace MDSound
             {
                 if (c.type != enmInstrumentType.YM2610) continue;
                 c.Volume = Math.Max(Math.Min(vol, 20), -192);
+                //int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8) / insts.Length;
+                int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8);
+                //16384 = 0x4000 = short.MAXValue + 1
+                c.tVolume = Math.Max(Math.Min((int)(n * volumeMul), short.MaxValue), short.MinValue);
             }
         }
 
@@ -3185,6 +3619,10 @@ namespace MDSound
             {
                 if (c.type != enmInstrumentType.YM2612) continue;
                 c.Volume = Math.Max(Math.Min(vol, 20), -192);
+                //int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8) / insts.Length;
+                int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8);
+                //16384 = 0x4000 = short.MAXValue + 1
+                c.tVolume = Math.Max(Math.Min((int)(n * volumeMul), short.MaxValue), short.MinValue);
             }
         }
 
@@ -3198,6 +3636,10 @@ namespace MDSound
             {
                 if (c.type != enmInstrumentType.YM3438) continue;
                 c.Volume = Math.Max(Math.Min(vol, 20), -192);
+                //int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8) / insts.Length;
+                int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8);
+                //16384 = 0x4000 = short.MAXValue + 1
+                c.tVolume = Math.Max(Math.Min((int)(n * volumeMul), short.MaxValue), short.MinValue);
             }
         }
 
@@ -3211,6 +3653,10 @@ namespace MDSound
             {
                 if (c.type != enmInstrumentType.SN76489) continue;
                 c.Volume = Math.Max(Math.Min(vol, 20), -192);
+                //int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8) / insts.Length;
+                int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8);
+                //16384 = 0x4000 = short.MAXValue + 1
+                c.tVolume = Math.Max(Math.Min((int)(n * volumeMul), short.MaxValue), short.MinValue);
             }
         }
 
@@ -3224,6 +3670,10 @@ namespace MDSound
             {
                 if (c.type != enmInstrumentType.RF5C164) continue;
                 c.Volume = Math.Max(Math.Min(vol, 20), -192);
+                //int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8) / insts.Length;
+                int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8);
+                //16384 = 0x4000 = short.MAXValue + 1
+                c.tVolume = Math.Max(Math.Min((int)(n * volumeMul), short.MaxValue), short.MinValue);
             }
         }
 
@@ -3236,7 +3686,11 @@ namespace MDSound
             foreach (Chip c in insts)
             {
                 if (c.type != enmInstrumentType.PWM) continue;
-                c.Volume = Math.Max(Math.Min(vol, 20),-192);
+                c.Volume = Math.Max(Math.Min(vol, 20), -192);
+                //int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8) / insts.Length;
+                int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8);
+                //16384 = 0x4000 = short.MAXValue + 1
+                c.tVolume = Math.Max(Math.Min((int)(n * volumeMul), short.MaxValue), short.MinValue);
             }
         }
 
@@ -3250,6 +3704,10 @@ namespace MDSound
             {
                 if (c.type != enmInstrumentType.OKIM6258) continue;
                 c.Volume = Math.Max(Math.Min(vol, 20), -192);
+                //int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8) / insts.Length;
+                int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8);
+                //16384 = 0x4000 = short.MAXValue + 1
+                c.tVolume = Math.Max(Math.Min((int)(n * volumeMul), short.MaxValue), short.MinValue);
             }
         }
 
@@ -3263,6 +3721,10 @@ namespace MDSound
             {
                 if (c.type != enmInstrumentType.mpcmX68k) continue;
                 c.Volume = Math.Max(Math.Min(vol, 20), -192);
+                //int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8) / insts.Length;
+                int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8);
+                //16384 = 0x4000 = short.MAXValue + 1
+                c.tVolume = Math.Max(Math.Min((int)(n * volumeMul), short.MaxValue), short.MinValue);
             }
         }
 
@@ -3276,6 +3738,10 @@ namespace MDSound
             {
                 if (c.type != enmInstrumentType.OKIM6295) continue;
                 c.Volume = Math.Max(Math.Min(vol, 20), -192);
+                //int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8) / insts.Length;
+                int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8);
+                //16384 = 0x4000 = short.MAXValue + 1
+                c.tVolume = Math.Max(Math.Min((int)(n * volumeMul), short.MaxValue), short.MinValue);
             }
         }
 
@@ -3289,6 +3755,10 @@ namespace MDSound
             {
                 if (c.type != enmInstrumentType.C140) continue;
                 c.Volume = Math.Max(Math.Min(vol, 20), -192);
+                //int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8) / insts.Length;
+                int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8);
+                //16384 = 0x4000 = short.MAXValue + 1
+                c.tVolume = Math.Max(Math.Min((int)(n * volumeMul), short.MaxValue), short.MinValue);
             }
         }
 
@@ -3302,6 +3772,10 @@ namespace MDSound
             {
                 if (c.type != enmInstrumentType.C352) continue;
                 c.Volume = Math.Max(Math.Min(vol, 20), -192);
+                //int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8) / insts.Length;
+                int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8);
+                //16384 = 0x4000 = short.MAXValue + 1
+                c.tVolume = Math.Max(Math.Min((int)(n * volumeMul), short.MaxValue), short.MinValue);
             }
         }
 
@@ -3329,6 +3803,10 @@ namespace MDSound
             {
                 if (c.type != enmInstrumentType.K051649) continue;
                 c.Volume = Math.Max(Math.Min(vol, 20), -192);
+                //int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8) / insts.Length;
+                int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8);
+                //16384 = 0x4000 = short.MAXValue + 1
+                c.tVolume = Math.Max(Math.Min((int)(n * volumeMul), short.MaxValue), short.MinValue);
             }
         }
 
@@ -3342,6 +3820,10 @@ namespace MDSound
             {
                 if (c.type != enmInstrumentType.K053260) continue;
                 c.Volume = Math.Max(Math.Min(vol, 20), -192);
+                //int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8) / insts.Length;
+                int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8);
+                //16384 = 0x4000 = short.MAXValue + 1
+                c.tVolume = Math.Max(Math.Min((int)(n * volumeMul), short.MaxValue), short.MinValue);
             }
         }
 
@@ -3355,6 +3837,10 @@ namespace MDSound
             {
                 if (c.type != enmInstrumentType.RF5C68) continue;
                 c.Volume = Math.Max(Math.Min(vol, 20), -192);
+                //int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8) / insts.Length;
+                int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8);
+                //16384 = 0x4000 = short.MAXValue + 1
+                c.tVolume = Math.Max(Math.Min((int)(n * volumeMul), short.MaxValue), short.MinValue);
             }
         }
 
@@ -3368,6 +3854,10 @@ namespace MDSound
             {
                 if (c.type != enmInstrumentType.YM3812) continue;
                 c.Volume = Math.Max(Math.Min(vol, 20), -192);
+                //int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8) / insts.Length;
+                int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8);
+                //16384 = 0x4000 = short.MAXValue + 1
+                c.tVolume = Math.Max(Math.Min((int)(n * volumeMul), short.MaxValue), short.MinValue);
             }
         }
 
@@ -3381,6 +3871,10 @@ namespace MDSound
             {
                 if (c.type != enmInstrumentType.Y8950) continue;
                 c.Volume = Math.Max(Math.Min(vol, 20), -192);
+                //int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8) / insts.Length;
+                int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8);
+                //16384 = 0x4000 = short.MAXValue + 1
+                c.tVolume = Math.Max(Math.Min((int)(n * volumeMul), short.MaxValue), short.MinValue);
             }
         }
 
@@ -3394,6 +3888,10 @@ namespace MDSound
             {
                 if (c.type != enmInstrumentType.YM3526) continue;
                 c.Volume = Math.Max(Math.Min(vol, 20), -192);
+                //int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8) / insts.Length;
+                int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8);
+                //16384 = 0x4000 = short.MAXValue + 1
+                c.tVolume = Math.Max(Math.Min((int)(n * volumeMul), short.MaxValue), short.MinValue);
             }
         }
 
@@ -3407,6 +3905,10 @@ namespace MDSound
             {
                 if (c.type != enmInstrumentType.K054539) continue;
                 c.Volume = Math.Max(Math.Min(vol, 20), -192);
+                //int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8) / insts.Length;
+                int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8);
+                //16384 = 0x4000 = short.MAXValue + 1
+                c.tVolume = Math.Max(Math.Min((int)(n * volumeMul), short.MaxValue), short.MinValue);
             }
         }
 
@@ -3420,6 +3922,10 @@ namespace MDSound
             {
                 if (c.type != enmInstrumentType.QSound) continue;
                 c.Volume = Math.Max(Math.Min(vol, 20), -192);
+                //int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8) / insts.Length;
+                int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8);
+                //16384 = 0x4000 = short.MAXValue + 1
+                c.tVolume = Math.Max(Math.Min((int)(n * volumeMul), short.MaxValue), short.MinValue);
             }
         }
 
@@ -3433,6 +3939,10 @@ namespace MDSound
             {
                 if (c.type != enmInstrumentType.QSoundCtr) continue;
                 c.Volume = Math.Max(Math.Min(vol, 20), -192);
+                //int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8) / insts.Length;
+                int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8);
+                //16384 = 0x4000 = short.MAXValue + 1
+                c.tVolume = Math.Max(Math.Min((int)(n * volumeMul), short.MaxValue), short.MinValue);
             }
         }
 
@@ -3446,6 +3956,10 @@ namespace MDSound
             {
                 if (c.type != enmInstrumentType.DMG) continue;
                 c.Volume = Math.Max(Math.Min(vol, 20), -192);
+                //int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8) / insts.Length;
+                int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8);
+                //16384 = 0x4000 = short.MAXValue + 1
+                c.tVolume = Math.Max(Math.Min((int)(n * volumeMul), short.MaxValue), short.MinValue);
             }
         }
 
@@ -3459,6 +3973,10 @@ namespace MDSound
             {
                 if (c.type != enmInstrumentType.GA20) continue;
                 c.Volume = Math.Max(Math.Min(vol, 20), -192);
+                //int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8) / insts.Length;
+                int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8);
+                //16384 = 0x4000 = short.MAXValue + 1
+                c.tVolume = Math.Max(Math.Min((int)(n * volumeMul), short.MaxValue), short.MinValue);
             }
         }
 
@@ -3472,6 +3990,10 @@ namespace MDSound
             {
                 if (c.type != enmInstrumentType.YMZ280B) continue;
                 c.Volume = Math.Max(Math.Min(vol, 20), -192);
+                //int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8) / insts.Length;
+                int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8);
+                //16384 = 0x4000 = short.MAXValue + 1
+                c.tVolume = Math.Max(Math.Min((int)(n * volumeMul), short.MaxValue), short.MinValue);
             }
         }
 
@@ -3485,6 +4007,10 @@ namespace MDSound
             {
                 if (c.type != enmInstrumentType.YMF271) continue;
                 c.Volume = Math.Max(Math.Min(vol, 20), -192);
+                //int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8) / insts.Length;
+                int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8);
+                //16384 = 0x4000 = short.MAXValue + 1
+                c.tVolume = Math.Max(Math.Min((int)(n * volumeMul), short.MaxValue), short.MinValue);
             }
         }
 
@@ -3498,6 +4024,10 @@ namespace MDSound
             {
                 if (c.type != enmInstrumentType.YMF262) continue;
                 c.Volume = Math.Max(Math.Min(vol, 20), -192);
+                //int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8) / insts.Length;
+                int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8);
+                //16384 = 0x4000 = short.MAXValue + 1
+                c.tVolume = Math.Max(Math.Min((int)(n * volumeMul), short.MaxValue), short.MinValue);
             }
         }
 
@@ -3511,6 +4041,10 @@ namespace MDSound
             {
                 if (c.type != enmInstrumentType.YMF278B) continue;
                 c.Volume = Math.Max(Math.Min(vol, 20), -192);
+                //int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8) / insts.Length;
+                int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8);
+                //16384 = 0x4000 = short.MAXValue + 1
+                c.tVolume = Math.Max(Math.Min((int)(n * volumeMul), short.MaxValue), short.MinValue);
             }
         }
 
@@ -3524,6 +4058,10 @@ namespace MDSound
             {
                 if (c.type != enmInstrumentType.MultiPCM) continue;
                 c.Volume = Math.Max(Math.Min(vol, 20), -192);
+                //int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8) / insts.Length;
+                int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8);
+                //16384 = 0x4000 = short.MAXValue + 1
+                c.tVolume = Math.Max(Math.Min((int)(n * volumeMul), short.MaxValue), short.MinValue);
             }
         }
 
@@ -3537,6 +4075,10 @@ namespace MDSound
             {
                 if (c.type != enmInstrumentType.SEGAPCM) continue;
                 c.Volume = Math.Max(Math.Min(vol, 20), -192);
+                //int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8) / insts.Length;
+                int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8);
+                //16384 = 0x4000 = short.MAXValue + 1
+                c.tVolume = Math.Max(Math.Min((int)(n * volumeMul), short.MaxValue), short.MinValue);
             }
         }
 
@@ -3550,6 +4092,10 @@ namespace MDSound
             {
                 if (c.type != enmInstrumentType.SAA1099) continue;
                 c.Volume = Math.Max(Math.Min(vol, 20), -192);
+                //int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8) / insts.Length;
+                int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8);
+                //16384 = 0x4000 = short.MAXValue + 1
+                c.tVolume = Math.Max(Math.Min((int)(n * volumeMul), short.MaxValue), short.MinValue);
             }
         }
 
@@ -3563,6 +4109,10 @@ namespace MDSound
             {
                 if (c.type != enmInstrumentType.PPZ8) continue;
                 c.Volume = Math.Max(Math.Min(vol, 20), -192);
+                //int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8) / insts.Length;
+                int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8);
+                //16384 = 0x4000 = short.MAXValue + 1
+                c.tVolume = Math.Max(Math.Min((int)(n * volumeMul), short.MaxValue), short.MinValue);
             }
         }
 
@@ -3577,6 +4127,10 @@ namespace MDSound
                 if (c.type == enmInstrumentType.Nes)
                 {
                     c.Volume = Math.Max(Math.Min(vol, 20), -192);
+                    //int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8) / insts.Length;
+                    int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8);
+                    //16384 = 0x4000 = short.MAXValue + 1
+                    c.tVolume = Math.Max(Math.Min((int)(n * volumeMul), short.MaxValue), short.MinValue);
                     ((nes_intf)c.Instrument).SetVolumeAPU(vol);
                 }
             }
@@ -3593,6 +4147,10 @@ namespace MDSound
                 if (c.type == enmInstrumentType.DMC)
                 {
                     c.Volume = Math.Max(Math.Min(vol, 20), -192);
+                    //int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8) / insts.Length;
+                    int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8);
+                    //16384 = 0x4000 = short.MAXValue + 1
+                    c.tVolume = Math.Max(Math.Min((int)(n * volumeMul), short.MaxValue), short.MinValue);
                     ((nes_intf)c.Instrument).SetVolumeDMC(vol);
                 }
             }
@@ -3609,6 +4167,10 @@ namespace MDSound
                 if (c.type == enmInstrumentType.FDS)
                 {
                     c.Volume = Math.Max(Math.Min(vol, 20), -192);
+                    //int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8) / insts.Length;
+                    int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8);
+                    //16384 = 0x4000 = short.MAXValue + 1
+                    c.tVolume = Math.Max(Math.Min((int)(n * volumeMul), short.MaxValue), short.MinValue);
                     ((nes_intf)c.Instrument).SetVolumeFDS(vol);
                 }
             }
@@ -3624,6 +4186,10 @@ namespace MDSound
             {
                 if (c.type != enmInstrumentType.MMC5) continue;
                 c.Volume = Math.Max(Math.Min(vol, 20), -192);
+                //int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8) / insts.Length;
+                int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8);
+                //16384 = 0x4000 = short.MAXValue + 1
+                c.tVolume = Math.Max(Math.Min((int)(n * volumeMul), short.MaxValue), short.MinValue);
             }
         }
 
@@ -3637,6 +4203,10 @@ namespace MDSound
             {
                 if (c.type != enmInstrumentType.N160) continue;
                 c.Volume = Math.Max(Math.Min(vol, 20), -192);
+                //int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8) / insts.Length;
+                int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8);
+                //16384 = 0x4000 = short.MAXValue + 1
+                c.tVolume = Math.Max(Math.Min((int)(n * volumeMul), short.MaxValue), short.MinValue);
             }
         }
 
@@ -3650,6 +4220,10 @@ namespace MDSound
             {
                 if (c.type != enmInstrumentType.VRC6) continue;
                 c.Volume = Math.Max(Math.Min(vol, 20), -192);
+                //int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8) / insts.Length;
+                int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8);
+                //16384 = 0x4000 = short.MAXValue + 1
+                c.tVolume = Math.Max(Math.Min((int)(n * volumeMul), short.MaxValue), short.MinValue);
             }
         }
 
@@ -3663,6 +4237,10 @@ namespace MDSound
             {
                 if (c.type != enmInstrumentType.VRC7) continue;
                 c.Volume = Math.Max(Math.Min(vol, 20), -192);
+                //int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8) / insts.Length;
+                int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8);
+                //16384 = 0x4000 = short.MAXValue + 1
+                c.tVolume = Math.Max(Math.Min((int)(n * volumeMul), short.MaxValue), short.MinValue);
             }
         }
 
@@ -3676,6 +4254,10 @@ namespace MDSound
             {
                 if (c.type != enmInstrumentType.FME7) continue;
                 c.Volume = Math.Max(Math.Min(vol, 20), -192);
+                //int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8) / insts.Length;
+                int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8);
+                //16384 = 0x4000 = short.MAXValue + 1
+                c.tVolume = Math.Max(Math.Min((int)(n * volumeMul), short.MaxValue), short.MinValue);
             }
         }
 

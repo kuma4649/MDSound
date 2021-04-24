@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace MDSound.fmgen
@@ -125,6 +126,7 @@ namespace MDSound.fmgen
         // ---------------------------------------------------------------------------
         //
         //
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void StoreSample(ref int dest, int data)
         {
             //if (sizeof(int) == 2)
@@ -133,6 +135,7 @@ namespace MDSound.fmgen
             dest += data;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int Limit(int v, int max, int min)
         {
             return v > max ? max : (v < min ? min : v);

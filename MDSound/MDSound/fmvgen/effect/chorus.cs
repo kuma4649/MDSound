@@ -1,6 +1,7 @@
 ﻿using MDSound.fmvgen;
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace MDSound
@@ -69,6 +70,7 @@ namespace MDSound
 		// 線形補間関数
 		// v1とv2を割合tで線形補間する。tは0.0～1.0の範囲とする
 		// tが0.0の時v1の値となり、tが1.0の時v2の値となる
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		private float lerp(float v1, float v2, float t)
 		{
 			return (1.0f - t) * v1 + t * v2;

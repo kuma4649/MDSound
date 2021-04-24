@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace MDSound
@@ -38,6 +39,7 @@ namespace MDSound
 		// --------------------------------------------------------------------------------
 		// 入力信号にフィルタを適用する関数
 		// --------------------------------------------------------------------------------
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public float Process(float in_)
 		{
 			// 入力信号にフィルタを適用し、出力信号変数に保存。

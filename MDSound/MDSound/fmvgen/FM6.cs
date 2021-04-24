@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace MDSound.fmvgen
@@ -334,12 +335,13 @@ namespace MDSound.fmvgen
             }
         }
 
+        private int[] ibuf = new int[4];
+        private int[] idest = new int[6];
+
         protected void Mix6(int[] buffer, int nsamples, int activech)
         {
 
             // Mix
-            int[] ibuf = new int[4];
-            int[] idest = new int[6];
             idest[0] = pan[0];
             idest[1] = pan[1];
             idest[2] = pan[2];
@@ -555,6 +557,7 @@ namespace MDSound.fmvgen
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected void LFO()
         {
             //	LOG3("%4d - %8d, %8d\n", c, lfocount, lfodcount);

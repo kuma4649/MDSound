@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace MDSound.fmvgen
@@ -23,6 +24,7 @@ namespace MDSound.fmvgen
 
 		// 読み込み位置と書き込み位置の間隔を設定する関数
 		// ディレイエフェクターの場合はそのまま遅延時間(ディレイタイム)になる
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public void SetInterval(int interval)
 		{
 			// 読み込み位置と書き込み位置の間隔を設定
@@ -38,6 +40,7 @@ namespace MDSound.fmvgen
 		// 内部バッファの読み込み位置(rpos)のデータを読み込む関数
 		// 引数のposは読み込み位置(rpos)からの相対位置
 		// (相対位置(pos)はコーラスやピッチシフタなどのエフェクターで利用する)
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public float Read(int pos = 0)
 		{
 			// 読み込み位置(rpos)と相対位置(pos)から実際に読み込む位置を計算する。
@@ -53,6 +56,7 @@ namespace MDSound.fmvgen
 		}
 
 		// 内部バッファの書き込み位置(wpos)にデータを書き込む関数
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public void Write(float in_)
 		{
 			// 書き込み位置(wpos)に値を書き込む
@@ -60,6 +64,7 @@ namespace MDSound.fmvgen
 		}
 
 		// 内部バッファの読み込み位置(rpos)、書き込み位置(wpos)を一つ進める関数
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public void Update()
 		{
 			// 内部バッファの読み込み位置(rpos)、書き込み位置(wpos)を一つ進める

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace MDSound
@@ -36,11 +37,13 @@ namespace MDSound
             this.Buf = new int[2][] { new int[bufSize], new int[bufSize] };
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void SetDelta(int n)
         {
             this.Delta = (int)Buf[0].Length / 128 * Math.Max(Math.Min(n, 127), 0);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void SetSendLevel(int ch, int n)
         {
             if (n == 0)
@@ -61,18 +64,21 @@ namespace MDSound
             0.6000000 , 0.7000000 , 0.8000000 , 0.9000000
         };
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int GetDataFromPos(int LorR)
         {
             if (LorR == 0) return Buf[0][Pos];
             return Buf[1][Pos];
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void ClearDataAtPos()
         {
             Buf[0][Pos] = 0;
             Buf[1][Pos] = 0;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void UpdatePos()
         {
             Pos = (1 + Pos) % Buf[0].Length;
@@ -84,6 +90,7 @@ namespace MDSound
         //Buf[ptr] += (int)(v * SendLevel[ch]);
         //}
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void StoreData(int LorR, int v)
         {
             int ptr = (Delta + Pos) % Buf[0].Length;

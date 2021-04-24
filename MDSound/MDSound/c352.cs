@@ -364,6 +364,8 @@ namespace MDSound
                     outputs[0][i] += _out[2];
                     outputs[1][i] += _out[3];
                 }
+                //outputs[0][i] = Math.Max(Math.Min(outputs[0][i], short.MaxValue), short.MinValue);
+                //outputs[1][i] = Math.Max(Math.Min(outputs[1][i], short.MaxValue), short.MinValue);
             }
         }
 

@@ -1267,6 +1267,7 @@ namespace MDSound
                         try
                         {
                             ROMFile = File.ReadAllBytes(ROM_FILENAME);
+                            ROMFileSize = (uint)ROMFile.Length;
                         }
                         catch
                         {
@@ -1277,6 +1278,7 @@ namespace MDSound
                 {
                     using (Stream st = romStream?.Invoke(ROM_FILENAME))
                         ROMFile = common.ReadAllBytes(st);
+                    ROMFileSize = (uint)ROMFile.Length;
                 }
 
                 //if (ROMFile != null)
@@ -1365,7 +1367,12 @@ namespace MDSound
 
             // Volume table, 1 = -0.375dB, 8 = -3dB, 256 = -96dB
             for (i = 0; i < 256; i++)
-                chip.volume[i] = (Int32)(32768 * Math.Pow(2.0, (-0.375 / 6) * i));
+            {
+                int vol_mul = 0x20 - (i & 0x0F);    // 0x10 values per 6 db
+                int vol_shift = 5 + (i >> 4);       // approximation: -6 dB == divide by two (shift right)
+                chip.volume[i] = (0x8000 * vol_mul) >> vol_shift;
+            }
+            //chip.volume[i] = (Int32)(32768 * Math.Pow(2.0, (-0.375 / 6) * i));
             for (i = 256; i < 256 * 4; i++)
                 chip.volume[i] = 0;
             for (i = 0; i < 24; i++)
@@ -1452,6 +1459,20 @@ namespace MDSound
             return;
         }
 
+        public void ymf278b_write_ram(byte ChipID, Int32 DataStart, Int32 DataLength, byte[] RAMData, Int32 srcStartAddress)
+        {
+            YMF278BChip chip = YMF278BData[ChipID];
+
+            if (DataStart > chip.RAMSize)
+                return;
+            if (DataStart + DataLength >chip.RAMSize)
+                DataLength = (int)chip.RAMSize - DataStart;
+
+            for (int i = 0; i < DataLength; i++) chip.ram[i + DataStart] = RAMData[i + srcStartAddress];
+            //memcpy(chip.rom + DataStart, ROMData, DataLength);
+
+            return;
+        }
 
         public void ymf278b_set_mute_mask(byte ChipID, UInt32 MuteMaskFM, UInt32 MuteMaskWT)
         {
