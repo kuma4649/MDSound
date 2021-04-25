@@ -45,7 +45,7 @@ namespace MDSound
         /// <returns></returns>
         public override uint Start(byte ChipID, uint clock, uint FMClockValue, params object[] option)
         {
-            chip[ChipID] = new fmgen.OPNA();
+            chip[ChipID] = new fmgen.OPNA(ChipID);
             //chip[ChipID] = new fmgen.OPNA2();
             if (option != null && option.Length > 0 && option[0] is Func<string, Stream>)
             {
