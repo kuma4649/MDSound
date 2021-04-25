@@ -1130,7 +1130,7 @@ namespace MDSound.fmvgen
             private Chip chip_;
             private bool ac = false;
             private byte carrier;
-            private List<int> oAlg = new List<int>();
+            private int[] oAlg = new int[] { 2, 1, 3, 0 };//オペレータの計算順序
             private int ch = 0;
 
             public Operator[] op = new Operator[4] {
@@ -1331,9 +1331,11 @@ namespace MDSound.fmvgen
                 {
                     foreach (int n in oAlg)
                     {
+                        int rn;
                         if (n == 0)
                         {
-                            op[n].CalcFB(ch, fb);
+                            rn = op[n].CalcFB(ch, fb);
+                            r += ((carrier & 0x1) != 0) ? rn : 0;
                             continue;
                         }
                         int v = 0;
@@ -1341,12 +1343,14 @@ namespace MDSound.fmvgen
                         v += ((op[n].algLink_ & 0x2) != 0) ? op[1].Out() : 0;
                         v += ((op[n].algLink_ & 0x4) != 0) ? op[2].Out() : 0;
                         v += ((op[n].algLink_ & 0x8) != 0) ? op[3].Out() : 0;
-                        op[n].Calc(ch, v);
+
+                        rn = op[n].Calc(ch, v);
+                        r += ((carrier & (0x1 << n)) != 0) ? rn : 0;
                     }
-                    r += ((carrier & 0x1) != 0) ? op[0].Out() : 0;
-                    r += ((carrier & 0x2) != 0) ? op[1].Out() : 0;
-                    r += ((carrier & 0x4) != 0) ? op[2].Out() : 0;
-                    r += ((carrier & 0x8) != 0) ? op[3].Out() : 0;
+                    //r += ((carrier & 0x1) != 0) ? op[0].Out() : 0;
+                    //r += ((carrier & 0x2) != 0) ? op[1].Out() : 0;
+                    //r += ((carrier & 0x4) != 0) ? op[2].Out() : 0;
+                    //r += ((carrier & 0x8) != 0) ? op[3].Out() : 0;
                 }
 
                 return r;
@@ -1417,9 +1421,11 @@ namespace MDSound.fmvgen
                 {
                     foreach (int n in oAlg)
                     {
+                        int rn;
                         if (n == 0)
                         {
-                            op[n].CalcFBL(ch, fb);
+                            rn=op[n].CalcFBL(ch, fb);
+                            r += ((carrier & 0x1) != 0) ? rn : 0;
                             continue;
                         }
                         int v = 0;
@@ -1427,12 +1433,14 @@ namespace MDSound.fmvgen
                         v += ((op[n].algLink_ & 0x2) != 0) ? op[1].Out() : 0;
                         v += ((op[n].algLink_ & 0x4) != 0) ? op[2].Out() : 0;
                         v += ((op[n].algLink_ & 0x8) != 0) ? op[3].Out() : 0;
-                        op[n].CalcL(ch, v);
+
+                        rn = op[n].CalcL(ch, v);
+                        r += ((carrier & (0x1 << n)) != 0) ? rn : 0;
                     }
-                    r += ((carrier & 0x1) != 0) ? op[0].Out() : 0;
-                    r += ((carrier & 0x2) != 0) ? op[1].Out() : 0;
-                    r += ((carrier & 0x4) != 0) ? op[2].Out() : 0;
-                    r += ((carrier & 0x8) != 0) ? op[3].Out() : 0;
+                    //r += ((carrier & 0x1) != 0) ? op[0].Out() : 0;
+                    //r += ((carrier & 0x2) != 0) ? op[1].Out() : 0;
+                    //r += ((carrier & 0x4) != 0) ? op[2].Out() : 0;
+                    //r += ((carrier & 0x8) != 0) ? op[3].Out() : 0;
                 }
 
                 return r;
@@ -1538,7 +1546,11 @@ namespace MDSound.fmvgen
                 bool[] use = new bool[4] { false, false, false, false };
 
                 carrier = 0xf;
-                oAlg.Clear();
+                //oAlg.Clear();
+                //oAlg.Add(2);
+                //oAlg.Add(1);
+                //oAlg.Add(3);
+                //oAlg.Add(0);
 
                 for (int j = 0; j < 4; j++)
                 {
@@ -1548,12 +1560,19 @@ namespace MDSound.fmvgen
                         if (!use[i] && ( ((op[i].algLink_ & mask) == 0) || i == 0 ))
                         {
                             use[i] = true;
-                            oAlg.Add(i);
+                            //oAlg.Add(i);
                             omask |= (byte)(1 << i);
                             carrier &= (byte)(~op[i].algLink_);
                         }
                     }
                     mask = (byte)(~omask);
+                }
+
+                if (carrier != 0xf)
+                {
+                    for (int i = 0; i < 4; i++)
+                        Console.WriteLine("algLink:{0}:{1}", i, op[i].algLink_);
+                    Console.WriteLine("carrier:{0}", carrier);
                 }
             }
 
