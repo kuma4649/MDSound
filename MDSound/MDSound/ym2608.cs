@@ -28,7 +28,7 @@ namespace MDSound
 
         public override uint Start(byte ChipID, uint clock)
         {
-            chip[ChipID] = new fmgen.OPNA();
+            chip[ChipID] = new fmgen.OPNA(ChipID);
             //chip[ChipID] = new fmgen.OPNA2();
             chip[ChipID].Init(DefaultYM2608ClockValue, clock);
 

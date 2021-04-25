@@ -1454,7 +1454,7 @@ namespace MDSound.fmgen
         // ---------------------------------------------------------------------------
         //	構築
         //
-        public OPNA()
+        public OPNA(byte ChipID)
         {
             for (int i = 0; i < 6; i++)
             {
@@ -1467,6 +1467,7 @@ namespace MDSound.fmgen
             adpcmmask = 0x3ffff;
             adpcmnotice = 4;
             csmch = ch[2];
+            this.chipID = ChipID;
         }
 
         ~OPNA()
@@ -1554,13 +1555,22 @@ namespace MDSound.fmgen
                 {
                     uint fsize;
                     bool f = true;
-                    string buf = string.Format("2608_{0}.WAV", rhythmname[i]);
-                    string rymBuf = "2608_RYM.WAV";
+                    string buf1 = string.Format("2608_{0}_{1}.WAV", rhythmname[i], chipID);
+                    string buf2 = string.Format("2608_{0}.WAV", rhythmname[i]);
+                    string rymBuf1 = string.Format("2608_RYM_{0}.WAV", chipID);
+                    string rymBuf2 = "2608_RYM.WAV";
                     byte[] file;
 
-                    using (Stream st = appendFileReaderCallback?.Invoke(buf))
+                    using (Stream st = appendFileReaderCallback?.Invoke(buf1))
                     {
                         file = common.ReadAllBytes(st);
+                    }
+                    if (file == null)
+                    {
+                        using (Stream st = appendFileReaderCallback?.Invoke(buf2))
+                        {
+                            file = common.ReadAllBytes(st);
+                        }
                     }
 
                     if (file == null)
@@ -1568,9 +1578,16 @@ namespace MDSound.fmgen
                         f = false;
                         if (i == 5)
                         {
-                            using (Stream st = appendFileReaderCallback?.Invoke(rymBuf))
+                            using (Stream st = appendFileReaderCallback?.Invoke(rymBuf1))
                             {
                                 file = common.ReadAllBytes(st);
+                            }
+                            if (file == null)
+                            {
+                                using (Stream st = appendFileReaderCallback?.Invoke(rymBuf2))
+                                {
+                                    file = common.ReadAllBytes(st);
+                                }
                             }
                             if (file != null)
                             {
@@ -1863,8 +1880,8 @@ namespace MDSound.fmgen
         private sbyte rhythmtl;      // リズム全体の音量
         private int rhythmtvol;
         private byte rhythmkey;     // リズムのキー
-    };
-
+        private byte chipID;
+    }
     //	YM2610/B(OPNB) -------------------------------------------------
     public class OPNB : OPNABase
     {
