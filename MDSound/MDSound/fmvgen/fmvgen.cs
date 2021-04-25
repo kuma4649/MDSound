@@ -661,46 +661,88 @@ namespace MDSound.fmvgen
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public int Calc(int ch,int In)
             {
+                //EGStep();
+                //out2_ = out_;
+
+                //int pgin = (int)(PGCalc() >> (20 + FM_PGBITS - FM_OPSINBITS));
+                ////pgin += In >> (20 + FM_PGBITS - FM_OPSINBITS - (2 + IS2EC_SHIFT));
+                //if (fb_ < 31)
+                //{
+                //    pgin += ((In << (int)(1 + IS2EC_SHIFT)) >> (int)fb_) >> (20 + FM_PGBITS - FM_OPSINBITS);
+                //}
+                //else
+                //{
+                //    pgin += In >> (20 + FM_PGBITS - FM_OPSINBITS - (2 + IS2EC_SHIFT));
+                //}
+                //out_ = LogToLin((uint)(eg_out_ + SINE(ch,pgin)));
+
+                //dbgopout_ = out_;
+                //return out_;
+
                 EGStep();
+                int In2 = In + out_ + out2_;
                 out2_ = out_;
 
                 int pgin = (int)(PGCalc() >> (20 + FM_PGBITS - FM_OPSINBITS));
                 //pgin += In >> (20 + FM_PGBITS - FM_OPSINBITS - (2 + IS2EC_SHIFT));
                 if (fb_ < 31)
                 {
-                    pgin += ((In << (int)(1 + IS2EC_SHIFT)) >> (int)fb_) >> (20 + FM_PGBITS - FM_OPSINBITS);
+                    pgin += ((In2 << (int)(1 + IS2EC_SHIFT)) >> (int)fb_) >> (20 + FM_PGBITS - FM_OPSINBITS);
+                    //Console.WriteLine("Calc:{0}", pgin);
                 }
                 else
                 {
                     pgin += In >> (20 + FM_PGBITS - FM_OPSINBITS - (2 + IS2EC_SHIFT));
                 }
-                out_ = LogToLin((uint)(eg_out_ + SINE(ch,pgin)));
+                out_ = LogToLin((uint)(eg_out_ + SINE(ch, pgin)));
 
-                dbgopout_ = out_;
-                return out_;
+                dbgopout_ = out2_;
+                return out2_;
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public int CalcL(int ch,int In)
             {
+                //EGStep();
+
+                //int pgin = (int)(PGCalcL() >> (20 + FM_PGBITS - FM_OPSINBITS));
+                ////pgin += In >> (20 + FM_PGBITS - FM_OPSINBITS - (2 + IS2EC_SHIFT));
+                //if (fb_ < 31)
+                //{
+                //    //                        17                                       19
+                //    pgin += ((In << (int)(1 + IS2EC_SHIFT)) >> (int)fb_) >> (20 + FM_PGBITS - FM_OPSINBITS);
+                //}
+                //else
+                //{
+                //    //                                      1
+                //    pgin += In >> (20 + FM_PGBITS - FM_OPSINBITS - (2 + IS2EC_SHIFT));
+                //}
+                //out_ = LogToLin((uint)(eg_out_ + SINE(ch,pgin) + ams_[chip_.GetAML()]));
+
+                //dbgopout_ = out_;
+                //return out_;
+
+
                 EGStep();
+                int In2 = In + out_ + out2_;
+                out2_ = out_;
 
                 int pgin = (int)(PGCalcL() >> (20 + FM_PGBITS - FM_OPSINBITS));
                 //pgin += In >> (20 + FM_PGBITS - FM_OPSINBITS - (2 + IS2EC_SHIFT));
                 if (fb_ < 31)
                 {
                     //                        17                                       19
-                    pgin += ((In << (int)(1 + IS2EC_SHIFT)) >> (int)fb_) >> (20 + FM_PGBITS - FM_OPSINBITS);
+                    pgin += ((In2 << (int)(1 + IS2EC_SHIFT)) >> (int)fb_) >> (20 + FM_PGBITS - FM_OPSINBITS);
                 }
                 else
                 {
                     //                                      1
                     pgin += In >> (20 + FM_PGBITS - FM_OPSINBITS - (2 + IS2EC_SHIFT));
                 }
-                out_ = LogToLin((uint)(eg_out_ + SINE(ch,pgin) + ams_[chip_.GetAML()]));
+                out_ = LogToLin((uint)(eg_out_ + SINE(ch, pgin) + ams_[chip_.GetAML()]));
 
-                dbgopout_ = out_;
-                return out_;
+                dbgopout_ = out2_;
+                return out2_;
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -732,6 +774,7 @@ namespace MDSound.fmvgen
                 if (fb < 31)
                 {
                     pgin += ((In << (int)(1 + IS2EC_SHIFT)) >> (int)fb) >> (20 + FM_PGBITS - FM_OPSINBITS);
+                    //Console.WriteLine("CalcFB:{0}", pgin);
                 }
                 out_ = LogToLin((uint)(eg_out_ + SINE(ch,pgin)));
                 dbgopout_ = out2_;
@@ -775,21 +818,27 @@ namespace MDSound.fmvgen
 
                     if (phaseReset_ != 0)
                     {
+                        //位相リセットスイッチ有効
+
                         ShiftPhase(EGPhase.off);
                         ssg_phase_ = -1;
                         ShiftPhase(EGPhase.attack);
                         EGUpdate();
                         in2_ = out_ = out2_ = 0;
+
                         pg_count_ = 0;
                     }
                     else
                     {
+                        //位相リセットスイッチ無効
+
                         if (eg_phase_ == EGPhase.off || eg_phase_ == EGPhase.release)
                         {
                             ssg_phase_ = -1;
                             ShiftPhase(EGPhase.attack);
                             EGUpdate();
                             in2_ = out_ = out2_ = 0;
+
                             pg_count_ = 0;
                         }
                     }

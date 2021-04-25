@@ -2560,6 +2560,26 @@ namespace MDSound
             }
         }
 
+        public byte ReadHuC6280(byte ChipID, byte Adr)
+        {
+            lock (lockobj)
+            {
+                if (!dicInst.ContainsKey(enmInstrumentType.HuC6280)) return 0;
+
+                return ((Ootake_PSG)(dicInst[enmInstrumentType.HuC6280][0])).HuC6280_Read(ChipID, Adr);
+            }
+        }
+
+        public byte ReadHuC6280(int ChipIndex,byte ChipID, byte Adr)
+        {
+            lock (lockobj)
+            {
+                if (!dicInst.ContainsKey(enmInstrumentType.HuC6280)) return 0;
+
+                return ((Ootake_PSG)(dicInst[enmInstrumentType.HuC6280][ChipIndex])).HuC6280_Read(ChipID, Adr);
+            }
+        }
+
         #endregion
 
 

@@ -1059,6 +1059,12 @@ Copyright(C)2006-2012 Kitao Nakamura.
             return 0;
         }
 
+        public byte HuC6280_Read(byte ChipID, byte adr)
+        {
+            if (chip[ChipID] == null) return 0;
+            return PSG_Read(chip[ChipID], adr);
+        }
+
         public void HuC6280_SetMute(byte ChipID, int val)
         {
             if (chip[ChipID] == null) return;
