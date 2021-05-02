@@ -67,6 +67,8 @@ namespace MDSound
         public static int np_nes_vrc6_volume;
         public static int np_nes_vrc7_volume;
 
+        public visWaveBuffer visWaveBuffer = new visWaveBuffer();
+
 #if DEBUG
         System.Diagnostics.Stopwatch sw = System.Diagnostics.Stopwatch.StartNew();
 #endif
@@ -575,7 +577,7 @@ namespace MDSound
 
                     buf[offset + i + 0] = (short)a;
                     buf[offset + i + 1] = (short)b;
-
+                    visWaveBuffer.Enq((short)a, (short)b);
                 }
 
                 return Math.Min(i, sampleCount);
