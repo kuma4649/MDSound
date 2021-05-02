@@ -21,6 +21,11 @@ namespace MDSound
             base.Reset(ChipID);
         }
 
+        public override void Stop(byte ChipID)
+        {
+            XGMfunction.Stop(ChipID);
+            base.Stop(ChipID);
+        }
         public override int Write(byte ChipID, int port, int adr, int data)
         {
             XGMfunction.Write(ChipID, port, adr, data);

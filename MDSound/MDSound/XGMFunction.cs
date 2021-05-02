@@ -23,45 +23,73 @@ namespace MDSound
             public uint size = 0;
         }
 
+        //各チャンネルの情報
         public XGMPCM[][] xgmpcm = new XGMPCM[][] { new XGMPCM[4], new XGMPCM[4] };
-        public byte[] pcmBuf = null;
+        //PCMデータ群
+        public byte[][] pcmBuf = new byte[][] { null, null };
+        //PCMテーブル
         public XGMSampleID[][] sampleID = new XGMSampleID[][] { new XGMSampleID[63], new XGMSampleID[63] };
 
         private double[] pcmStep = new double[2];
         private double[] pcmExecDelta = new double[2];
         private byte[] DACEnable = new byte[] { 0, 0 };
         private object[] lockobj = new object[] { new object(), new object() };
+        private bool ox2b = false;
 
         public void Reset(byte ChipID,int sampleRate)
         {
             pcmStep[ChipID] = sampleRate / 14000.0;
+            Stop(ChipID);
+        }
+
+        public void Stop(byte ChipID)
+        {
             pcmExecDelta[ChipID] = 0.0;
             DACEnable[ChipID] = 0;
+            ox2b = false;
 
-            for (int i = 0; i < 4; i++) xgmpcm[ChipID][i] = new XGMPCM();
+            for (int i = 0; i < 4; i++)
+            {
+                if (xgmpcm[ChipID][i] == null) xgmpcm[ChipID][i] = new XGMPCM();
+                xgmpcm[ChipID][i].isPlaying = false;
+            }
             for (int i = 0; i < 63; i++) sampleID[ChipID][i] = new XGMSampleID();
         }
 
         public void Write(byte ChipID, int port, int adr, int data)
         {
-            if (adr == 0x2b) DACEnable[ChipID] = (byte)(data & 0x80);
+            //
+            // OPN2はアドレスとデータが二回に分けて送信されるタイプ
+            // 一回目 アドレス (adr = 0)
+            // 一回目 データ   (adr = 1)
+            //
+
+            if (port + adr == 0)
+            {
+                //0x2b : DACのスイッチが含まれるアドレス
+                if (data == 0x2b) ox2b = true;
+                else ox2b = false;
+            }
+            if (ox2b && port == 0 && adr == 1)
+            {
+                //0x80 : DACのスイッチを意味するbit7(1:ON 0:OFF)
+                DACEnable[ChipID] = (byte)(data & 0x80);
+                ox2b = false;
+            }
         }
 
         public void Update(byte ChipID, int samples,Func<byte, int, int, int, int> Write)
         {
             for (int i = 0; i < samples; i++)
             {
-                if (pcmExecDelta[ChipID] <= 0.0)
+                if ((int)pcmExecDelta[ChipID] <= 0)
                 {
-                    Write(ChipID, 0, 0x2a, oneFramePCM(ChipID));
+                    Write(ChipID, 0, 0, 0x2a);
+                    Write(ChipID, 0, 1, oneFramePCM(ChipID));
                     pcmExecDelta[ChipID] += pcmStep[ChipID];
                 }
-                else
-                {
-                    pcmExecDelta[ChipID] -= 1.0;
-                }
+                pcmExecDelta[ChipID] -= 1.0;
             }
-
         }
 
         public void PlayPCM(byte ChipID, byte X, byte id)
@@ -82,6 +110,7 @@ namespace MDSound
                     return;
                 }
 
+                //発音開始指示
                 xgmpcm[ChipID][channel].Priority = priority;
                 xgmpcm[ChipID][channel].startAddr = sampleID[ChipID][id - 1].addr;
                 xgmpcm[ChipID][channel].endAddr = sampleID[ChipID][id - 1].addr + sampleID[ChipID][id - 1].size;
@@ -93,16 +122,16 @@ namespace MDSound
 
         private short oneFramePCM(byte ChipID)
         {
-            if (DACEnable[ChipID] == 0) return 0x80;
+            if (DACEnable[ChipID] == 0) return 0x80;//0x80 : 無音状態(...というよりも波形の中心となる場所?)
 
+            //波形合成
             short o = 0;
-
             lock (lockobj[ChipID])
             {
                 for (int i = 0; i < 4; i++)
                 {
                     if (!xgmpcm[ChipID][i].isPlaying) continue;
-                    sbyte d = xgmpcm[ChipID][i].addr < pcmBuf.Length ? (sbyte)pcmBuf[xgmpcm[ChipID][i].addr++] : (sbyte)0;
+                    sbyte d = xgmpcm[ChipID][i].addr < pcmBuf[ChipID].Length ? (sbyte)pcmBuf[ChipID][xgmpcm[ChipID][i].addr++] : (sbyte)0;
                     o += d;
                     xgmpcm[ChipID][i].data = (byte)Math.Abs((int)d);
                     if (xgmpcm[ChipID][i].addr >= xgmpcm[ChipID][i].endAddr)
@@ -113,8 +142,8 @@ namespace MDSound
                 }
             }
 
-            o = Math.Min(Math.Max(o, (short)(sbyte.MinValue + 1)), (short)(sbyte.MaxValue));
-            o += 0x80;
+            o = Math.Min(Math.Max(o, (short)(sbyte.MinValue + 1)), (short)(sbyte.MaxValue)); //クリッピング
+            o += 0x80;//OPN2での中心の位置に移動する
 
             return o;
         }

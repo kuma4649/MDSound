@@ -1564,6 +1564,16 @@ namespace MDSound
             }
         }
 
+        public void PlayPCM_YM2612X(int ChipIndex, byte ChipID, byte Port, byte Adr, byte Data)
+        {
+            lock (lockobj)
+            {
+                if (!dicInst.ContainsKey(enmInstrumentType.YM2612)) return;
+                if (!(dicInst[enmInstrumentType.YM2612][ChipIndex] is ym2612X)) return;
+                ((ym2612X)dicInst[enmInstrumentType.YM2612][ChipIndex]).XGMfunction.PlayPCM(ChipID, Adr, Data);
+            }
+        }
+
         #endregion
 
 
@@ -1591,6 +1601,16 @@ namespace MDSound
             }
         }
 
+        public void PlayPCM_YM3438X(int ChipIndex, byte ChipID, byte Port, byte Adr, byte Data)
+        {
+            lock (lockobj)
+            {
+                if (!dicInst.ContainsKey(enmInstrumentType.YM3438)) return;
+                if (!(dicInst[enmInstrumentType.YM3438][ChipIndex] is ym3438X)) return;
+                ((ym3438X)dicInst[enmInstrumentType.YM3438][ChipIndex]).XGMfunction.PlayPCM(ChipID, Adr, Data);
+            }
+        }
+
         #endregion
 
 
@@ -1615,6 +1635,16 @@ namespace MDSound
 
                 dicInst[enmInstrumentType.YM2612mame][ChipIndex].Write(ChipID, 0, (byte)(0 + (Port & 1) * 2), Adr);
                 dicInst[enmInstrumentType.YM2612mame][ChipIndex].Write(ChipID, 0, (byte)(1 + (Port & 1) * 2), Data);
+            }
+        }
+
+        public void PlayPCM_YM2612mameX(int ChipIndex, byte ChipID, byte Port, byte Adr, byte Data)
+        {
+            lock (lockobj)
+            {
+                if (!dicInst.ContainsKey(enmInstrumentType.YM2612mame)) return;
+                if (!(dicInst[enmInstrumentType.YM2612mame][ChipIndex] is ym2612mameX)) return;
+                ((ym2612mameX)dicInst[enmInstrumentType.YM2612mame][ChipIndex]).XGMfunction.PlayPCM(ChipID, Adr, Data);
             }
         }
 
