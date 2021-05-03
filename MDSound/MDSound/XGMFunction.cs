@@ -82,7 +82,7 @@ namespace MDSound
         {
             for (int i = 0; i < samples; i++)
             {
-                if ((int)pcmExecDelta[ChipID] <= 0)
+                while ((int)pcmExecDelta[ChipID] <= 0)
                 {
                     Write(ChipID, 0, 0, 0x2a);
                     Write(ChipID, 0, 1, oneFramePCM(ChipID));

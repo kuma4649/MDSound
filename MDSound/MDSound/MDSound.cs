@@ -16,6 +16,7 @@ namespace MDSound
         private uint SamplingRate = DefaultSamplingRate;
         private uint SamplingBuffer = DefaultSamplingBuffer;
         private int[][] StreamBufs = null;
+        public dacControl dacControl = null;
 
         private Chip[] insts = null;
         private Dictionary<enmInstrumentType, Instrument[]> dicInst = new Dictionary<enmInstrumentType, Instrument[]>();
@@ -251,6 +252,8 @@ namespace MDSound
 
                     SetupResampler(inst);
                 }
+
+                dacControl = new dacControl(SamplingRate);
 
                 sn76489Mask = new List<int[]>();
                 if (dicInst.ContainsKey(enmInstrumentType.SN76489)) for (int i = 0; i < dicInst[enmInstrumentType.SN76489].Length; i++) sn76489Mask.Add(new int[] { 15, 15 });
@@ -556,6 +559,8 @@ namespace MDSound
                 {
 
                     frame?.Invoke();
+
+                    dacControl.update();
 
                     a = 0;
                     b = 0;
