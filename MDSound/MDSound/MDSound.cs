@@ -253,7 +253,7 @@ namespace MDSound
                     SetupResampler(inst);
                 }
 
-                dacControl = new dacControl(SamplingRate);
+                dacControl = new dacControl(SamplingRate, this);
 
                 sn76489Mask = new List<int[]>();
                 if (dicInst.ContainsKey(enmInstrumentType.SN76489)) for (int i = 0; i < dicInst[enmInstrumentType.SN76489].Length; i++) sn76489Mask.Add(new int[] { 15, 15 });

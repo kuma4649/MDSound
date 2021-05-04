@@ -92,13 +92,14 @@ namespace MDSound
         public VGM_PCM_BANK[] PCMBank = null;
         private PCMBANK_TBL PCMTbl = new PCMBANK_TBL();
 
-        public dacControl(uint samplingRate)
+        public dacControl(uint samplingRate,MDSound mds)
         {
-            init(samplingRate, null);
+            init(samplingRate, mds, null);
         }
 
-        public void init(uint samplingRate, VGM_PCM_BANK[] PCMBank)
-        { 
+        public void init(uint samplingRate,MDSound mds, VGM_PCM_BANK[] PCMBank)
+        {
+            this.mds = mds;
             this.samplingRate = samplingRate;
             pcmStep = samplingRate / (double)DAC_SMPL_RATE;
             pcmExecDelta = 0;
@@ -292,20 +293,6 @@ namespace MDSound
             /*VGM_PCM_BANK* TempPCM;
             UINT32 CurBnk;*/
             uint DataPos;
-
-            /*TempPCM = &PCMBank[0x00];
-            DataPos = TempPCM->DataPos;
-            for (CurBnk = 0x00; CurBnk < TempPCM->BankCount; CurBnk ++)
-            {
-                if (DataPos < TempPCM->Bank[CurBnk].DataSize)
-                {
-                    if (TempPCM->DataPos < TempPCM->DataSize)
-                        TempPCM->DataPos ++;
-                    return TempPCM->Bank[CurBnk].Data[DataPos];
-                }
-                DataPos -= TempPCM->Bank[CurBnk].DataSize;
-            }
-            return 0x80;*/
 
             DataPos = PCMBank[0x00].DataPos;
             if (DataPos >= PCMBank[0x00].DataSize)
@@ -614,13 +601,12 @@ namespace MDSound
 
             PCMTbl.Entries = new byte[TblSize];// realloc(PCMTbl.Entries, TblSize);
             for (int i = 0; i < TblSize; i++) PCMTbl.Entries[i] = vgmBuf[Adr + 6 + i];
-            //memcpy(PCMTbl.Entries, &Data[0x06], TblSize);
 
-            if (DataSize < 0x06 + TblSize)
-            {
-                //Console.Write("Warning! Bad PCM Table Length!\n");
-                //printf("Warning! Bad PCM Table Length!\n");
-            }
+            //if (DataSize < 0x06 + TblSize)
+            //{
+            //    //Console.Write("Warning! Bad PCM Table Length!\n");
+            //    //printf("Warning! Bad PCM Table Length!\n");
+            //}
 
             return;
         }
@@ -652,8 +638,6 @@ namespace MDSound
                     Port = (byte)((chip.DstCommand & 0xFF00) >> 8);
                     Command = (byte)((chip.DstCommand & 0x00FF) >> 0);
                     Data = chip.Data[(chip.DataStart + chip.RealPos)];
-                    //od = null;// chip.od;
-                    //if (model == enmModel.RealModel) log.Write(string.Format("{0:x} {1:x}", Data, chip.RealPos));
 
                     chip_reg_write(chip.DstChipType
                         , chip.DstEmuType, chip.DstChipIndex, chip.DstChipID
@@ -663,7 +647,7 @@ namespace MDSound
                     Port = (byte)((chip.DstCommand & 0x000F) >> 0);
                     Command = (byte)(chip.Data[chip.DataStart + chip.RealPos + 1] & 0x0F);
                     Data = chip.Data[chip.DataStart + chip.RealPos];
-                    //od = chip.od;
+
                     chip_reg_write(chip.DstChipType
                         , chip.DstEmuType, chip.DstChipIndex, chip.DstChipID
                         , Port, Command, Data);
@@ -672,7 +656,7 @@ namespace MDSound
                 case 0x00:  // SN76496 (4-bit Register, 4-bit/10-bit Data)
                     Command = (byte)((chip.DstCommand & 0x00F0) >> 0);
                     Data = (byte)(chip.Data[chip.DataStart + chip.RealPos] & 0x0F);
-                    //od = chip.od;
+
                     if ((Command & 0x10) != 0)
                     {
                         // Volume Change (4-Bit value)
@@ -695,7 +679,6 @@ namespace MDSound
                 case 0x18:  // OKIM6295 - TODO: verify
                     Command = (byte)((chip.DstCommand & 0x00FF) >> 0);
                     Data = chip.Data[chip.DataStart + chip.RealPos];
-                    //od = chip.od;
 
                     if (Command == 0)
                     {
@@ -745,7 +728,6 @@ namespace MDSound
                 case 0x1E:  // Pokey - TODO: Verify
                     Command = (byte)((chip.DstCommand & 0x00FF) >> 0);
                     Data = chip.Data[chip.DataStart + chip.RealPos];
-                    //od = chip.od;
                     chip_reg_write(chip.DstChipType
                         , chip.DstEmuType, chip.DstChipIndex, chip.DstChipID
                         , 0x00, Command, Data);
@@ -762,7 +744,6 @@ namespace MDSound
                     Port = (byte)((chip.DstCommand & 0xFF00) >> 8);
                     Command = (byte)((chip.DstCommand & 0x00FF) >> 0);
                     Data = chip.Data[chip.DataStart + chip.RealPos];
-                    //od = chip.od;
                     chip_reg_write(chip.DstChipType
                         , chip.DstEmuType, chip.DstChipIndex, chip.DstChipID
                         , Port, Command, Data);
@@ -774,7 +755,6 @@ namespace MDSound
                     Port = (byte)((chip.DstCommand & 0xFF00) >> 8);
                     Command = (byte)((chip.DstCommand & 0x00FF) >> 0);
                     Data = chip.Data[chip.DataStart + chip.RealPos];
-                    //od = null;//chip.od;
 
                     if (Port == 0xFF)   // Send Channel Select
                         chip_reg_write(chip.DstChipType
@@ -787,9 +767,9 @@ namespace MDSound
                         prevChn = Port; // by default don't restore channel
                                         // get current channel for supported chips
                         if (chip.DstChipType == 0x05)
-                            ;   // TODO
+                        { }   // TODO
                         else if (chip.DstChipType == 0x05)
-                            ;   // TODO
+                        { }   // TODO
                         else if (chip.DstChipType == 0x1B)
                             prevChn = mds.ReadHuC6280(chip.DstChipIndex, chip.DstChipID, 0x00);
 
@@ -807,16 +787,11 @@ namespace MDSound
                                 , chip.DstEmuType, chip.DstChipIndex, chip.DstChipID
                                 , 0x00, (byte)(Command >> 4), prevChn);
 
-                        // Send Data
-                        chip_reg_write(chip.DstChipType
-                            , chip.DstEmuType, chip.DstChipIndex, chip.DstChipID
-                            , 0x00, (byte)(Command & 0x0F), Data);
                     }
                     break;
                 // Generic support: 8-bit Register, 16-bit Data
                 case 0x1F:  // QSound
                     Command = (byte)((chip.DstCommand & 0x00FF) >> 0);
-                    //od = chip.od;
                     chip_reg_write(chip.DstChipType
                         , chip.DstEmuType, chip.DstChipIndex, chip.DstChipID
                         , chip.Data[chip.DataStart + chip.RealPos], chip.Data[chip.DataStart + chip.RealPos + 1], Command);

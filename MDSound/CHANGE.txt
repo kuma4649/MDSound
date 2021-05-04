@@ -1,4 +1,7 @@
 更新履歴
+TAG083 2021/05/04
+  ・DAC:VGM仕様のPCM処理調整＆修正
+
 TAG082 2021/05/03 2nd
   ・DAC:VGM/ZGM仕様のPCM処理を追加した。(mml2vgm向け)
 
