@@ -1110,7 +1110,8 @@ namespace MDSound
             switch (ChipType)
             {
                 case 0x00:  // SN76489
-                    mds.WriteSN76489(ChipIndex, ChipID, Data);
+                    if (EmuType == 0) mds.WriteSN76489(ChipIndex, ChipID, Data);
+                    else if (EmuType == 1) mds.WriteSN76496(ChipIndex, ChipID, Data);
                     break;
                 case 0x01:  // YM2413+
                     mds.WriteYM2413(ChipIndex, ChipID, Offset, Data);

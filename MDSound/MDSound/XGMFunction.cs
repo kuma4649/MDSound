@@ -102,7 +102,7 @@ namespace MDSound
                 //優先度が高い場合または消音中の場合のみ発音できる
                 if (xgmpcm[ChipID][channel].Priority > priority && xgmpcm[ChipID][channel].isPlaying) return;
 
-                if (id == 0 || sampleID[ChipID][id - 1].size == 0)
+                if (id == 0 || id > sampleID[ChipID].Length || sampleID[ChipID][id - 1].size == 0)
                 {
                     //IDが0の場合や、定義されていないIDが指定された場合は発音を停止する
                     xgmpcm[ChipID][channel].Priority = 0;

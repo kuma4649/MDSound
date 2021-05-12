@@ -2527,27 +2527,28 @@ namespace MDSound.mame
 				if (out_fm[5].val > 8192) out_fm[5].val = 8192;
 				else if (out_fm[5].val < -8192) out_fm[5].val = -8192;
 
+				int bitShift = 0;
 				/* 6-channels mixing  */
-				lt = (int)((uint)(out_fm[0].val >> 0) & OPN.pan[0]);
-				rt = (int)((uint)(out_fm[0].val >> 0) & OPN.pan[1]);
-				lt +=(int)((uint)(out_fm[1].val >> 0) & OPN.pan[2]);
-				rt +=(int)((uint)(out_fm[1].val >> 0) & OPN.pan[3]);
-				lt +=(int)((uint)(out_fm[2].val >> 0) & OPN.pan[4]);
-				rt +=(int)((uint)(out_fm[2].val >> 0) & OPN.pan[5]);
-				lt +=(int)((uint)(out_fm[3].val >> 0) & OPN.pan[6]);
-				rt +=(int)((uint)(out_fm[3].val >> 0) & OPN.pan[7]);
+				lt = (int)((uint)(out_fm[0].val >> bitShift) & OPN.pan[0]);
+				rt = (int)((uint)(out_fm[0].val >> bitShift) & OPN.pan[1]);
+				lt +=(int)((uint)(out_fm[1].val >> bitShift) & OPN.pan[2]);
+				rt +=(int)((uint)(out_fm[1].val >> bitShift) & OPN.pan[3]);
+				lt +=(int)((uint)(out_fm[2].val >> bitShift) & OPN.pan[4]);
+				rt +=(int)((uint)(out_fm[2].val >> bitShift) & OPN.pan[5]);
+				lt +=(int)((uint)(out_fm[3].val >> bitShift) & OPN.pan[6]);
+				rt +=(int)((uint)(out_fm[3].val >> bitShift) & OPN.pan[7]);
 				if (F2612.dac_test == 0)
 				{
-					lt += (int)((uint)(out_fm[4].val >> 0) & OPN.pan[8]);
-					rt += (int)((uint)(out_fm[4].val >> 0) & OPN.pan[9]);
+					lt += (int)((uint)(out_fm[4].val >> bitShift) & OPN.pan[8]);
+					rt += (int)((uint)(out_fm[4].val >> bitShift) & OPN.pan[9]);
 				}
 				else
 				{
 					lt += (int)dacout;
 					lt += (int)dacout;
 				}
-				lt += (int)((uint)(out_fm[5].val >> 0) & OPN.pan[10]);
-				rt += (int)((uint)(out_fm[5].val >> 0) & OPN.pan[11]);
+				lt += (int)((uint)(out_fm[5].val >> bitShift) & OPN.pan[10]);
+				rt += (int)((uint)(out_fm[5].val >> bitShift) & OPN.pan[11]);
 
 				//      Limit( lt, MAXOUT, MINOUT );
 				//      Limit( rt, MAXOUT, MINOUT );
