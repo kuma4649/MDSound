@@ -560,7 +560,7 @@ namespace MDSound
 
                     frame?.Invoke();
 
-                    dacControl.update();
+                    dacControl?.update();
 
                     a = 0;
                     b = 0;
