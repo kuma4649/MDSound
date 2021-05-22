@@ -306,33 +306,32 @@ namespace MDSound.fmvgen
 
         public void Mix(int[] buffer, int nsamples, byte regtc)
         {
-            if (fmvolume > 0)
+            if (fmvolume <= 0) return;
+
+            this.regtc = regtc;
+            // 準備
+            // Set F-Number
+            if ((regtc & 0xc0) == 0)
+                csmch.SetFNum(fnum[2]);// csmch - ch]);
+            else
             {
-                this.regtc = regtc;
-                // 準備
-                // Set F-Number
-                if ((regtc & 0xc0) == 0)
-                    csmch.SetFNum(fnum[2]);// csmch - ch]);
-                else
-                {
-                    // 効果音モード
-                    csmch.op[0].SetFNum(fnum3[1]);
-                    csmch.op[1].SetFNum(fnum3[2]);
-                    csmch.op[2].SetFNum(fnum3[0]);
-                    csmch.op[3].SetFNum(fnum[2]);
-                }
-
-                int act = (((ch[2].Prepare() << 2) | ch[1].Prepare()) << 2) | ch[0].Prepare();
-                if ((reg29 & 0x80) != 0)
-                    act |= (ch[3].Prepare() | ((ch[4].Prepare() | (ch[5].Prepare() << 2)) << 2)) << 6;
-                if ((reg22 & 0x08) == 0)
-                    act &= 0x555;
-
-                if ((act & 0x555) != 0)
-                {
-                    Mix6(buffer, nsamples, act);
-                }
+                // 効果音モード
+                csmch.op[0].SetFNum(fnum3[1]);
+                csmch.op[1].SetFNum(fnum3[2]);
+                csmch.op[2].SetFNum(fnum3[0]);
+                csmch.op[3].SetFNum(fnum[2]);
             }
+
+            int act = (((ch[2].Prepare() << 2) | ch[1].Prepare()) << 2) | ch[0].Prepare();
+            if ((reg29 & 0x80) != 0)
+                act |= (ch[3].Prepare() | ((ch[4].Prepare() | (ch[5].Prepare() << 2)) << 2)) << 6;
+            if ((reg22 & 0x08) == 0)
+                act &= 0x555;
+
+            if ((act & 0x555) == 0) return;
+
+            Mix6(buffer, nsamples, act);
+
         }
 
         private int[] ibuf = new int[4];
@@ -349,7 +348,8 @@ namespace MDSound.fmvgen
             idest[4] = pan[4];
             idest[5] = pan[5];
 
-            int limit = nsamples * 2;
+            int limit = nsamples << 1;
+            int v;
             for (int dest = 0; dest < limit; dest += 2)
             {
                 //0,1 素
@@ -365,22 +365,17 @@ namespace MDSound.fmvgen
                     MixSubS(activech, idest, ibuf);
                 }
 
-                //int v1 = ((fmvgen.Limit(ibuf[2] + ibuf[3], 0x7fff, -0x8000) * fmvolume) >> 14);
-                int v1 = ((fmvgen.Limit(ibuf[0], 0x7fff, -0x8000) * fmvolume) >> 14);
-                fmvgen.StoreSample(ref buffer[dest + 0], v1);// ((fmgen.Limit(ibuf[2] + ibuf[3], 0x7fff, -0x8000) * fmvolume) >> 14));
-                visVolume[0] = v1;
+                v = ((fmvgen.Limit(ibuf[0], 0x7fff, -0x8000) * fmvolume) >> 14);
+                fmvgen.StoreSample(ref buffer[dest + 0], v);
+                visVolume[0] = v;
 
-                //int v2 = ((fmvgen.Limit(ibuf[1] + ibuf[3], 0x7fff, -0x8000) * fmvolume) >> 14);
-                int v2 = ((fmvgen.Limit(ibuf[1], 0x7fff, -0x8000) * fmvolume) >> 14);
-                fmvgen.StoreSample(ref buffer[dest + 1], v2);// ((fmgen.Limit(ibuf[1] + ibuf[3], 0x7fff, -0x8000) * fmvolume) >> 14));
-                visVolume[1] = v2;
+                v = ((fmvgen.Limit(ibuf[1], 0x7fff, -0x8000) * fmvolume) >> 14);
+                fmvgen.StoreSample(ref buffer[dest + 1], v);
+                visVolume[1] = v;
 
-                //int r = ((fmvgen.Limit(ibuf[0], 0x7fff, -0x8000) * fmvolume) >> 14);
                 int rvL = ((fmvgen.Limit(ibuf[2], 0x7fff, -0x8000) * fmvolume) >> 14);
                 int rvR = ((fmvgen.Limit(ibuf[3], 0x7fff, -0x8000) * fmvolume) >> 14);
-                //reverb.StoreData(r);
-                reverb.StoreData(0, rvL);
-                reverb.StoreData(1, rvR);
+                reverb.StoreDataC(rvL, rvR);
             }
         }
 

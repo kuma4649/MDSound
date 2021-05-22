@@ -898,6 +898,7 @@ namespace MDSound.np
                 if (!dmc.enable[0])
                 {
                     dmc.length_counter[0] = 0;
+                    dmc.tphase = 0;//KUMA:止めたら出力も0にしたい
                 }
                 if (!dmc.enable[1])
                 {

@@ -72,6 +72,18 @@ namespace MDSound
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public int GetDataFromPosL()
+        {
+            return Buf[0][Pos];
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public int GetDataFromPosR()
+        {
+            return Buf[1][Pos];
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void ClearDataAtPos()
         {
             Buf[0][Pos] = 0;
@@ -90,11 +102,33 @@ namespace MDSound
         //Buf[ptr] += (int)(v * SendLevel[ch]);
         //}
 
+        //[MethodImpl(MethodImplOptions.AggressiveInlining)]
+        //public void StoreData(int LorR, int v)
+        //{
+        //    int ptr = (Delta + Pos) % Buf[0].Length;
+        //    Buf[LorR][ptr] += (int)(v);
+        //}
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void StoreData(int LorR, int v)
+        public void StoreDataL(int v)
         {
             int ptr = (Delta + Pos) % Buf[0].Length;
-            Buf[LorR][ptr] += (int)(v);
+            Buf[0][ptr] += (int)(v);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void StoreDataR(int v)
+        {
+            int ptr = (Delta + Pos) % Buf[0].Length;
+            Buf[1][ptr] += (int)(v);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void StoreDataC(int vL,int vR)
+        {
+            int ptr = (Delta + Pos) % Buf[0].Length;
+            Buf[0][ptr] += (int)(vL);
+            Buf[1][ptr] += (int)(vR);
         }
 
         public void SetReg(uint adr, byte data)

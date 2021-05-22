@@ -17,9 +17,13 @@ namespace MDSound
         private fmvgen.effect.eq3band[] ep3band = new fmvgen.effect.eq3band[2];
         private fmvgen.effect.HPFLPF[] hpflpf = new fmvgen.effect.HPFLPF[2];
         private const int MaxCh= 39;
+        private int[] updateBuffer = new int[2];
 
         public override string Name { get { return "YM2609"; } set { } }
         public override string ShortName { get { return "OPNA2"; } set { } }
+
+        public bool visVol { get; private set; } = false;
+
 
         public ym2609()
         {
@@ -79,23 +83,26 @@ namespace MDSound
 
         public override void Update(byte ChipID, int[][] outputs, int samples)
         {
-            int[] buffer = new int[2];
-            buffer[0] = reverb[ChipID].GetDataFromPos(0)/2;
-            buffer[1] = reverb[ChipID].GetDataFromPos(1)/2;
+            updateBuffer[0] = reverb[ChipID].GetDataFromPosL()>>1;
+            updateBuffer[1] = reverb[ChipID].GetDataFromPosR()>>1;
 
-            reverb[ChipID].StoreData(0, reverb[ChipID].GetDataFromPos(0) / 2);
-            reverb[ChipID].StoreData(1, reverb[ChipID].GetDataFromPos(1) / 2);
+            reverb[ChipID].StoreDataC(reverb[ChipID].GetDataFromPosL() >> 1, reverb[ChipID].GetDataFromPosR() >> 1);
             reverb[ChipID].ClearDataAtPos();
 
-            chip[ChipID].Mix(buffer, 1);
-            for (int i = 0; i < 1; i++)
-            {
-                outputs[0][i] = buffer[i * 2 + 0];
-                outputs[1][i] = buffer[i * 2 + 1];
+            chip[ChipID].Mix(updateBuffer, 1);
+            //for (int i = 0; i < 1; i++)
+            //{
+            //    outputs[0][i] = updateBuffer[i * 2 + 0];
+            //    outputs[1][i] = updateBuffer[i * 2 + 1];
 
-                //rev[ChipID].StoreData(0, (outputs[0][i] + outputs[1][i]) / 2);
-            }
+            //    //rev[ChipID].StoreData(0, (outputs[0][i] + outputs[1][i]) / 2);
+            //}
+            outputs[0][0] = updateBuffer[0];
+            outputs[1][0] = updateBuffer[1];
+
             reverb[ChipID].UpdatePos();
+
+            if (!visVol) return;
 
             visVolume[ChipID][0][0] = outputs[0][0];
             visVolume[ChipID][0][1] = outputs[1][0];

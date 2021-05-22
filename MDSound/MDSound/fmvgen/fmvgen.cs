@@ -812,37 +812,37 @@ namespace MDSound.fmvgen
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void KeyOn()
             {
-                if (!keyon_)
+                if (keyon_) return;
+
+                keyon_ = true;
+
+                if (phaseReset_ != 0)
                 {
-                    keyon_ = true;
+                    //位相リセットスイッチ有効
 
-                    if (phaseReset_ != 0)
-                    {
-                        //位相リセットスイッチ有効
+                    ShiftPhase(EGPhase.off);
+                    ssg_phase_ = -1;
+                    ShiftPhase(EGPhase.attack);
+                    EGUpdate();
+                    in2_ = out_ = out2_ = 0;
 
-                        ShiftPhase(EGPhase.off);
-                        ssg_phase_ = -1;
-                        ShiftPhase(EGPhase.attack);
-                        EGUpdate();
-                        in2_ = out_ = out2_ = 0;
+                    pg_count_ = 0;
 
-                        pg_count_ = 0;
-                    }
-                    else
-                    {
-                        //位相リセットスイッチ無効
-
-                        if (eg_phase_ == EGPhase.off || eg_phase_ == EGPhase.release)
-                        {
-                            ssg_phase_ = -1;
-                            ShiftPhase(EGPhase.attack);
-                            EGUpdate();
-                            in2_ = out_ = out2_ = 0;
-
-                            pg_count_ = 0;
-                        }
-                    }
+                    return;
                 }
+
+                //位相リセットスイッチ無効
+
+                if (eg_phase_ == EGPhase.off || eg_phase_ == EGPhase.release)
+                {
+                    ssg_phase_ = -1;
+                    ShiftPhase(EGPhase.attack);
+                    EGUpdate();
+                    in2_ = out_ = out2_ = 0;
+
+                    pg_count_ = 0;
+                }
+
             }
 
             //	キーオフ

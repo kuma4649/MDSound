@@ -184,8 +184,7 @@ namespace MDSound.fmvgen
 
                             StoreSample(ref dest[ptrDest + 0], sampleL);
                             StoreSample(ref dest[ptrDest + 1], sampleR);
-                            reverb.StoreData(0, revSampleL);
-                            reverb.StoreData(1, revSampleR);
+                            reverb.StoreDataC(revSampleL, revSampleR);
                             ptrDest += 2;
 
                             visVolume = sampleL;
@@ -311,8 +310,7 @@ namespace MDSound.fmvgen
 
                         StoreSample(ref dest[ptrDest + 0], sampleL);
                         StoreSample(ref dest[ptrDest + 1], sampleR);
-                        reverb.StoreData(0, revSampleL);
-                        reverb.StoreData(1, revSampleR);
+                        reverb.StoreDataC(revSampleL, revSampleR);
                         ptrDest += 2;
 
                         visVolume = sampleL;

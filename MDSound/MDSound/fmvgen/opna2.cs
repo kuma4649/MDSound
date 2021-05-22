@@ -239,7 +239,7 @@ namespace MDSound.fmvgen
             RhythmMix(buffer, nsamples);
             adpcma.Mix(buffer, (uint)nsamples);
             ep3band.Mix(buffer, nsamples);
-            //distortion.Mix(buffer, 1);
+
         }
 
 
@@ -591,8 +591,7 @@ namespace MDSound.fmvgen
                             int revSampleR = (int)(sR * reverb.SendLevel[r.efcCh]);
                             fmvgen.StoreSample(ref buffer[dest + 0], sL);
                             fmvgen.StoreSample(ref buffer[dest + 1], sR);
-                            reverb.StoreData(0, revSampleL);
-                            reverb.StoreData(1, revSampleR);
+                            reverb.StoreDataC(revSampleL, revSampleR);
                             visRtmVolume[0] += sample & maskl;
                             visRtmVolume[1] += sample & maskr;
                         }

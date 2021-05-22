@@ -535,7 +535,7 @@ namespace MDSound
             {
                 // Pregenerate first Sample (the upsampler is always one too late)
                 int[][] buf = new int[2][] { new int[1], new int[1] };
-                chip.Update(chip.ID, buf, 1);
+                chip.Update?.Invoke(chip.ID, buf, 1);
                 chip.NSmpl[0] = buf[0x00][0x00];
                 chip.NSmpl[1] = buf[0x01][0x00];
             }

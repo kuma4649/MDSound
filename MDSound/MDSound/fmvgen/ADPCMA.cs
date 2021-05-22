@@ -169,8 +169,7 @@ namespace MDSound.fmvgen
                         }
                     }
                 }
-                reverb.StoreData(0, revSampleL);
-                reverb.StoreData(1, revSampleR);
+                reverb.StoreDataC(revSampleL, revSampleR);
             }
         }
 
