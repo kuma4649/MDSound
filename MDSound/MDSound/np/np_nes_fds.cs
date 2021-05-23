@@ -474,6 +474,7 @@ namespace MDSound.np
             if (adr == 0x4023)
             {
                 fds.master_io = ((val & 2) != 0);
+                if (!fds.master_io) fds.fout = 0;//KUMA:止めたい！
                 return true;
             }
 
