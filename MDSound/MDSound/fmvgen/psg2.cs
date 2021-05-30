@@ -14,17 +14,21 @@ namespace MDSound.fmvgen
         private distortion distortion;
         private chorus chorus;
         private effect.HPFLPF hpflpf;
+        private effect.ReversePhase reversePhase;
         private int efcStartCh;
         private byte[][] user = new byte[6][] { new byte[64], new byte[64], new byte[64], new byte[64], new byte[64], new byte[64] };
         private int userDefCounter = 0;
         private Func<int, uint, int>[] tblGetSample;
+        private int num;
 
-        public PSG2(reverb reverb, distortion distortion,chorus chorus,effect.HPFLPF hpflpf, int efcStartCh)
+        public PSG2(int num,reverb reverb, distortion distortion,chorus chorus, effect.HPFLPF hpflpf, effect.ReversePhase reversePhase, int efcStartCh)
         {
+            this.num = num;
             this.reverb = reverb;
             this.distortion = distortion;
             this.chorus = chorus;
             this.hpflpf = hpflpf;
+            this.reversePhase = reversePhase;
             this.efcStartCh = efcStartCh;
             makeTblGetSample();
         }
@@ -165,6 +169,8 @@ namespace MDSound.fmvgen
                                     sample = tblGetSample[duty[k]](k, olevel[k]);
                                     int L = (panpot[k] & 2) != 0 ? sample : 0;
                                     int R = (panpot[k] & 1) != 0 ? sample : 0;
+                                    L *= reversePhase.SSG[num][k][0];
+                                    R *= reversePhase.SSG[num][k][1];
                                     distortion.Mix(efcStartCh + k, ref L, ref R);
                                     chorus.Mix(efcStartCh + k, ref L, ref R);
                                     hpflpf.Mix(efcStartCh + k, ref L, ref R);
@@ -213,12 +219,14 @@ namespace MDSound.fmvgen
                                     sample = tblGetSample[duty[k]](k, olevel[k]);
                                     int L = (panpot[k] & 2) != 0 ? sample : 0;
                                     int R = (panpot[k] & 1) != 0 ? sample : 0;
+                                    L *= reversePhase.SSG[num][k][0];
+                                    R *= reversePhase.SSG[num][k][1];
 
                                     //ノイズ
                                     nv = ((int)(scount[k] >> (toneshift + oversampling)) & 0 | (nenable[k] & noise)) - 1;
                                     sample = (int)((olevel[k] + nv) ^ nv);
-                                    L += (panpot[k] & 2) != 0 ? sample : 0;
-                                    R += (panpot[k] & 1) != 0 ? sample : 0;
+                                    L += (panpot[k] & 2) != 0 ? (sample * reversePhase.SSG[num][k][0]) : 0;
+                                    R += (panpot[k] & 1) != 0 ? (sample * reversePhase.SSG[num][k][1]) : 0;
 
                                     distortion.Mix(efcStartCh + k, ref L, ref R);
                                     chorus.Mix(efcStartCh + k, ref L, ref R);
@@ -285,12 +293,14 @@ namespace MDSound.fmvgen
                                 sample = tblGetSample[duty[k]](k, lv);
                                 int L = (panpot[k] & 2) != 0 ? sample : 0;
                                 int R = (panpot[k] & 1) != 0 ? sample : 0;
+                                L *= reversePhase.SSG[num][k][0];
+                                R *= reversePhase.SSG[num][k][1];
 
                                 //ノイズ
                                 nv = ((int)(scount[k] >> (toneshift + oversampling)) & 0 | (nenable[k] & noise)) - 1;
                                 sample = (int)((lv + nv) ^ nv);
-                                L += (panpot[k] & 2) != 0 ? sample : 0;
-                                R += (panpot[k] & 1) != 0 ? sample : 0;
+                                L += (panpot[k] & 2) != 0 ? (sample * reversePhase.SSG[num][k][0]) : 0;
+                                R += (panpot[k] & 1) != 0 ? (sample * reversePhase.SSG[num][k][1]) : 0;
                                 distortion.Mix(efcStartCh + k, ref L, ref R);
                                 chorus.Mix(efcStartCh + k, ref L, ref R);
                                 hpflpf.Mix(efcStartCh + k, ref L, ref R);

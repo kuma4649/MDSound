@@ -28,6 +28,7 @@ namespace MDSound.fmvgen
         private distortion distortion;
         private chorus chorus;
         private effect.eq3band ep3band;
+        private effect.ReversePhase reversePhase;
         private effect.HPFLPF hpflpf;
 
         public class Rhythm
@@ -45,14 +46,18 @@ namespace MDSound.fmvgen
             public chorus chorus;
             public effect.HPFLPF hpflpf;
             public int efcCh;
+            public int num;
+            public effect.ReversePhase reversePhase;
 
-            public Rhythm(reverb reverb, distortion distortion,chorus chorus ,effect.HPFLPF hpflpf, int efcCh)
+            public Rhythm(int num, reverb reverb, distortion distortion,chorus chorus ,effect.HPFLPF hpflpf,effect.ReversePhase reversePhase, int efcCh)
             {
                 this.reverb = reverb;
                 this.distortion = distortion;
                 this.chorus = chorus;
                 this.hpflpf = hpflpf;
                 this.efcCh = efcCh;
+                this.reversePhase = reversePhase;
+                this.num = num;
             }
         };
 
@@ -72,34 +77,35 @@ namespace MDSound.fmvgen
         // ---------------------------------------------------------------------------
         //	構築
         //
-        public OPNA2(reverb reverb, distortion distortion,chorus chorus,effect.eq3band ep3band,effect.HPFLPF hpflpf)
+        public OPNA2(reverb reverb, distortion distortion, chorus chorus, effect.eq3band ep3band, effect.HPFLPF hpflpf, effect.ReversePhase reversePhase)
         {
             this.reverb = reverb;
             this.distortion = distortion;
             this.chorus = chorus;
             this.ep3band = ep3band;
             this.hpflpf = hpflpf;
+            this.reversePhase = reversePhase;
 
-            fm6 = new FM6[2] { 
-                new FM6(0, reverb, distortion, chorus, hpflpf, 0), 
-                new FM6(1, reverb, distortion, chorus, hpflpf, 6) };
-            psg2 = new PSG2[4] { 
-                new PSG2(reverb, distortion, chorus, hpflpf, 12), 
-                new PSG2(reverb, distortion, chorus, hpflpf, 15), 
-                new PSG2(reverb, distortion, chorus, hpflpf, 18), 
-                new PSG2(reverb, distortion, chorus, hpflpf, 21) };
-            adpcmb = new ADPCMB[3] { 
-                new ADPCMB(reverb, distortion, chorus,hpflpf, 24),
-                new ADPCMB(reverb, distortion, chorus,hpflpf, 25),
-                new ADPCMB(reverb, distortion, chorus,hpflpf, 26) };
-            rhythm = new Rhythm[6] { 
-                new Rhythm(reverb, distortion, chorus,hpflpf, 27), 
-                new Rhythm(reverb, distortion, chorus,hpflpf, 28), 
-                new Rhythm(reverb, distortion, chorus,hpflpf, 29),
-                new Rhythm(reverb, distortion, chorus,hpflpf, 30), 
-                new Rhythm(reverb, distortion, chorus,hpflpf, 31), 
-                new Rhythm(reverb, distortion, chorus,hpflpf, 32) };
-            adpcma = new ADPCMA(reverb, distortion, chorus, hpflpf, 33);
+            fm6 = new FM6[2] {
+                new FM6(0, reverb, distortion, chorus, hpflpf,reversePhase, 0),
+                new FM6(1, reverb, distortion, chorus, hpflpf,reversePhase, 6) };
+            psg2 = new PSG2[4] {
+                new PSG2(0,reverb, distortion, chorus, hpflpf,reversePhase, 12),
+                new PSG2(1,reverb, distortion, chorus, hpflpf,reversePhase, 15),
+                new PSG2(2,reverb, distortion, chorus, hpflpf,reversePhase, 18),
+                new PSG2(3,reverb, distortion, chorus, hpflpf,reversePhase, 21) };
+            adpcmb = new ADPCMB[3] {
+                new ADPCMB(0,reverb, distortion, chorus,hpflpf,reversePhase, 24),
+                new ADPCMB(1,reverb, distortion, chorus,hpflpf,reversePhase, 25),
+                new ADPCMB(2,reverb, distortion, chorus,hpflpf,reversePhase, 26) };
+            rhythm = new Rhythm[6] {
+                new Rhythm(0,reverb, distortion, chorus,hpflpf,reversePhase, 27),
+                new Rhythm(1,reverb, distortion, chorus,hpflpf,reversePhase, 28),
+                new Rhythm(2,reverb, distortion, chorus,hpflpf,reversePhase, 29),
+                new Rhythm(3,reverb, distortion, chorus,hpflpf,reversePhase, 30),
+                new Rhythm(4,reverb, distortion, chorus,hpflpf,reversePhase, 31),
+                new Rhythm(5,reverb, distortion, chorus,hpflpf,reversePhase, 32) };
+            adpcma = new ADPCMA(0, reverb, distortion, chorus, hpflpf, reversePhase, 33);
 
             for (int i = 0; i < 6; i++)
             {
@@ -345,6 +351,11 @@ namespace MDSound.fmvgen
                 ep3band.SetReg(addr & 0xf, (byte)data);
                 return;
             }
+            else if (addr >= 0xcc && addr < 0xd9)
+            {
+                reversePhase.SetReg(addr - 0xcc, (byte)data);
+                return;
+            }
             else if (addr >= 0x100 && addr < 0x111)
             {
                 AdpcmbSetReg(0, addr - 0x100, (byte)data);
@@ -584,6 +595,8 @@ namespace MDSound.fmvgen
                             r.pos += r.step;
                             int sL = sample & maskl;
                             int sR = sample & maskr;
+                            sL *= reversePhase.Rhythm[i][0];
+                            sR *= reversePhase.Rhythm[i][1];
                             distortion.Mix(r.efcCh, ref sL, ref sR);
                             chorus.Mix(r.efcCh, ref sL, ref sR);
                             hpflpf.Mix(r.efcCh, ref sL, ref sR);
