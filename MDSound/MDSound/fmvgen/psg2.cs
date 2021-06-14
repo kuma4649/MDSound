@@ -365,7 +365,7 @@ namespace MDSound.fmvgen
         {
             int n = ((int)(scount[k] >> (toneshift + oversampling - 3)) & chenable[k]);
             //のこぎり波
-            int x = n - 7;
+            int x = n < 7 ? n : (n - 16);
             return (int)((lv * x) >> 2);
         }
 
