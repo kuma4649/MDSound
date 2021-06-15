@@ -41,7 +41,7 @@ namespace MDSound.fmvgen.effect
                 SSG[3][i / 2][i % 2] = 1;
 
                 FM[0][i / 2][i % 2] = 1;
-                FM[0][i / 2+3][i % 2] = 1;
+                FM[0][i / 2 + 3][i % 2] = 1;
                 FM[1][i / 2][i % 2] = 1;
                 FM[1][i / 2 + 3][i % 2] = 1;
 

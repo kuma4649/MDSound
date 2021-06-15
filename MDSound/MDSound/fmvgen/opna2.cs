@@ -593,13 +593,17 @@ namespace MDSound.fmvgen
                         {
                             int sample = (r.sample[r.pos / 1024] * vol) >> 12;
                             r.pos += r.step;
-                            int sL = sample & maskl;
-                            int sR = sample & maskr;
-                            sL *= reversePhase.Rhythm[i][0];
-                            sR *= reversePhase.Rhythm[i][1];
+
+                            int sL = sample;
+                            int sR = sample;
                             distortion.Mix(r.efcCh, ref sL, ref sR);
                             chorus.Mix(r.efcCh, ref sL, ref sR);
                             hpflpf.Mix(r.efcCh, ref sL, ref sR);
+
+                            sL = sL & maskl;
+                            sR = sR & maskr;
+                            sL *= reversePhase.Rhythm[i][0];
+                            sR *= reversePhase.Rhythm[i][1];
                             int revSampleL = (int)(sL * reverb.SendLevel[r.efcCh]);
                             int revSampleR = (int)(sR * reverb.SendLevel[r.efcCh]);
                             fmvgen.StoreSample(ref buffer[dest + 0], sL);

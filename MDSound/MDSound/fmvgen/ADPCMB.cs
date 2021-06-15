@@ -93,12 +93,16 @@ namespace MDSound.fmvgen
                             if (!adpcmplay)
                                 break;
                         }
+
                         int s = (adplc * apout0 + (8192 - adplc) * apout1) >> 13;
-                        int sL = (int)((int)(s & maskl) * panL) * reversePhase.Adpcm[num][0];
-                        int sR = (int)((int)(s & maskr) * panR) * reversePhase.Adpcm[num][1];
+                        int sL = (int)(s & maskl);
+                        int sR = (int)(s & maskr);
                         distortion.Mix(efcCh, ref sL, ref sR);
                         chorus.Mix(efcCh, ref sL, ref sR);
                         hpflpf.Mix(efcCh, ref sL, ref sR);
+
+                        sL = (int)(sL * panL) * reversePhase.Adpcm[num][0];
+                        sR = (int)(sR * panR) * reversePhase.Adpcm[num][1];
                         int revSampleL = (int)(sL * reverb.SendLevel[efcCh]);
                         int revSampleR = (int)(sR * reverb.SendLevel[efcCh]);
                         fmvgen.StoreSample(ref dest[ptrDest + 0], sL);
@@ -118,8 +122,14 @@ namespace MDSound.fmvgen
                             adplc += 8192;
                         }
                         int s = (adplc * apout1) >> 13;
-                        int sL = (int)((int)(s & maskl) * panL) * reversePhase.Adpcm[num][0];
-                        int sR = (int)((int)(s & maskr) * panR) * reversePhase.Adpcm[num][1];
+                        int sL = (int)(s & maskl);
+                        int sR = (int)(s & maskr);
+                        distortion.Mix(efcCh, ref sL, ref sR);
+                        chorus.Mix(efcCh, ref sL, ref sR);
+                        hpflpf.Mix(efcCh, ref sL, ref sR);
+
+                        sL = (int)(sL * panL) * reversePhase.Adpcm[num][0];
+                        sR = (int)(sR * panR) * reversePhase.Adpcm[num][1];
                         int revSampleL = (int)(sL * reverb.SendLevel[efcCh]);
                         int revSampleR = (int)(sR * reverb.SendLevel[efcCh]);
                         fmvgen.StoreSample(ref dest[ptrDest + 0], sL);
@@ -147,8 +157,14 @@ namespace MDSound.fmvgen
                         }
                         adplc -= 8192;
                         s >>= 13;
-                        int sL = (int)((int)(s & maskl) * panL) * reversePhase.Adpcm[num][0];
-                        int sR = (int)((int)(s & maskr) * panR) * reversePhase.Adpcm[num][1];
+                        int sL = (int)(s & maskl);
+                        int sR = (int)(s & maskr);
+                        distortion.Mix(efcCh, ref sL, ref sR);
+                        chorus.Mix(efcCh, ref sL, ref sR);
+                        hpflpf.Mix(efcCh, ref sL, ref sR);
+
+                        sL = (int)(sL * panL) * reversePhase.Adpcm[num][0];
+                        sR = (int)(sR * panR) * reversePhase.Adpcm[num][1];
                         int revSampleL = (int)(sL * reverb.SendLevel[efcCh]);
                         int revSampleR = (int)(sR * reverb.SendLevel[efcCh]);
                         fmvgen.StoreSample(ref dest[ptrDest + 0], sL);

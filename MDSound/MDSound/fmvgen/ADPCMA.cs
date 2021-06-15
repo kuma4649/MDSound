@@ -159,11 +159,15 @@ namespace MDSound.fmvgen
                                 r.adpcmd += (short)decode_tableA1[data];
                                 r.adpcmd = (short)fmvgen.Limit(r.adpcmd, 48 * 16, 0);
                             }
-                            int sampleL = (int)(((r.adpcmx * vol) >> 10) * r.panL) * reversePhase.AdpcmA[i][0];
-                            int sampleR = (int)(((r.adpcmx * vol) >> 10) * r.panR) * reversePhase.AdpcmA[i][1];
+
+                            int sampleL = (int)((r.adpcmx * vol) >> 10);
+                            int sampleR = (int)((r.adpcmx * vol) >> 10);
                             distortion.Mix(revStartCh + i, ref sampleL, ref sampleR);
                             chorus.Mix(revStartCh + i, ref sampleL, ref sampleR);
                             hpflpf.Mix(revStartCh + i, ref sampleL, ref sampleR);
+
+                            sampleL = (int)(sampleL * r.panL) * reversePhase.AdpcmA[i][0];
+                            sampleR = (int)(sampleR * r.panR) * reversePhase.AdpcmA[i][1];
                             fmvgen.StoreSample(ref buffer[dest + 0], sampleL);
                             fmvgen.StoreSample(ref buffer[dest + 1], sampleR);
                             revSampleL += (int)(sampleL * reverb.SendLevel[revStartCh + i] * 0.6);

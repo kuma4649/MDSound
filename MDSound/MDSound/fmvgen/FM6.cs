@@ -391,81 +391,93 @@ namespace MDSound.fmvgen
             if ((activech & 0x001) != 0)
             {
                 v = ch[0].Calc();
-                buf[0] = (int)((dest[0] >> 1) * v * panL[0]) * reversePhase.FM[num][0][0];
-                buf[1] = (int)((dest[0] & 0x1) * v * panR[0]) * reversePhase.FM[num][0][1];
-                distortion.Mix(efcStartCh + 0, ref buf[0], ref buf[1]);
-                chorus.Mix(efcStartCh + 0, ref buf[0], ref buf[1]);
-                hpflpf.Mix(efcStartCh + 0, ref buf[0], ref buf[1]);
+                L = v;
+                R = v;
+                distortion.Mix(efcStartCh + 0, ref L, ref R);
+                chorus.Mix(efcStartCh + 0, ref L, ref R);
+                hpflpf.Mix(efcStartCh + 0, ref L, ref R);
+                buf[0] = (int)((dest[0] >> 1) * L * panL[0]) * reversePhase.FM[num][0][0];
+                buf[1] = (int)((dest[0] & 0x1) * R * panR[0]) * reversePhase.FM[num][0][1];
                 buf[2] = (int)(buf[0] * reverb.SendLevel[efcStartCh + 0]);
                 buf[3] = (int)(buf[1] * reverb.SendLevel[efcStartCh + 0]);
             }
+
             if ((activech & 0x004) != 0)
             {
                 v = ch[1].Calc();
-                L = (int)((dest[1] >> 1) * v * panL[1]) * reversePhase.FM[num][1][0];
-                R = (int)((dest[1] & 0x1) * v * panR[1]) * reversePhase.FM[num][1][1];
+                L = v;
+                R = v;
                 distortion.Mix(efcStartCh + 1, ref L, ref R);
                 chorus.Mix(efcStartCh + 1, ref L, ref R);
                 hpflpf.Mix(efcStartCh + 1, ref L, ref R);
+                L = (int)((dest[1] >> 1) * L * panL[1]) * reversePhase.FM[num][1][0];
+                R = (int)((dest[1] & 0x1) * R * panR[1]) * reversePhase.FM[num][1][1];
                 buf[0] += L;
                 buf[1] += R;
-
                 buf[2] += (int)(L * reverb.SendLevel[efcStartCh + 1]);
                 buf[3] += (int)(R * reverb.SendLevel[efcStartCh + 1]);
             }
+
             if ((activech & 0x010) != 0)
             {
                 v = ch[2].Calc();
-                L = (int)((dest[2] >> 1) * v * panL[2]) * reversePhase.FM[num][2][0];
-                R = (int)((dest[2] & 0x1) * v * panR[2]) * reversePhase.FM[num][2][1];
+                L = v;
+                R = v;
                 distortion.Mix(efcStartCh + 2, ref L, ref R);
                 chorus.Mix(efcStartCh + 2, ref L, ref R);
                 hpflpf.Mix(efcStartCh + 2, ref L, ref R);
+                L = (int)((dest[2] >> 1) * L * panL[2]) * reversePhase.FM[num][2][0];
+                R = (int)((dest[2] & 0x1) * R * panR[2]) * reversePhase.FM[num][2][1];
                 buf[0] += L;
                 buf[1] += R;
-
                 buf[2] += (int)(L * reverb.SendLevel[efcStartCh + 2]);
                 buf[3] += (int)(R * reverb.SendLevel[efcStartCh + 2]);
             }
+
             if ((activech & 0x040) != 0)
             {
                 v = ch[3].Calc();
-                L = (int)((dest[3] >> 1) * v * panL[3]) * reversePhase.FM[num][3][0];
-                R = (int)((dest[3] & 0x1) * v * panR[3]) * reversePhase.FM[num][3][1];
+                L = v;
+                R = v;
                 distortion.Mix(efcStartCh + 3, ref L, ref R);
                 chorus.Mix(efcStartCh + 3, ref L, ref R);
                 hpflpf.Mix(efcStartCh + 3, ref L, ref R);
+                L = (int)((dest[3] >> 1) * L * panL[3]) * reversePhase.FM[num][3][0];
+                R = (int)((dest[3] & 0x1) * R * panR[3]) * reversePhase.FM[num][3][1];
                 buf[0] += L;
                 buf[1] += R;
-
                 buf[2] += (int)(L * reverb.SendLevel[efcStartCh + 3]);
                 buf[3] += (int)(R * reverb.SendLevel[efcStartCh + 3]);
             }
+
             if ((activech & 0x100) != 0)
             {
                 v = ch[4].Calc();
-                L = (int)((dest[4] >> 1) * v * panL[4]) * reversePhase.FM[num][4][0];
-                R = (int)((dest[4] & 0x1) * v * panR[4]) * reversePhase.FM[num][4][1];
+                L = v;
+                R = v;
                 distortion.Mix(efcStartCh + 4, ref L, ref R);
                 chorus.Mix(efcStartCh + 4, ref L, ref R);
                 hpflpf.Mix(efcStartCh + 4, ref L, ref R);
+                L = (int)((dest[4] >> 1) * L * panL[4]) * reversePhase.FM[num][4][0];
+                R = (int)((dest[4] & 0x1) * R * panR[4]) * reversePhase.FM[num][4][1];
                 buf[0] += L;
                 buf[1] += R;
-
                 buf[2] += (int)(L * reverb.SendLevel[efcStartCh + 4]);
                 buf[3] += (int)(R * reverb.SendLevel[efcStartCh + 4]);
             }
+
             if ((activech & 0x400) != 0)
             {
                 v = ch[5].Calc();
-                L = (int)((dest[5] >> 1) * v * panL[5]) * reversePhase.FM[num][5][0];
-                R = (int)((dest[5] & 0x1) * v * panR[5]) * reversePhase.FM[num][5][1];
+                L = v;
+                R = v;
                 distortion.Mix(efcStartCh + 5, ref L, ref R);
                 chorus.Mix(efcStartCh + 5, ref L, ref R);
                 hpflpf.Mix(efcStartCh + 5, ref L, ref R);
+                L = (int)((dest[5] >> 1) * L * panL[5]) * reversePhase.FM[num][5][0];
+                R = (int)((dest[5] & 0x1) * R * panR[5]) * reversePhase.FM[num][5][1];
                 buf[0] += L;
                 buf[1] += R;
-
                 buf[2] += (int)(L * reverb.SendLevel[efcStartCh + 5]);
                 buf[3] += (int)(R * reverb.SendLevel[efcStartCh + 5]);
             }
@@ -477,81 +489,88 @@ namespace MDSound.fmvgen
             if ((activech & 0x001) != 0)
             {
                 v = ch[0].CalcL();
-                buf[0] = (int)((dest[0] >> 1) * v * panL[0]) * reversePhase.FM[num][0][0];
-                buf[1] = (int)((dest[0] & 0x1) * v * panR[0]) * reversePhase.FM[num][0][1];
-                distortion.Mix(efcStartCh + 0, ref buf[0], ref buf[1]);
-                chorus.Mix(efcStartCh + 0, ref buf[0], ref buf[1]);
-                hpflpf.Mix(efcStartCh + 0, ref buf[0], ref buf[1]);
+                L = (int)v;
+                R = (int)v;
+                distortion.Mix(efcStartCh + 0, ref L, ref R);
+                chorus.Mix(efcStartCh + 0, ref L, ref R);
+                hpflpf.Mix(efcStartCh + 0, ref L, ref R);
+                buf[0] = (int)((dest[0] >> 1) * L * panL[0]) * reversePhase.FM[num][0][0];
+                buf[1] = (int)((dest[0] & 0x1) * R * panR[0]) * reversePhase.FM[num][0][1];
                 buf[2] = (int)(buf[0] * reverb.SendLevel[efcStartCh + 0]);
                 buf[3] = (int)(buf[1] * reverb.SendLevel[efcStartCh + 0]);
             }
             if ((activech & 0x004) != 0)
             {
                 v = ch[1].CalcL();
-                L = (int)((dest[1] >> 1) * v * panL[1]) * reversePhase.FM[num][1][0];
-                R = (int)((dest[1] & 0x1) * v * panR[1]) * reversePhase.FM[num][1][1];
+                L = v;
+                R = v;
                 distortion.Mix(efcStartCh + 1, ref L, ref R);
                 chorus.Mix(efcStartCh + 1, ref L, ref R);
                 hpflpf.Mix(efcStartCh + 1, ref L, ref R);
+                L = (int)((dest[1] >> 1) * L * panL[1]) * reversePhase.FM[num][1][0];
+                R = (int)((dest[1] & 0x1) * R * panR[1]) * reversePhase.FM[num][1][1];
                 buf[0] += L;
                 buf[1] += R;
-
                 buf[2] += (int)(L * reverb.SendLevel[efcStartCh + 1]);
                 buf[3] += (int)(R * reverb.SendLevel[efcStartCh + 1]);
             }
             if ((activech & 0x010) != 0)
             {
                 v = ch[2].CalcL();
-                L = (int)((dest[2] >> 1) * v * panL[2]) * reversePhase.FM[num][2][0];
-                R = (int)((dest[2] & 0x1) * v * panR[2]) * reversePhase.FM[num][2][1];
+                L = v;
+                R = v;
                 distortion.Mix(efcStartCh + 2, ref L, ref R);
                 chorus.Mix(efcStartCh + 2, ref L, ref R);
                 hpflpf.Mix(efcStartCh + 2, ref L, ref R);
+                L = (int)((dest[2] >> 1) * L * panL[2]) * reversePhase.FM[num][2][0];
+                R = (int)((dest[2] & 0x1) * R * panR[2]) * reversePhase.FM[num][2][1];
                 buf[0] += L;
                 buf[1] += R;
-
                 buf[2] += (int)(L * reverb.SendLevel[efcStartCh + 2]);
                 buf[3] += (int)(R * reverb.SendLevel[efcStartCh + 2]);
             }
             if ((activech & 0x040) != 0)
             {
                 v = ch[3].CalcL();
-                L = (int)((dest[3] >> 1) * v * panL[3]) * reversePhase.FM[num][3][0];
-                R = (int)((dest[3] & 0x1) * v * panR[3]) * reversePhase.FM[num][3][1];
+                L = v;
+                R = v;
                 distortion.Mix(efcStartCh + 3, ref L, ref R);
                 chorus.Mix(efcStartCh + 3, ref L, ref R);
                 hpflpf.Mix(efcStartCh + 3, ref L, ref R);
+                L = (int)((dest[3] >> 1) * L * panL[3]) * reversePhase.FM[num][3][0];
+                R = (int)((dest[3] & 0x1) * R * panR[3]) * reversePhase.FM[num][3][1];
                 buf[0] += L;
                 buf[1] += R;
-
                 buf[2] += (int)(L * reverb.SendLevel[efcStartCh + 3]);
                 buf[3] += (int)(R * reverb.SendLevel[efcStartCh + 3]);
             }
             if ((activech & 0x100) != 0)
             {
                 v = ch[4].CalcL();
-                L = (int)((dest[4] >> 1) * v * panL[4]) * reversePhase.FM[num][4][0];
-                R = (int)((dest[4] & 0x1) * v * panR[4]) * reversePhase.FM[num][4][1];
+                L = v;
+                R = v;
                 distortion.Mix(efcStartCh + 4, ref L, ref R);
                 chorus.Mix(efcStartCh + 4, ref L, ref R);
                 hpflpf.Mix(efcStartCh + 4, ref L, ref R);
+                L = (int)((dest[4] >> 1) * L * panL[4]) * reversePhase.FM[num][4][0];
+                R = (int)((dest[4] & 0x1) * R * panR[4]) * reversePhase.FM[num][4][1];
                 buf[0] += L;
                 buf[1] += R;
-
                 buf[2] += (int)(L * reverb.SendLevel[efcStartCh + 4]);
                 buf[3] += (int)(R * reverb.SendLevel[efcStartCh + 4]);
             }
             if ((activech & 0x400) != 0)
             {
                 v = ch[5].CalcL();
-                L = (int)((dest[5] >> 1) * v * panL[5]) * reversePhase.FM[num][5][0];
-                R = (int)((dest[5] & 0x1) * v * panR[5]) * reversePhase.FM[num][5][1];
+                L = v;
+                R = v;
                 distortion.Mix(efcStartCh + 5, ref L, ref R);
                 chorus.Mix(efcStartCh + 5, ref L, ref R);
                 hpflpf.Mix(efcStartCh + 5, ref L, ref R);
+                L = (int)((dest[5] >> 1) * L * panL[5]) * reversePhase.FM[num][5][0];
+                R = (int)((dest[5] & 0x1) * R * panR[5]) * reversePhase.FM[num][5][1];
                 buf[0] += L;
                 buf[1] += R;
-
                 buf[2] += (int)(L * reverb.SendLevel[efcStartCh + 5]);
                 buf[3] += (int)(R * reverb.SendLevel[efcStartCh + 5]);
             }

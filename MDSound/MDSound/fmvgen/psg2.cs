@@ -167,16 +167,17 @@ namespace MDSound.fmvgen
                                 for (int k = 0; k < 3; k++)
                                 {
                                     sample = tblGetSample[duty[k]](k, olevel[k]);
-                                    int L = (panpot[k] & 2) != 0 ? sample : 0;
-                                    int R = (panpot[k] & 1) != 0 ? sample : 0;
-                                    L *= reversePhase.SSG[num][k][0];
-                                    R *= reversePhase.SSG[num][k][1];
+                                    int L = sample;
+                                    int R = sample;
                                     distortion.Mix(efcStartCh + k, ref L, ref R);
                                     chorus.Mix(efcStartCh + k, ref L, ref R);
                                     hpflpf.Mix(efcStartCh + k, ref L, ref R);
+                                    L = (panpot[k] & 2) != 0 ? L : 0;
+                                    R = (panpot[k] & 1) != 0 ? R : 0;
+                                    L *= reversePhase.SSG[num][k][0];
+                                    R *= reversePhase.SSG[num][k][1];
                                     revSampleL += (int)(L * reverb.SendLevel[efcStartCh + k] * 0.6);
                                     revSampleR += (int)(R * reverb.SendLevel[efcStartCh + k] * 0.6);
-
                                     sampleL += L;
                                     sampleR += R;
                                     scount[k] += speriod[k];
@@ -217,26 +218,26 @@ namespace MDSound.fmvgen
                                 for (int k = 0; k < 3; k++)
                                 {
                                     sample = tblGetSample[duty[k]](k, olevel[k]);
-                                    int L = (panpot[k] & 2) != 0 ? sample : 0;
-                                    int R = (panpot[k] & 1) != 0 ? sample : 0;
-                                    L *= reversePhase.SSG[num][k][0];
-                                    R *= reversePhase.SSG[num][k][1];
+                                    int L = sample;
+                                    int R = sample;
 
                                     //ノイズ
                                     nv = ((int)(scount[k] >> (toneshift + oversampling)) & 0 | (nenable[k] & noise)) - 1;
                                     sample = (int)((olevel[k] + nv) ^ nv);
-                                    L += (panpot[k] & 2) != 0 ? (sample * reversePhase.SSG[num][k][0]) : 0;
-                                    R += (panpot[k] & 1) != 0 ? (sample * reversePhase.SSG[num][k][1]) : 0;
+                                    L += sample;
+                                    R += sample;
 
                                     distortion.Mix(efcStartCh + k, ref L, ref R);
                                     chorus.Mix(efcStartCh + k, ref L, ref R);
                                     hpflpf.Mix(efcStartCh + k, ref L, ref R);
+                                    L = (panpot[k] & 2) != 0 ? L : 0;
+                                    R = (panpot[k] & 1) != 0 ? R : 0;
+                                    L *= reversePhase.SSG[num][k][0];
+                                    R *= reversePhase.SSG[num][k][1];
                                     revSampleL += (int)(L * reverb.SendLevel[efcStartCh + k] * 0.6);
                                     revSampleR += (int)(R * reverb.SendLevel[efcStartCh + k] * 0.6);
-
                                     sampleL += L;
                                     sampleR += R;
-
                                     scount[k] += speriod[k];
                                 }
                             }
@@ -291,22 +292,24 @@ namespace MDSound.fmvgen
                             {
                                 uint lv = (p[k] == null ? env : olevel[k]);
                                 sample = tblGetSample[duty[k]](k, lv);
-                                int L = (panpot[k] & 2) != 0 ? sample : 0;
-                                int R = (panpot[k] & 1) != 0 ? sample : 0;
-                                L *= reversePhase.SSG[num][k][0];
-                                R *= reversePhase.SSG[num][k][1];
+                                int L = sample;
+                                int R = sample;
 
                                 //ノイズ
                                 nv = ((int)(scount[k] >> (toneshift + oversampling)) & 0 | (nenable[k] & noise)) - 1;
                                 sample = (int)((lv + nv) ^ nv);
-                                L += (panpot[k] & 2) != 0 ? (sample * reversePhase.SSG[num][k][0]) : 0;
-                                R += (panpot[k] & 1) != 0 ? (sample * reversePhase.SSG[num][k][1]) : 0;
+                                L += sample;
+                                R += sample;
+
                                 distortion.Mix(efcStartCh + k, ref L, ref R);
                                 chorus.Mix(efcStartCh + k, ref L, ref R);
                                 hpflpf.Mix(efcStartCh + k, ref L, ref R);
+                                L = (panpot[k] & 2) != 0 ? L : 0;
+                                R = (panpot[k] & 1) != 0 ? R : 0;
+                                L *= reversePhase.SSG[num][k][0];
+                                R *= reversePhase.SSG[num][k][1];
                                 revSampleL += (int)(L * reverb.SendLevel[efcStartCh + k] * 0.6);
                                 revSampleR += (int)(R * reverb.SendLevel[efcStartCh + k] * 0.6);
-
                                 sampleL += L;
                                 sampleR += R;
                                 scount[k] += speriod[k];
