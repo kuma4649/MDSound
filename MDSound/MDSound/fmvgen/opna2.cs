@@ -30,6 +30,7 @@ namespace MDSound.fmvgen
         private effect.eq3band ep3band;
         private effect.ReversePhase reversePhase;
         private effect.HPFLPF hpflpf;
+        private effect.Compressor compressor;
 
         public class Rhythm
         {
@@ -48,8 +49,9 @@ namespace MDSound.fmvgen
             public int efcCh;
             public int num;
             public effect.ReversePhase reversePhase;
+            public effect.Compressor compressor;
 
-            public Rhythm(int num, reverb reverb, distortion distortion,chorus chorus ,effect.HPFLPF hpflpf,effect.ReversePhase reversePhase, int efcCh)
+            public Rhythm(int num, reverb reverb, distortion distortion,chorus chorus ,effect.HPFLPF hpflpf, effect.ReversePhase reversePhase, effect.Compressor compressor, int efcCh)
             {
                 this.reverb = reverb;
                 this.distortion = distortion;
@@ -57,6 +59,7 @@ namespace MDSound.fmvgen
                 this.hpflpf = hpflpf;
                 this.efcCh = efcCh;
                 this.reversePhase = reversePhase;
+                this.compressor = compressor;
                 this.num = num;
             }
         };
@@ -77,7 +80,7 @@ namespace MDSound.fmvgen
         // ---------------------------------------------------------------------------
         //	構築
         //
-        public OPNA2(reverb reverb, distortion distortion, chorus chorus, effect.eq3band ep3band, effect.HPFLPF hpflpf, effect.ReversePhase reversePhase)
+        public OPNA2(reverb reverb, distortion distortion, chorus chorus, effect.eq3band ep3band, effect.HPFLPF hpflpf, effect.ReversePhase reversePhase, effect.Compressor compressor)
         {
             this.reverb = reverb;
             this.distortion = distortion;
@@ -85,27 +88,28 @@ namespace MDSound.fmvgen
             this.ep3band = ep3band;
             this.hpflpf = hpflpf;
             this.reversePhase = reversePhase;
+            this.compressor = compressor;
 
             fm6 = new FM6[2] {
-                new FM6(0, reverb, distortion, chorus, hpflpf,reversePhase, 0),
-                new FM6(1, reverb, distortion, chorus, hpflpf,reversePhase, 6) };
+                new FM6(0, reverb, distortion, chorus, hpflpf,reversePhase,compressor, 0),
+                new FM6(1, reverb, distortion, chorus, hpflpf,reversePhase,compressor, 6) };
             psg2 = new PSG2[4] {
-                new PSG2(0,reverb, distortion, chorus, hpflpf,reversePhase, 12),
-                new PSG2(1,reverb, distortion, chorus, hpflpf,reversePhase, 15),
-                new PSG2(2,reverb, distortion, chorus, hpflpf,reversePhase, 18),
-                new PSG2(3,reverb, distortion, chorus, hpflpf,reversePhase, 21) };
+                new PSG2(0,reverb, distortion, chorus, hpflpf,reversePhase,compressor, 12),
+                new PSG2(1,reverb, distortion, chorus, hpflpf,reversePhase,compressor, 15),
+                new PSG2(2,reverb, distortion, chorus, hpflpf,reversePhase,compressor, 18),
+                new PSG2(3,reverb, distortion, chorus, hpflpf,reversePhase,compressor, 21) };
             adpcmb = new ADPCMB[3] {
-                new ADPCMB(0,reverb, distortion, chorus,hpflpf,reversePhase, 24),
-                new ADPCMB(1,reverb, distortion, chorus,hpflpf,reversePhase, 25),
-                new ADPCMB(2,reverb, distortion, chorus,hpflpf,reversePhase, 26) };
+                new ADPCMB(0,reverb, distortion, chorus,hpflpf,reversePhase,compressor, 24),
+                new ADPCMB(1,reverb, distortion, chorus,hpflpf,reversePhase,compressor, 25),
+                new ADPCMB(2,reverb, distortion, chorus,hpflpf,reversePhase,compressor, 26) };
             rhythm = new Rhythm[6] {
-                new Rhythm(0,reverb, distortion, chorus,hpflpf,reversePhase, 27),
-                new Rhythm(1,reverb, distortion, chorus,hpflpf,reversePhase, 28),
-                new Rhythm(2,reverb, distortion, chorus,hpflpf,reversePhase, 29),
-                new Rhythm(3,reverb, distortion, chorus,hpflpf,reversePhase, 30),
-                new Rhythm(4,reverb, distortion, chorus,hpflpf,reversePhase, 31),
-                new Rhythm(5,reverb, distortion, chorus,hpflpf,reversePhase, 32) };
-            adpcma = new ADPCMA(0, reverb, distortion, chorus, hpflpf, reversePhase, 33);
+                new Rhythm(0,reverb, distortion, chorus,hpflpf,reversePhase,compressor, 27),
+                new Rhythm(1,reverb, distortion, chorus,hpflpf,reversePhase,compressor, 28),
+                new Rhythm(2,reverb, distortion, chorus,hpflpf,reversePhase,compressor, 29),
+                new Rhythm(3,reverb, distortion, chorus,hpflpf,reversePhase,compressor, 30),
+                new Rhythm(4,reverb, distortion, chorus,hpflpf,reversePhase,compressor, 31),
+                new Rhythm(5,reverb, distortion, chorus,hpflpf,reversePhase,compressor, 32) };
+            adpcma = new ADPCMA(0, reverb, distortion, chorus, hpflpf, reversePhase, compressor, 33);
 
             for (int i = 0; i < 6; i++)
             {
@@ -401,8 +405,9 @@ namespace MDSound.fmvgen
                 if (addr == 0x323)
                 {
                     distortion.SetReg(0, (byte)data);//channel変更はアドレスを共有
-                    chorus.SetReg(0, (byte)data);//channel変更はアドレスを共有
-                    hpflpf.SetReg(0, (byte)data);//channel変更はアドレスを共有
+                    chorus.SetReg(0, (byte)data);
+                    hpflpf.SetReg(0, (byte)data);
+                    compressor.SetReg(0, (byte)data);
                 }
                 return;
             }
@@ -423,6 +428,11 @@ namespace MDSound.fmvgen
             else if (addr >= 0x3c0 && addr < 0x3c6)
             {
                 hpflpf.SetReg(addr - 0x3bf, (byte)data);
+                return;
+            }
+            else if (addr >= 0x3c6 && addr < 0x3cd)
+            {
+                compressor.SetReg(addr - 0x3c5, (byte)data);
                 return;
             }
 
@@ -599,6 +609,7 @@ namespace MDSound.fmvgen
                             distortion.Mix(r.efcCh, ref sL, ref sR);
                             chorus.Mix(r.efcCh, ref sL, ref sR);
                             hpflpf.Mix(r.efcCh, ref sL, ref sR);
+                            compressor.Mix(r.efcCh, ref sL, ref sR);
 
                             sL = sL & maskl;
                             sR = sR & maskr;

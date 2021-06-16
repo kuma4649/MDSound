@@ -15,13 +15,14 @@ namespace MDSound.fmvgen
         private chorus chorus;
         private effect.HPFLPF hpflpf;
         private effect.ReversePhase reversePhase;
+        private effect.Compressor compressor;
         private int efcStartCh;
         private byte[][] user = new byte[6][] { new byte[64], new byte[64], new byte[64], new byte[64], new byte[64], new byte[64] };
         private int userDefCounter = 0;
         private Func<int, uint, int>[] tblGetSample;
         private int num;
 
-        public PSG2(int num,reverb reverb, distortion distortion,chorus chorus, effect.HPFLPF hpflpf, effect.ReversePhase reversePhase, int efcStartCh)
+        public PSG2(int num,reverb reverb, distortion distortion,chorus chorus, effect.HPFLPF hpflpf, effect.ReversePhase reversePhase,effect.Compressor compressor, int efcStartCh)
         {
             this.num = num;
             this.reverb = reverb;
@@ -29,6 +30,7 @@ namespace MDSound.fmvgen
             this.chorus = chorus;
             this.hpflpf = hpflpf;
             this.reversePhase = reversePhase;
+            this.compressor = compressor;
             this.efcStartCh = efcStartCh;
             makeTblGetSample();
         }
@@ -172,6 +174,7 @@ namespace MDSound.fmvgen
                                     distortion.Mix(efcStartCh + k, ref L, ref R);
                                     chorus.Mix(efcStartCh + k, ref L, ref R);
                                     hpflpf.Mix(efcStartCh + k, ref L, ref R);
+                                    compressor.Mix(efcStartCh + k, ref L, ref R);
                                     L = (panpot[k] & 2) != 0 ? L : 0;
                                     R = (panpot[k] & 1) != 0 ? R : 0;
                                     L *= reversePhase.SSG[num][k][0];
@@ -230,6 +233,7 @@ namespace MDSound.fmvgen
                                     distortion.Mix(efcStartCh + k, ref L, ref R);
                                     chorus.Mix(efcStartCh + k, ref L, ref R);
                                     hpflpf.Mix(efcStartCh + k, ref L, ref R);
+                                    compressor.Mix(efcStartCh + k, ref L, ref R);
                                     L = (panpot[k] & 2) != 0 ? L : 0;
                                     R = (panpot[k] & 1) != 0 ? R : 0;
                                     L *= reversePhase.SSG[num][k][0];
@@ -304,6 +308,7 @@ namespace MDSound.fmvgen
                                 distortion.Mix(efcStartCh + k, ref L, ref R);
                                 chorus.Mix(efcStartCh + k, ref L, ref R);
                                 hpflpf.Mix(efcStartCh + k, ref L, ref R);
+                                compressor.Mix(efcStartCh + k, ref L, ref R);
                                 L = (panpot[k] & 2) != 0 ? L : 0;
                                 R = (panpot[k] & 1) != 0 ? R : 0;
                                 L *= reversePhase.SSG[num][k][0];

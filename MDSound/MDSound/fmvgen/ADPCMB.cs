@@ -57,8 +57,9 @@ namespace MDSound.fmvgen
         private int efcCh;
         private int num;
         private effect.ReversePhase reversePhase;
+        private effect.Compressor compressor;
 
-        public ADPCMB(int num,reverb reverb, distortion distortion, chorus chorus,effect.HPFLPF hpflpf,effect.ReversePhase reversePhase, int efcCh)
+        public ADPCMB(int num,reverb reverb, distortion distortion, chorus chorus,effect.HPFLPF hpflpf, effect.ReversePhase reversePhase, effect.Compressor compressor, int efcCh)
         {
             this.num = num;
             this.reverb = reverb;
@@ -66,6 +67,7 @@ namespace MDSound.fmvgen
             this.chorus = chorus;
             this.hpflpf = hpflpf;
             this.reversePhase = reversePhase;
+            this.compressor = compressor;
             this.efcCh = efcCh;
         }
 
@@ -100,6 +102,7 @@ namespace MDSound.fmvgen
                         distortion.Mix(efcCh, ref sL, ref sR);
                         chorus.Mix(efcCh, ref sL, ref sR);
                         hpflpf.Mix(efcCh, ref sL, ref sR);
+                        compressor.Mix(efcCh, ref sL, ref sR);
 
                         sL = (int)(sL * panL) * reversePhase.Adpcm[num][0];
                         sR = (int)(sR * panR) * reversePhase.Adpcm[num][1];
@@ -127,6 +130,7 @@ namespace MDSound.fmvgen
                         distortion.Mix(efcCh, ref sL, ref sR);
                         chorus.Mix(efcCh, ref sL, ref sR);
                         hpflpf.Mix(efcCh, ref sL, ref sR);
+                        compressor.Mix(efcCh, ref sL, ref sR);
 
                         sL = (int)(sL * panL) * reversePhase.Adpcm[num][0];
                         sR = (int)(sR * panR) * reversePhase.Adpcm[num][1];
@@ -162,6 +166,7 @@ namespace MDSound.fmvgen
                         distortion.Mix(efcCh, ref sL, ref sR);
                         chorus.Mix(efcCh, ref sL, ref sR);
                         hpflpf.Mix(efcCh, ref sL, ref sR);
+                        compressor.Mix(efcCh, ref sL, ref sR);
 
                         sL = (int)(sL * panL) * reversePhase.Adpcm[num][0];
                         sR = (int)(sR * panR) * reversePhase.Adpcm[num][1];

@@ -43,6 +43,7 @@ namespace MDSound.fmvgen
         private int revStartCh = 0;
         private int num = 0;
         private effect.ReversePhase reversePhase;
+        private effect.Compressor compressor;
 
         private sbyte[] table2 = new sbyte[]
         {
@@ -59,7 +60,7 @@ namespace MDSound.fmvgen
         private bool currentIsLSB;
         //protected float[] panTable = new float[4] { 1.0f, 0.5012f, 0.2512f, 0.1000f };
 
-        public ADPCMA(int num,reverb reverb, distortion distortion,chorus chorus,effect.HPFLPF hpflpf,effect.ReversePhase reversePhase, int revStartCh)
+        public ADPCMA(int num,reverb reverb, distortion distortion,chorus chorus,effect.HPFLPF hpflpf, effect.ReversePhase reversePhase, effect.Compressor compressor, int revStartCh)
         {
             this.num = num;
             this.reversePhase = reversePhase;
@@ -67,6 +68,8 @@ namespace MDSound.fmvgen
             this.distortion = distortion;
             this.chorus = chorus;
             this.hpflpf = hpflpf;
+            this.compressor = compressor;
+            
             this.revStartCh = revStartCh;
             this.buf = null;
             this.size = 0;
@@ -165,6 +168,7 @@ namespace MDSound.fmvgen
                             distortion.Mix(revStartCh + i, ref sampleL, ref sampleR);
                             chorus.Mix(revStartCh + i, ref sampleL, ref sampleR);
                             hpflpf.Mix(revStartCh + i, ref sampleL, ref sampleR);
+                            compressor.Mix(revStartCh + i, ref sampleL, ref sampleR);
 
                             sampleL = (int)(sampleL * r.panL) * reversePhase.AdpcmA[i][0];
                             sampleR = (int)(sampleR * r.panR) * reversePhase.AdpcmA[i][1];
