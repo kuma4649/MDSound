@@ -105,7 +105,7 @@ namespace MDSound.fmvgen.effect
             {
                 gainR = chInfo[ch].threshold + (tmpR - chInfo[ch].threshold) / chInfo[ch].ratio;
             }
-            gainR = chInfo[ch].gainfilterR.Process(gainL);
+            gainR = chInfo[ch].gainfilterR.Process(gainR);
 
 
             // 入力信号に音量(ゲイン)をかけ、さらに最終的な音量を調整し出力する
@@ -137,7 +137,7 @@ namespace MDSound.fmvgen.effect
             else if (adr == 1)
             {
                 chInfo[currentCh].sw = ((data & 0x80) != 0);
-                chInfo[currentCh].volume = (data & 0x7f) / (127.0f / 3.0f);
+                chInfo[currentCh].volume = (data & 0x7f) / (127.0f / 4.0f);
             }
             else if (adr == 2)
             {
@@ -149,7 +149,7 @@ namespace MDSound.fmvgen.effect
             }
             else if (adr == 4)
             {
-                chInfo[currentCh].envFreq = data / (255.0f / 50.0f);
+                chInfo[currentCh].envFreq = data / (255.0f / 80.0f);
                 chInfo[currentCh].envfilterL.LowPass(chInfo[currentCh].envFreq, chInfo[currentCh].envQ, samplerate);
                 chInfo[currentCh].envfilterR.LowPass(chInfo[currentCh].envFreq, chInfo[currentCh].envQ, samplerate);
             }
@@ -161,7 +161,7 @@ namespace MDSound.fmvgen.effect
             }
             else if (adr == 6)
             {
-                chInfo[currentCh].gainFreq = data / (255.0f / 50.0f);
+                chInfo[currentCh].gainFreq = data / (255.0f / 80.0f);
                 chInfo[currentCh].gainfilterL.LowPass(chInfo[currentCh].gainFreq, chInfo[currentCh].gainQ, samplerate);
                 chInfo[currentCh].gainfilterR.LowPass(chInfo[currentCh].gainFreq, chInfo[currentCh].gainQ, samplerate);
             }
