@@ -121,7 +121,7 @@ namespace MDSound
         }
 
         private const Int32 MAX_CHIPS = 0x02;
-        private static k051649_state[] SCC1Data = new k051649_state[MAX_CHIPS];
+        private k051649_state[] SCC1Data = new k051649_state[MAX_CHIPS];
 
         public override string Name { get { return "K051649"; } set { } }
         public override string ShortName { get { return "K051"; } set { } }
@@ -134,7 +134,7 @@ namespace MDSound
         }*/
 
         /* build a table to divide by the number of voices */
-        private static void make_mixer_table(/*running_machine *machine,*/ k051649_state info, Int32 voices)
+        private void make_mixer_table(/*running_machine *machine,*/ k051649_state info, Int32 voices)
         {
             Int32 count = voices * 256;
             Int32 i;
@@ -423,9 +423,10 @@ namespace MDSound
         }
 
 
-        private void k051649_w(byte ChipID, Int32 offset, byte data)
+        private void k051649_w(byte ChipID, int offset, byte data)
         {
             k051649_state info = SCC1Data[ChipID];
+            if (info == null) return;
 
             switch (offset & 1)
             {
