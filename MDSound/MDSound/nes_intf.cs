@@ -401,18 +401,19 @@ namespace MDSound
             return;
         }
 
-        public byte[] nes_r(byte ChipID)
+        public byte[] nes_r_apu(byte ChipID)
         {
             if (NESAPUData[ChipID] == null) return null;
             if (NESAPUData[ChipID].chip_apu == null) return null;
-
-            if (NESAPUData[ChipID].chip_dmc != null)
-            {
-                for (int i = 8; i < 0x18; i++)
-                    NESAPUData[ChipID].chip_apu.reg[i] = NESAPUData[ChipID].chip_dmc.reg[i - 8];
-            }
-
             return NESAPUData[ChipID].chip_apu.reg;
+        }
+
+        public byte[] nes_r_dmc(byte ChipID)
+        {
+            if (NESAPUData[ChipID] == null) return null;
+            if (NESAPUData[ChipID].chip_dmc == null) return null;
+
+            return NESAPUData[ChipID].chip_dmc.reg;
         }
 
         public np_nes_fds.NES_FDS nes_r_fds(byte ChipID)

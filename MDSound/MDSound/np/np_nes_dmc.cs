@@ -40,7 +40,7 @@ namespace MDSound.np
 
 
         /** Bottom Half of APU **/
-        private enum OPT : int
+        public enum OPT : int
         {
             OPT_ENABLE_4011 = 0,
             OPT_ENABLE_PNOISE,
@@ -98,7 +98,7 @@ namespace MDSound.np
             public Int32[] option = new Int32[10];// OPT_END];
             public Int32 mask;
             public Int32[][] sm = new Int32[2][] { new Int32[3], new Int32[3] };
-            public byte[] reg = new byte[0x10];
+            public byte[] reg = new byte[0x20];
             public UInt32 len_reg;
             public UInt32 adr_reg;
             public IDevice org_memory;
@@ -425,10 +425,11 @@ namespace MDSound.np
         // 三角波チャンネルの計算 戻り値は0-15
         private UInt32 calc_tri(NES_DMC dmc, UInt32 clocks)
         {
-
+            byte tri = 0;
             if (dmc.linear_counter > 0 && dmc.length_counter[0] > 0
                 && (dmc.option[(Int32)OPT.OPT_TRI_MUTE] == 0 || dmc.tri_freq > 0))
             {
+                tri = 1;
                 dmc.counter[0] -= (Int32)clocks;
                 while (dmc.counter[0] < 0)
                 {
@@ -451,6 +452,7 @@ namespace MDSound.np
             //    }
             //}
 
+            dmc.reg[0x10] = tri;
             return tritbl[dmc.tphase];
         }
 
@@ -460,12 +462,18 @@ namespace MDSound.np
         // 変換を行っている。
         private UInt32 calc_noise(NES_DMC dmc, UInt32 clocks)
         {
+            byte noi = 1;
+
             UInt32 env, last, count, accum, clocks_accum;
 
             env = (UInt32)(dmc.envelope_disable ? dmc.noise_volume : dmc.envelope_counter);
-            if (dmc.length_counter[1] < 1) env = 0;
+            if (dmc.length_counter[1] < 1) { env = 0; }
+
+            if (env == 0) noi = 0;
+            dmc.reg[0x11] = noi;
 
             last = (dmc.noise & 0x4000) != 0 ? 0 : env;
+
             if (clocks < 1) return last;
 
             // simple anti-aliasing (noise requires it, even when oversampling is off)
@@ -568,6 +576,7 @@ namespace MDSound.np
                 }
             }
 
+            dmc.reg[0x12] = (byte)(dmc.empty ? 0 : 1);// dpc;
             return (uint)((dmc.damp << 1) + dmc.dac_lsb);
         }
 
@@ -627,6 +636,7 @@ namespace MDSound.np
                 }
             }
 
+            dmc.reg[0x12] = (byte)(dmc.empty ? 0 : 1);// dpc;
             return (UInt32)((dmc.damp << 1) + dmc.dac_lsb);
         }
 
@@ -729,6 +739,13 @@ namespace MDSound.np
             b[1] += m[2] * dmc.sm[1][2];
             b[1] >>= 5;
 
+            //dmc.reg[0x10] = (byte)(m[0]);
+            //dmc.reg[0x11] = (byte)(m[0] >> 8);
+            //dmc.reg[0x12] = (byte)(m[1]);
+            //dmc.reg[0x13] = (byte)(m[1] >> 8);
+            //dmc.reg[0x14] = (byte)(m[2]);
+            //dmc.reg[0x15] = (byte)(m[2] >> 8);
+
             return 2;
         }
 
@@ -796,6 +813,13 @@ namespace MDSound.np
             b[1] += m[1] * dmc.sm[1][1];
             b[1] += m[2] * dmc.sm[1][2];
             b[1] >>= 7 - 3;
+
+            //dmc.reg[0x10] = (byte)(m[0]);
+            //dmc.reg[0x11] = (byte)(m[0] >> 8);
+            //dmc.reg[0x12] = (byte)(m[1]);
+            //dmc.reg[0x13] = (byte)(m[1] >> 8);
+            //dmc.reg[0x14] = (byte)(m[2]);
+            //dmc.reg[0x15] = (byte)(m[2] >> 8);
 
             return 2;
         }

@@ -3220,23 +3220,43 @@ namespace MDSound
             }
         }
 
-        public byte[] ReadNES(byte ChipID)
+        public byte[] ReadNESapu(byte ChipID)
         {
             lock (lockobj)
             {
                 if (!dicInst.ContainsKey(enmInstrumentType.Nes)) return null;
 
-                return ((nes_intf)(dicInst[enmInstrumentType.Nes][0])).nes_r(ChipID);
+                return ((nes_intf)(dicInst[enmInstrumentType.Nes][0])).nes_r_apu(ChipID);
             }
         }
 
-        public byte[] ReadNES(int ChipIndex, byte ChipID)
+        public byte[] ReadNESapu(int ChipIndex, byte ChipID)
         {
             lock (lockobj)
             {
                 if (!dicInst.ContainsKey(enmInstrumentType.Nes)) return null;
 
-                return ((nes_intf)(dicInst[enmInstrumentType.Nes][ChipIndex])).nes_r(ChipID);
+                return ((nes_intf)(dicInst[enmInstrumentType.Nes][ChipIndex])).nes_r_apu(ChipID);
+            }
+        }
+
+        public byte[] ReadNESdmc(byte ChipID)
+        {
+            lock (lockobj)
+            {
+                if (!dicInst.ContainsKey(enmInstrumentType.Nes)) return null;
+
+                return ((nes_intf)(dicInst[enmInstrumentType.Nes][0])).nes_r_dmc(ChipID);
+            }
+        }
+
+        public byte[] ReadNESdmc(int ChipIndex, byte ChipID)
+        {
+            lock (lockobj)
+            {
+                if (!dicInst.ContainsKey(enmInstrumentType.Nes)) return null;
+
+                return ((nes_intf)(dicInst[enmInstrumentType.Nes][ChipIndex])).nes_r_dmc(ChipID);
             }
         }
 
