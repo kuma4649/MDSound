@@ -1,0 +1,148 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+    <AssemblyName>MDSound</AssemblyName>
+    <RootNamespace>MDSound</RootNamespace>
+    <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Optimize>true</Optimize>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\MDSound\ay8910.cs" Link="ay8910.cs" />
+    <Compile Include="..\MDSound\c140.cs" Link="c140.cs" />
+    <Compile Include="..\MDSound\c352.cs" Link="c352.cs" />
+    <Compile Include="..\MDSound\common.cs" Link="common.cs" />
+    <Compile Include="..\MDSound\dacControl.cs" Link="dacControl.cs" />
+    <Compile Include="..\MDSound\fmgen\file.cs" Link="fmgen\file.cs" />
+    <Compile Include="..\MDSound\fmgen\fmgen.cs" Link="fmgen\fmgen.cs" />
+    <Compile Include="..\MDSound\fmgen\opm.cs" Link="fmgen\opm.cs" />
+    <Compile Include="..\MDSound\fmgen\opna.cs" Link="fmgen\opna.cs" />
+    <Compile Include="..\MDSound\fmgen\psg.cs" Link="fmgen\psg.cs" />
+    <Compile Include="..\MDSound\fmgen\Timer.cs" Link="fmgen\Timer.cs" />
+    <Compile Include="..\MDSound\fmvgen\ADPCMA.cs" Link="fmvgen\ADPCMA.cs" />
+    <Compile Include="..\MDSound\fmvgen\ADPCMB.cs" Link="fmvgen\ADPCMB.cs" />
+    <Compile Include="..\MDSound\fmvgen\effect\chorus.cs" Link="fmvgen\effect\chorus.cs" />
+    <Compile Include="..\MDSound\fmvgen\effect\CMyFilter.cs" Link="fmvgen\effect\CMyFilter.cs" />
+    <Compile Include="..\MDSound\fmvgen\effect\Compressor.cs" Link="fmvgen\effect\Compressor.cs" />
+    <Compile Include="..\MDSound\fmvgen\effect\CRingBuffur.cs" Link="fmvgen\effect\CRingBuffur.cs" />
+    <Compile Include="..\MDSound\fmvgen\effect\distortion.cs" Link="fmvgen\effect\distortion.cs" />
+    <Compile Include="..\MDSound\fmvgen\effect\eq3band.cs" Link="fmvgen\effect\eq3band.cs" />
+    <Compile Include="..\MDSound\fmvgen\effect\HPFLPF.cs" Link="fmvgen\effect\HPFLPF.cs" />
+    <Compile Include="..\MDSound\fmvgen\effect\IRingBuffur.cs" Link="fmvgen\effect\IRingBuffur.cs" />
+    <Compile Include="..\MDSound\fmvgen\effect\reverb.cs" Link="fmvgen\effect\reverb.cs" />
+    <Compile Include="..\MDSound\fmvgen\effect\ReversePhase.cs" Link="fmvgen\effect\ReversePhase.cs" />
+    <Compile Include="..\MDSound\fmvgen\FM6.cs" Link="fmvgen\FM6.cs" />
+    <Compile Include="..\MDSound\fmvgen\fmvgen.cs" Link="fmvgen\fmvgen.cs" />
+    <Compile Include="..\MDSound\fmvgen\opna2.cs" Link="fmvgen\opna2.cs" />
+    <Compile Include="..\MDSound\fmvgen\psg2.cs" Link="fmvgen\psg2.cs" />
+    <Compile Include="..\MDSound\gb.cs" Link="gb.cs" />
+    <Compile Include="..\MDSound\Instrument.cs" Link="Instrument.cs" />
+    <Compile Include="..\MDSound\iremga20.cs" Link="iremga20.cs" />
+    <Compile Include="..\MDSound\k005289.cs" Link="k005289.cs" />
+    <Compile Include="..\MDSound\K051649.cs" Link="K051649.cs" />
+    <Compile Include="..\MDSound\K053260.cs" Link="K053260.cs" />
+    <Compile Include="..\MDSound\K054539.cs" Link="K054539.cs" />
+    <Compile Include="..\MDSound\Log.cs" Link="Log.cs" />
+    <Compile Include="..\MDSound\LogLevel.cs" Link="LogLevel.cs" />
+    <Compile Include="..\MDSound\mame\fm.cs" Link="mame\fm.cs" />
+    <Compile Include="..\MDSound\mame\fm2612.cs" Link="mame\fm2612.cs" />
+    <Compile Include="..\MDSound\mame\YM_DELTAT.cs" Link="mame\YM_DELTAT.cs" />
+    <Compile Include="..\MDSound\MDSound.cs" Link="MDSound.cs" />
+    <Compile Include="..\MDSound\mpcmX68k.cs" Link="mpcmX68k.cs" />
+    <Compile Include="..\MDSound\multipcm.cs" Link="multipcm.cs" />
+    <Compile Include="..\MDSound\nes_intf.cs" Link="nes_intf.cs" />
+    <Compile Include="..\MDSound\np\chip\emu2149.cs" Link="np\chip\emu2149.cs" />
+    <Compile Include="..\MDSound\np\chip\emu2413.cs" Link="np\chip\emu2413.cs" />
+    <Compile Include="..\MDSound\np\chip\IDeviceInfo.cs" Link="np\chip\IDeviceInfo.cs" />
+    <Compile Include="..\MDSound\np\chip\nes_apu.cs" Link="np\chip\nes_apu.cs" />
+    <Compile Include="..\MDSound\np\chip\nes_dmc.cs" Link="np\chip\nes_dmc.cs" />
+    <Compile Include="..\MDSound\np\chip\nes_fds.cs" Link="np\chip\nes_fds.cs" />
+    <Compile Include="..\MDSound\np\chip\nes_fme7.cs" Link="np\chip\nes_fme7.cs" />
+    <Compile Include="..\MDSound\np\chip\nes_mmc5.cs" Link="np\chip\nes_mmc5.cs" />
+    <Compile Include="..\MDSound\np\chip\nes_n106.cs" Link="np\chip\nes_n106.cs" />
+    <Compile Include="..\MDSound\np\chip\nes_vrc6.cs" Link="np\chip\nes_vrc6.cs" />
+    <Compile Include="..\MDSound\np\chip\nes_vrc7.cs" Link="np\chip\nes_vrc7.cs" />
+    <Compile Include="..\MDSound\np\cpu\km6502.cs" Link="np\cpu\km6502.cs" />
+    <Compile Include="..\MDSound\np\DCFilter.cs" Link="np\DCFilter.cs" />
+    <Compile Include="..\MDSound\np\detect.cs" Link="np\detect.cs" />
+    <Compile Include="..\MDSound\np\Filter.cs" Link="np\Filter.cs" />
+    <Compile Include="..\MDSound\np\IDevice.cs" Link="np\IDevice.cs" />
+    <Compile Include="..\MDSound\np\memory\nes_bank.cs" Link="np\memory\nes_bank.cs" />
+    <Compile Include="..\MDSound\np\memory\nes_mem.cs" Link="np\memory\nes_mem.cs" />
+    <Compile Include="..\MDSound\np\np_nes_apu.cs" Link="np\np_nes_apu.cs" />
+    <Compile Include="..\MDSound\np\np_nes_dmc.cs" Link="np\np_nes_dmc.cs" />
+    <Compile Include="..\MDSound\np\np_nes_fds.cs" Link="np\np_nes_fds.cs" />
+    <Compile Include="..\MDSound\okim6258.cs" Link="okim6258.cs" />
+    <Compile Include="..\MDSound\okim6295.cs" Link="okim6295.cs" />
+    <Compile Include="..\MDSound\Ootake_PSG.cs" Link="Ootake_PSG.cs" />
+    <Compile Include="..\MDSound\P86.cs" Link="P86.cs" />
+    <Compile Include="..\MDSound\pokey.cs" Link="pokey.cs" />
+    <Compile Include="..\MDSound\PPSDRV.cs" Link="PPSDRV.cs" />
+    <Compile Include="..\MDSound\PPZ8.cs" Link="PPZ8.cs" />
+    <Compile Include="..\MDSound\pwm.cs" Link="pwm.cs" />
+    <Compile Include="..\MDSound\qsound.cs" Link="qsound.cs" />
+    <Compile Include="..\MDSound\qsound_ctr.cs" Link="qsound_ctr.cs" />
+    <Compile Include="..\MDSound\rf5c68.cs" Link="rf5c68.cs" />
+    <Compile Include="..\MDSound\saa1099.cs" Link="saa1099.cs" />
+    <Compile Include="..\MDSound\scd_pcm.cs" Link="scd_pcm.cs" />
+    <Compile Include="..\MDSound\segapcm.cs" Link="segapcm.cs" />
+    <Compile Include="..\MDSound\SinWave.cs" Link="SinWave.cs" />
+    <Compile Include="..\MDSound\sn76489.cs" Link="sn76489.cs" />
+    <Compile Include="..\MDSound\sn76496.cs" Link="sn76496.cs" />
+    <Compile Include="..\MDSound\visWaveBuffer.cs" Link="visWaveBuffer.cs" />
+    <Compile Include="..\MDSound\x1_010.cs" Link="x1_010.cs" />
+    <Compile Include="..\MDSound\X68Sound\adpcm.cs" Link="X68Sound\adpcm.cs" />
+    <Compile Include="..\MDSound\X68Sound\global.cs" Link="X68Sound\global.cs" />
+    <Compile Include="..\MDSound\X68Sound\lfo.cs" Link="X68Sound\lfo.cs" />
+    <Compile Include="..\MDSound\X68Sound\NX68Sound.cs" Link="X68Sound\NX68Sound.cs" />
+    <Compile Include="..\MDSound\X68Sound\op.cs" Link="X68Sound\op.cs" />
+    <Compile Include="..\MDSound\X68Sound\opm.cs" Link="X68Sound\opm.cs" />
+    <Compile Include="..\MDSound\X68Sound\Pcm8.cs" Link="X68Sound\Pcm8.cs" />
+    <Compile Include="..\MDSound\X68Sound\sound_iocs.cs" Link="X68Sound\sound_iocs.cs" />
+    <Compile Include="..\MDSound\XGMFunction.cs" Link="XGMFunction.cs" />
+    <Compile Include="..\MDSound\y8950.cs" Link="y8950.cs" />
+    <Compile Include="..\MDSound\ym2151.cs" Link="ym2151.cs" />
+    <Compile Include="..\MDSound\ym2151_mame.cs" Link="ym2151_mame.cs" />
+    <Compile Include="..\MDSound\ym2151_x68sound.cs" Link="ym2151_x68sound.cs" />
+    <Compile Include="..\MDSound\ym2203.cs" Link="ym2203.cs" />
+    <Compile Include="..\MDSound\ym2413.cs" Link="ym2413.cs" />
+    <Compile Include="..\MDSound\ym2608.cs" Link="ym2608.cs" />
+    <Compile Include="..\MDSound\ym2609.cs" Link="ym2609.cs" />
+    <Compile Include="..\MDSound\ym2610.cs" Link="ym2610.cs" />
+    <Compile Include="..\MDSound\ym2612.cs" Link="ym2612.cs" />
+    <Compile Include="..\MDSound\ym2612mame.cs" Link="ym2612mame.cs" />
+    <Compile Include="..\MDSound\ym2612mameX.cs" Link="ym2612mameX.cs" />
+    <Compile Include="..\MDSound\ym2612X.cs" Link="ym2612X.cs" />
+    <Compile Include="..\MDSound\ym3438.cs" Link="ym3438.cs" />
+    <Compile Include="..\MDSound\ym3438X.cs" Link="ym3438X.cs" />
+    <Compile Include="..\MDSound\ym3438_const.cs" Link="ym3438_const.cs" />
+    <Compile Include="..\MDSound\ym3526.cs" Link="ym3526.cs" />
+    <Compile Include="..\MDSound\ym3812.cs" Link="ym3812.cs" />
+    <Compile Include="..\MDSound\ymf262.cs" Link="ymf262.cs" />
+    <Compile Include="..\MDSound\ymf271.cs" Link="ymf271.cs" />
+    <Compile Include="..\MDSound\ymf278b.cs" Link="ymf278b.cs" />
+    <Compile Include="..\MDSound\ymz280b.cs" Link="ymz280b.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="fmvgen\effect\" />
+    <Folder Include="mame\" />
+    <Folder Include="np\chip\" />
+    <Folder Include="np\cpu\" />
+    <Folder Include="np\memory\" />
+    <Folder Include="X68Sound\" />
+    <Folder Include="fmgen\" />
+  </ItemGroup>
+
+</Project>

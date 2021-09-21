@@ -17,6 +17,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "document", "document", "{5C
 		..\YM2609.txt = ..\YM2609.txt
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MDSound_NET5", "MDSound_NET5\MDSound_NET5.csproj", "{B87C5CE8-EBA3-4784-BEDF-0B4A83D165C3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -31,6 +33,10 @@ Global
 		{5A99E426-0920-499E-A293-7ECBFFF39008}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5A99E426-0920-499E-A293-7ECBFFF39008}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5A99E426-0920-499E-A293-7ECBFFF39008}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B87C5CE8-EBA3-4784-BEDF-0B4A83D165C3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B87C5CE8-EBA3-4784-BEDF-0B4A83D165C3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B87C5CE8-EBA3-4784-BEDF-0B4A83D165C3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B87C5CE8-EBA3-4784-BEDF-0B4A83D165C3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

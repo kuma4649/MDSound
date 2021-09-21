@@ -362,6 +362,8 @@ namespace MDSound.fmvgen
 
         private int GetSampleFromUserDef(int k, uint lv)
         {
+            if (chenable[k] == 0) return 0;
+
             //ユーザー定義
             uint pos = (scount[k] >> (toneshift + oversampling - 3 - 2)) & 63;
             int n = ((int)user[duty[k] - 10][pos] & chenable[k]);
@@ -371,6 +373,8 @@ namespace MDSound.fmvgen
 
         private int GetSampleFromSaw(int k, uint lv)
         {
+            if (chenable[k] == 0) return 0;
+
             int n = ((int)(scount[k] >> (toneshift + oversampling - 3)) & chenable[k]);
             //のこぎり波
             int x = n < 7 ? n : (n - 16);
@@ -379,6 +383,8 @@ namespace MDSound.fmvgen
 
         private int GetSampleFromTriangle(int k, uint lv)
         {
+            if (chenable[k] == 0) return 0;
+
             int n = ((int)(scount[k] >> (toneshift + oversampling - 3)) & chenable[k]);
             //三角波
             int x = n < 8 ? (n - 4) : (15 - 4 - n);
@@ -387,6 +393,8 @@ namespace MDSound.fmvgen
 
         private int GetSampleFromDuty(int k, uint lv)
         {
+            if (chenable[k] == 0) return 0;
+
             int n = ((int)(scount[k] >> (toneshift + oversampling - 3)) & chenable[k]);
             //矩形波
             int x = n > duty[k] ? 0 : -1;
