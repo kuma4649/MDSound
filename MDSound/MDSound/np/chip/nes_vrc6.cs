@@ -21,7 +21,7 @@ namespace MDSound.np.chip
         protected UInt32[] freq = new UInt32[3];
         protected bool halt;
         protected Int32 freq_shift;
-        protected double clock, rate;
+        public double clock, rate;
         protected Int32[] _out = new Int32[3];
         protected TrackInfoBasic[] trkinfo = new TrackInfoBasic[3];
 

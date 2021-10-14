@@ -3263,6 +3263,28 @@ namespace MDSound
         #endregion
 
 
+        #region VRC6
+
+        int[] vrc6AddressTable = new int[]
+        {
+            0x9000,0x9001,0x9002,0x9003,
+            0xa000,0xa001,0xa002,0xa003,
+            0xb000,0xb001,0xb002,0xb003
+        };
+
+        public void WriteVRC6(int ChipIndex, byte ChipID, byte Adr, byte Data)
+        {
+            lock (lockobj)
+            {
+                if (!dicInst.ContainsKey(enmInstrumentType.VRC6)) return;
+
+                ((VRC6)(dicInst[enmInstrumentType.VRC6][ChipIndex])).Write(ChipID, 0, vrc6AddressTable[Adr], Data);
+            }
+        }
+
+        #endregion
+
+
         #region MultiPCM
 
         public void WriteMultiPCM(byte ChipID, byte Adr, byte Data)
