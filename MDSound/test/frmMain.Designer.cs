@@ -41,6 +41,7 @@
             this.lblInterrupt = new System.Windows.Forms.Label();
             this.lblRealChipSenderIsRunning = new System.Windows.Forms.Label();
             this.lblEmuChipSenderIsRunning = new System.Windows.Forms.Label();
+            this.lblDebug = new System.Windows.Forms.Label();
             this.label14 = new System.Windows.Forms.Label();
             this.lblDataSenderIsRunning = new System.Windows.Forms.Label();
             this.label13 = new System.Windows.Forms.Label();
@@ -62,7 +63,6 @@
             this.label12 = new System.Windows.Forms.Label();
             this.label5 = new System.Windows.Forms.Label();
             this.label4 = new System.Windows.Forms.Label();
-            this.lblDebug = new System.Windows.Forms.Label();
             this.groupBox1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -199,6 +199,15 @@
             this.lblEmuChipSenderIsRunning.TabIndex = 0;
             this.lblEmuChipSenderIsRunning.Text = "Stop";
             this.lblEmuChipSenderIsRunning.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            // 
+            // lblDebug
+            // 
+            this.lblDebug.AutoSize = true;
+            this.lblDebug.Location = new System.Drawing.Point(6, 192);
+            this.lblDebug.Name = "lblDebug";
+            this.lblDebug.Size = new System.Drawing.Size(35, 12);
+            this.lblDebug.TabIndex = 0;
+            this.lblDebug.Text = "debug";
             // 
             // label14
             // 
@@ -389,15 +398,6 @@
             this.label4.TabIndex = 0;
             this.label4.Text = "SeqCounter :";
             // 
-            // lblDebug
-            // 
-            this.lblDebug.AutoSize = true;
-            this.lblDebug.Location = new System.Drawing.Point(6, 192);
-            this.lblDebug.Name = "lblDebug";
-            this.lblDebug.Size = new System.Drawing.Size(35, 12);
-            this.lblDebug.TabIndex = 0;
-            this.lblDebug.Text = "debug";
-            // 
             // FrmMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
@@ -415,6 +415,7 @@
             this.Name = "FrmMain";
             this.Text = "TestPlayer";
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.FrmMain_FormClosed);
+            this.Shown += new System.EventHandler(this.FrmMain_Shown);
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();
             this.ResumeLayout(false);

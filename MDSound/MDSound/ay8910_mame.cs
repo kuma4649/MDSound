@@ -6,37 +6,75 @@ namespace MDSound
 {
 	public class ay8910_mame : Instrument
 	{
+		private ay8910_context[] chip = new ay8910_context[2];
+		private const uint DefaultAY8910ClockValue = 1789750;
+		private uint sampleRate = 44100;
+		private uint masterClock = DefaultAY8910ClockValue;
+		private double sampleCounter = 0;
+		private int[][] frm = new int[2][] { new int[1], new int[1] };
+
 		public override string Name { get { return "AY8910mame"; } set { } }
 		public override string ShortName { get { return "AY10m"; } set { } }
 
 		public override void Reset(byte ChipID)
 		{
-			throw new NotImplementedException();
+			ay8910_reset(chip[ChipID]);
 		}
 
 		public override uint Start(byte ChipID, uint clock)
 		{
-			throw new NotImplementedException();
+			return Start(ChipID, clock, DefaultAY8910ClockValue, null);
 		}
 
 		public override uint Start(byte ChipID, uint clock, uint ClockValue, params object[] option)
 		{
-			throw new NotImplementedException();
+			ay8910_context ch;
+			sampleRate = clock;
+			masterClock = ClockValue / 4;
+			ay8910_start(out ch, ClockValue, 0, 0);
+
+			chip[ChipID] = ch;
+			return clock;
 		}
 
 		public override void Stop(byte ChipID)
 		{
-			throw new NotImplementedException();
+			ay8910_stop(chip[ChipID]);
 		}
 
 		public override void Update(byte ChipID, int[][] outputs, int samples)
 		{
-			throw new NotImplementedException();
+			for (int i = 0; i < samples; i++)
+			{
+				outputs[0][i] = 0;
+				outputs[1][i] = 0;
+
+				sampleCounter += masterClock / sampleRate;
+				int upc = (int)sampleCounter;
+				while (sampleCounter >= 1)
+				{
+					ay8910_update_one(chip[ChipID], (uint)1, frm);
+
+					outputs[0][i] += frm[0][0];
+					outputs[1][i] += frm[1][0];
+
+					sampleCounter -= 1.0;
+				}
+
+				if (upc != 0)
+				{
+					outputs[0][i] /= upc;
+					outputs[1][i] /= upc;
+				}
+				outputs[0][i] <<= 2;
+				outputs[1][i] <<= 2;
+			}
 		}
 
 		public override int Write(byte ChipID, int port, int adr, int data)
 		{
-			throw new NotImplementedException();
+			ay8910_write_reg(chip[ChipID], (byte)adr, (byte)data);
+			return 0;
 		}
 
 
@@ -1828,6 +1866,15 @@ INLINE UINT16 mix_3D(ay8910_context *psg)
 		{
 		}
 
+		byte[][] AYmask = new byte[2][]{
+			new byte[0x10]{
+				0xff,0x0f,0xff,0x0f,0xff,0x0f,0x1f,0xff,0x3f,0x3f,0x3f,0xff,0xff,0x0f,0xff,0xff
+			},
+			new byte[0x10]{
+				0xff,0x0f,0xff,0x0f,0xff,0x0f,0x1f,0xff,0x1f,0x1f,0x1f,0xff,0xff,0x0f,0xff,0xff
+			}
+		};
+
 		private byte ay8910_read(ay8910_context chip, byte addr)
 		{
 			ay8910_context psg = (ay8910_context)chip;
@@ -1875,18 +1922,12 @@ INLINE UINT16 mix_3D(ay8910_context *psg)
 			*/
 			if (psg.chip_type == (byte)AYTYPE.AY8914)
 			{
-				byte[] mask = new byte[0x10]{
-			0xff,0x0f,0xff,0x0f,0xff,0x0f,0x1f,0xff,0x3f,0x3f,0x3f,0xff,0xff,0x0f,0xff,0xff
-		};
-				return (byte)(psg.regs[r] & mask[r]);
+				return (byte)(psg.regs[r] & AYmask[0][r]);
 			}
 			//else if (psg->chip_type == AYTYPE_AY8910) {
 			else if (psg.type == psg_type_t.PSG_TYPE_AY)
 			{
-				byte[] mask = new byte[0x10]{
-			0xff,0x0f,0xff,0x0f,0xff,0x0f,0x1f,0xff,0x1f,0x1f,0x1f,0xff,0xff,0x0f,0xff,0xff
-		};
-				return (byte)(psg.regs[r] & mask[r]);
+				return (byte)(psg.regs[r] & AYmask[1][r]);
 			}
 			else return psg.regs[r];
 		}

@@ -117,6 +117,7 @@ namespace test
             {
                 Paused = true
             };
+
         }
 
         private void LogWrite(MDSound.LogLevel level,string msg)
@@ -830,7 +831,8 @@ namespace test
                 chip = new MDSound.MDSound.Chip();
                 chip.type = MDSound.MDSound.enmInstrumentType.AY8910;
                 chip.ID = 0;
-                MDSound.ay8910 ay8910 = new MDSound.ay8910();
+                //MDSound.ay8910 ay8910 = new MDSound.ay8910();
+                MDSound.ay8910_mame ay8910 = new MDSound.ay8910_mame();
                 chip.Instrument = ay8910;
                 chip.Update = ay8910.Update;
                 chip.Start = ay8910.Start;
@@ -1149,7 +1151,7 @@ namespace test
                 frames[i * 2 + 1] = emuRenderBuf[1];
                 //Console.Write("Adr[{0:x8}] : Wait[{1:d8}] : [{2:d8}]/[{3:d8}]\r\n", vgmAdr,0,0,0);
                 //dummy++;
-                //dummy %= 2000;
+                //dummy %= 500;
                 //frames[i * 2 + 0] = (short)dummy;// (dummy < 100 ? 0xfff : 0x000);
             }
 
@@ -1597,7 +1599,7 @@ namespace test
                     rAdr = vgmBuf[vgmAdr + 1];
                     rDat = vgmBuf[vgmAdr + 2];
                     vgmAdr += 3;
-                    //mds.WriteAY8910(0, rAdr, rDat);
+                    mds.WriteAY8910(0, rAdr, rDat);
 
                     break;
                 case 0xb3: //GB DMG
@@ -1825,6 +1827,15 @@ namespace test
             return dat;
         }
 
+        private void FrmMain_Shown(object sender, EventArgs e)
+        {
+            string[] cmds = System.Environment.GetCommandLineArgs();
 
+            if (cmds.Length > 1)
+            {
+                tbFile.Text = cmds[1];
+                BtnPlay_Click(null, null);
+            }
+        }
     }
 }

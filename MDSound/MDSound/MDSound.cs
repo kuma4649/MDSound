@@ -1138,7 +1138,8 @@ namespace MDSound
             {
                 if (!dicInst.ContainsKey(enmInstrumentType.AY8910)) return;
 
-                ((ay8910)(dicInst[enmInstrumentType.AY8910][0])).Write(ChipID, 0, Adr, Data);
+                //((ay8910)(dicInst[enmInstrumentType.AY8910][0])).Write(ChipID, 0, Adr, Data);
+                ((ay8910_mame)(dicInst[enmInstrumentType.AY8910][0])).Write(ChipID, 0, Adr, Data);
             }
         }
 

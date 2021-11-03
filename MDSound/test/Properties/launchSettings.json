@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "test": {
+      "commandName": "Project",
+      "commandLineArgs": "C:\\Users\\kuma\\Desktop\\music0037\\music0037.vgm"
+    }
+  }
+}
