@@ -1138,8 +1138,8 @@ namespace MDSound
             {
                 if (!dicInst.ContainsKey(enmInstrumentType.AY8910)) return;
 
-                //((ay8910)(dicInst[enmInstrumentType.AY8910][0])).Write(ChipID, 0, Adr, Data);
-                ((ay8910_mame)(dicInst[enmInstrumentType.AY8910][0])).Write(ChipID, 0, Adr, Data);
+                ((ay8910)(dicInst[enmInstrumentType.AY8910][0])).Write(ChipID, 0, Adr, Data);
+                //((ay8910_mame)(dicInst[enmInstrumentType.AY8910][0])).Write(ChipID, 0, Adr, Data);
             }
         }
 
@@ -1152,7 +1152,6 @@ namespace MDSound
                 ((ay8910)(dicInst[enmInstrumentType.AY8910][ChipIndex])).Write(ChipID, 0, Adr, Data);
             }
         }
-
 
         public void setVolumeAY8910(int vol)
         {
@@ -1219,6 +1218,98 @@ namespace MDSound
         {
             if (!dicInst.ContainsKey(enmInstrumentType.AY8910)) return null;
             return ((ay8910)dicInst[enmInstrumentType.AY8910][ChipIndex]).visVolume;
+        }
+
+        #endregion
+
+
+        #region AY8910mame
+
+        public void WriteAY8910mame(byte ChipID, byte Adr, byte Data)
+        {
+            lock (lockobj)
+            {
+                if (!dicInst.ContainsKey(enmInstrumentType.AY8910)) return;
+
+                ((ay8910_mame)(dicInst[enmInstrumentType.AY8910][0])).Write(ChipID, 0, Adr, Data);
+            }
+        }
+
+        public void WriteAY8910mame(int ChipIndex, byte ChipID, byte Adr, byte Data)
+        {
+            lock (lockobj)
+            {
+                if (!dicInst.ContainsKey(enmInstrumentType.AY8910)) return;
+
+                ((ay8910_mame)(dicInst[enmInstrumentType.AY8910][ChipIndex])).Write(ChipID, 0, Adr, Data);
+            }
+        }
+
+        public void setVolumeAY8910mame(int vol)
+        {
+            if (!dicInst.ContainsKey(enmInstrumentType.AY8910)) return;
+
+            foreach (Chip c in insts)
+            {
+                if (c.type != enmInstrumentType.AY8910) continue;
+                c.Volume = Math.Max(Math.Min(vol, 20), -192);
+                //int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8) / insts.Length;
+                int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8);
+                //16384 = 0x4000 = short.MAXValue + 1
+                c.tVolume = Math.Max(Math.Min((int)(n * volumeMul), short.MaxValue), short.MinValue);
+            }
+        }
+
+        public void setAY8910mameMask(int chipID, int ch)
+        {
+            lock (lockobj)
+            {
+                ay8910Mask[0][chipID] |= ch;
+                if (!dicInst.ContainsKey(enmInstrumentType.AY8910)) return;
+                ((ay8910_mame)(dicInst[enmInstrumentType.AY8910][0])).SetMute((byte)chipID, ay8910Mask[0][chipID]);
+            }
+        }
+
+        public void setAY8910mameMask(int ChipIndex, int chipID, int ch)
+        {
+            lock (lockobj)
+            {
+                ay8910Mask[ChipIndex][chipID] |= ch;
+                if (!dicInst.ContainsKey(enmInstrumentType.AY8910)) return;
+                ((ay8910_mame)(dicInst[enmInstrumentType.AY8910][ChipIndex])).SetMute((byte)chipID, ay8910Mask[ChipIndex][chipID]);
+            }
+        }
+
+        public void resetAY8910mameMask(int chipID, int ch)
+        {
+            lock (lockobj)
+            {
+                ay8910Mask[0][chipID] &= ~ch;
+                if (!dicInst.ContainsKey(enmInstrumentType.AY8910)) return;
+                ((ay8910_mame)(dicInst[enmInstrumentType.AY8910][0])).SetMute((byte)chipID, ay8910Mask[0][chipID]);
+            }
+        }
+
+        public void resetAY8910mameMask(int ChipIndex, int chipID, int ch)
+        {
+            lock (lockobj)
+            {
+                ay8910Mask[ChipIndex][chipID] &= ~ch;
+                if (!dicInst.ContainsKey(enmInstrumentType.AY8910)) return;
+                ((ay8910_mame)(dicInst[enmInstrumentType.AY8910][ChipIndex])).SetMute((byte)chipID, ay8910Mask[ChipIndex][chipID]);
+            }
+        }
+
+        public int[][][] getAY8910mameVisVolume()
+        {
+            if (!dicInst.ContainsKey(enmInstrumentType.AY8910)) return null;
+            return ((ay8910_mame)dicInst[enmInstrumentType.AY8910][0]).visVolume;
+        }
+
+        public int[][][] getAY8910mameVisVolume(int ChipIndex)
+        {
+            if (!dicInst.ContainsKey(enmInstrumentType.AY8910)) return null;
+            return ((ay8910_mame)dicInst[enmInstrumentType.AY8910][ChipIndex]).visVolume;
         }
 
         #endregion

@@ -66,15 +66,23 @@ namespace MDSound
 					outputs[0][i] /= upc;
 					outputs[1][i] /= upc;
 				}
-				outputs[0][i] <<= 2;
-				outputs[1][i] <<= 2;
+				//outputs[0][i] <<= 0;
+				//outputs[1][i] <<= 0;
 			}
+
+			visVolume[ChipID][0][0] = outputs[0][0];
+			visVolume[ChipID][0][1] = outputs[1][0];
 		}
 
 		public override int Write(byte ChipID, int port, int adr, int data)
 		{
 			ay8910_write_reg(chip[ChipID], (byte)adr, (byte)data);
 			return 0;
+		}
+
+		public void SetMute(byte ChipID, int mask)
+		{
+			ay8910_set_mute_mask(chip[ChipID], (byte)mask);
 		}
 
 
