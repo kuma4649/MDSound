@@ -12,6 +12,7 @@ namespace MDSound
 		private uint masterClock = DefaultAY8910ClockValue;
 		private double sampleCounter = 0;
 		private int[][] frm = new int[2][] { new int[1], new int[1] };
+		private int[][] before = new int[2][] { new int[1], new int[1] };
 
 		public override string Name { get { return "AY8910mame"; } set { } }
 		public override string ShortName { get { return "AY10m"; } set { } }
@@ -34,6 +35,15 @@ namespace MDSound
 			ay8910_start(out ch, ClockValue, 0, 0);
 
 			chip[ChipID] = ch;
+
+			visVolume = new int[2][][];
+			visVolume[0] = new int[2][];
+			visVolume[1] = new int[2][];
+			visVolume[0][0] = new int[2];
+			visVolume[1][0] = new int[2];
+			visVolume[0][1] = new int[2];
+			visVolume[1][1] = new int[2];
+
 			return clock;
 		}
 
@@ -49,7 +59,7 @@ namespace MDSound
 				outputs[0][i] = 0;
 				outputs[1][i] = 0;
 
-				sampleCounter += masterClock / sampleRate;
+				sampleCounter += (double)masterClock / sampleRate;
 				int upc = (int)sampleCounter;
 				while (sampleCounter >= 1)
 				{
@@ -65,7 +75,15 @@ namespace MDSound
 				{
 					outputs[0][i] /= upc;
 					outputs[1][i] /= upc;
+					before[0][i] = outputs[0][i];
+					before[1][i] = outputs[1][i];
 				}
+				else
+				{
+					outputs[0][i] = before[0][i];
+					outputs[1][i] = before[1][i];
+				}
+
 				//outputs[0][i] <<= 0;
 				//outputs[1][i] <<= 0;
 			}

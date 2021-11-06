@@ -8,39 +8,104 @@ namespace MDSound
 {
 	public class ws_audio : Instrument
 	{
+		private wsa_state[] chip = new wsa_state[2];
+		private const uint DefaultWSwanClockValue = 3072000;
+		private uint sampleRate = 44100;
+		private uint masterClock = DefaultWSwanClockValue;
+		private double sampleCounter = 0;
+		private int[][] frm = new int[2][] { new int[1], new int[1] };
+		private int[][] before = new int[2][] { new int[1], new int[1] };
+
 		public override string Name { get { return "WonderSwan"; } set { } }
 		public override string ShortName { get { return "WSwan"; } set { } }
 
 		public override void Reset(byte ChipID)
 		{
-			throw new NotImplementedException();
+			ws_audio_reset(chip[ChipID]);
 		}
 
 		public override uint Start(byte ChipID, uint clock)
 		{
-			throw new NotImplementedException();
+			return Start(ChipID, clock, DefaultWSwanClockValue, null);
 		}
 
 		public override uint Start(byte ChipID, uint clock, uint ClockValue, params object[] option)
 		{
-			throw new NotImplementedException();
+			chip[ChipID] = ws_audio_init(clock, ClockValue);
+			sampleRate = clock;
+			masterClock = ClockValue;
+
+			visVolume = new int[2][][];
+			visVolume[0] = new int[2][];
+			visVolume[1] = new int[2][];
+			visVolume[0][0] = new int[2];
+			visVolume[1][0] = new int[2];
+			visVolume[0][1] = new int[2];
+			visVolume[1][1] = new int[2];
+
+			return clock;
 		}
 
 		public override void Stop(byte ChipID)
 		{
-			throw new NotImplementedException();
+			ws_audio_done(chip[ChipID]);
 		}
 
 		public override void Update(byte ChipID, int[][] outputs, int samples)
 		{
-			throw new NotImplementedException();
+			for (int i = 0; i < samples; i++)
+			{
+				outputs[0][i] = 0;
+				outputs[1][i] = 0;
+
+				sampleCounter += (masterClock / 128.0) / sampleRate;
+				int upc = (int)sampleCounter;
+				while (sampleCounter >= 1)
+				{
+					ws_audio_update(chip[ChipID], (uint)1, frm);
+
+					outputs[0][i] += frm[0][0];
+					outputs[1][i] += frm[1][0];
+
+					sampleCounter -= 1.0;
+				}
+
+				if (upc != 0)
+				{
+					outputs[0][i] /= upc;
+					outputs[1][i] /= upc;
+					before[0][i] = outputs[0][i];
+					before[1][i] = outputs[1][i];
+				}
+				else
+				{
+					outputs[0][i] = before[0][i];
+					outputs[1][i] = before[1][i];
+				}
+
+				outputs[0][i] <<= 2;
+				outputs[1][i] <<= 2;
+			}
+
+			visVolume[ChipID][0][0] = outputs[0][0];
+			visVolume[ChipID][0][1] = outputs[1][0];
 		}
 
 		public override int Write(byte ChipID, int port, int adr, int data)
 		{
-			throw new NotImplementedException();
+			ws_audio_port_write(chip[ChipID], (byte)(adr + 0x80), (byte)data);
+			return 0;
 		}
 
+		public int WriteMem(byte ChipID, int adr, int data)
+		{
+			ws_write_ram_byte(chip[ChipID], (ushort)adr, (byte)data);
+			return 0;
+		}
+
+		public void SetMute(byte chipID, int v)
+		{
+		}
 
 
 
@@ -485,7 +550,7 @@ namespace MDSound
 			//		DEV_DATA _devData;
 
 			public WS_AUDIO[] ws_audio = new WS_AUDIO[4] { new WS_AUDIO(), new WS_AUDIO(), new WS_AUDIO(), new WS_AUDIO() };
-			public RATIO_CNTR HBlankTmr;
+			public RATIO_CNTR HBlankTmr = new RATIO_CNTR();
 			public short SweepTime;
 			public sbyte SweepStep;
 			public short SweepCount;
@@ -499,21 +564,27 @@ namespace MDSound
 			public byte[] ws_ioRam = new byte[0x100];
 			public byte[] ws_internalRam;
 
-			public uint clock;
-			public uint smplrate;
+			public uint clock = DEFAULT_CLOCK;
+			public uint smplrate = DEFAULT_CLOCK / 128;
 			public float ratemul;
+
+			public wsa_state(uint masterClock)
+            {
+				clock = masterClock;
+				smplrate = clock / 128;
+            }
 		};
 
-		private int DEFAULT_CLOCK = 3072000;
+		private const uint DEFAULT_CLOCK = 3072000;
 
 
-		private byte ws_audio_init()//DEV_GEN_CFG cfg, DEV_INFO retDevInf)
+		private wsa_state ws_audio_init(uint sampleRate,uint masterClock)//DEV_GEN_CFG cfg, DEV_INFO retDevInf)
 		{
 			wsa_state chip;
 
-			chip = new wsa_state();// (wsa_state)calloc(1, sizeof(wsa_state));
+			chip = new wsa_state(masterClock);// (wsa_state)calloc(1, sizeof(wsa_state));
 			if (chip == null)
-				return 0xFF;
+				return null;
 
 			// actual size is 64 KB, but the audio chip can only access 16 KB
 			chip.ws_internalRam = new byte[0x4000];// (UINT8*)malloc(0x4000);
@@ -538,7 +609,7 @@ namespace MDSound
 			//chip._devData.chipInf = chip;
 			//INIT_DEVINF(retDevInf, chip._devData, chip.smplrate, devDef);
 
-			return 0x00;
+			return chip;
 		}
 
 		private void ws_audio_reset(wsa_state info)
@@ -574,6 +645,32 @@ namespace MDSound
 
 			return;
 		}
+
+		//OSWANの擬似乱数の処理と同等のつもり
+		//#define BIT(n) (1<<n)
+		private uint[] noise_mask = new uint[8]
+		{
+								0b11,//BIT(0)|BIT(1),
+                                0b110011,//BIT(0)|BIT(1)|BIT(4)|BIT(5),
+                                0b11011,//BIT(0)|BIT(1)|BIT(3)|BIT(4),
+                                0b1010011,//BIT(0)|BIT(1)|BIT(4)|BIT(6),
+                                0b101,//BIT(0)|BIT(2),
+                                0b1001,//BIT(0)|BIT(3),
+                                0b10001,//BIT(0)|BIT(4),
+                                0b11101//BIT(0)|BIT(2)|BIT(3)|BIT(4)
+		};
+
+		private uint[] noise_bit = new uint[8]
+		{
+								0b1000_0000_0000_0000,//BIT(15),
+                                0b0100_0000_0000_0000,//BIT(14),
+                                0b0010_0000_0000_0000,//BIT(13),
+                                0b0001_0000_0000_0000,//BIT(12),
+                                0b0000_1000_0000_0000,//BIT(11),
+                                0b0000_0100_0000_0000,//BIT(10),
+                                0b0000_0010_0000_0000,//BIT(9),
+                                0b0000_0001_0000_0000//BIT(8)
+		};
 
 		private void ws_audio_update(wsa_state info, uint length, int[][] buffer)
 		{
@@ -616,32 +713,6 @@ namespace MDSound
 						if ((ch == 3) && ((chip.ws_ioRam[(int)wsIORam.SNDMOD] & 0x80) != 0))
 						{
 							//Noise
-
-							//OSWANの擬似乱数の処理と同等のつもり
-							//#define BIT(n) (1<<n)
-							uint[] noise_mask = new uint[8]
-							{
-								0b11,//BIT(0)|BIT(1),
-                                0b110011,//BIT(0)|BIT(1)|BIT(4)|BIT(5),
-                                0b11011,//BIT(0)|BIT(1)|BIT(3)|BIT(4),
-                                0b1010011,//BIT(0)|BIT(1)|BIT(4)|BIT(6),
-                                0b101,//BIT(0)|BIT(2),
-                                0b1001,//BIT(0)|BIT(3),
-                                0b10001,//BIT(0)|BIT(4),
-                                0b11101//BIT(0)|BIT(2)|BIT(3)|BIT(4)
-                            };
-
-							uint[] noise_bit = new uint[8]
-							{
-								0b1000_0000_0000_0000,//BIT(15),
-                                0b0100_0000_0000_0000,//BIT(14),
-                                0b0010_0000_0000_0000,//BIT(13),
-                                0b0001_0000_0000_0000,//BIT(12),
-                                0b0000_1000_0000_0000,//BIT(11),
-                                0b0000_0100_0000_0000,//BIT(10),
-                                0b0000_0010_0000_0000,//BIT(9),
-                                0b0000_0001_0000_0000//BIT(8)
-                            };
 
 							uint Masked, XorReg;
 
@@ -790,7 +861,7 @@ namespace MDSound
 					chip.ws_audio[2].wave = (ushort)(chip.ws_audio[1].wave + 0x10);
 					chip.ws_audio[3].wave = (ushort)(chip.ws_audio[2].wave + 0x10);
 					break;
-				case 0x90:
+				case 0x90://SNDMOD
 					break;
 				case 0x91:
 					//ここでのボリューム調整は、内蔵Speakerに対しての調整だけらしいので、
@@ -912,5 +983,5 @@ namespace MDSound
 			return muteMask;
 		}
 
-	}
+    }
 }

@@ -37,6 +37,7 @@ namespace MDSound
         private List<uint[]> nesMask = new List<uint[]>(new uint[][] { new uint[] { 0, 0 } });
         private List<int[]> saa1099Mask = new List<int[]>(new int[][] { new int[] { 0, 0 } });
         private List<int[]> x1_010Mask = new List<int[]>(new int[][] { new int[] { 0, 0 } });
+        private List<int[]> WSwanMask = new List<int[]>(new int[][] { new int[] { 0, 0 } });
 
         private int[][][] rf5c164Vol = new int[][][] {
             new int[8][] { new int[2], new int[2], new int[2], new int[2], new int[2], new int[2], new int[2], new int[2] }
@@ -142,7 +143,8 @@ namespace MDSound
             P86,
             YM2612mame,
             SN76496,
-            POKEY
+            POKEY,
+            WSwan
         }
 
         public class Chip
@@ -1138,8 +1140,8 @@ namespace MDSound
             {
                 if (!dicInst.ContainsKey(enmInstrumentType.AY8910)) return;
 
-                ((ay8910)(dicInst[enmInstrumentType.AY8910][0])).Write(ChipID, 0, Adr, Data);
-                //((ay8910_mame)(dicInst[enmInstrumentType.AY8910][0])).Write(ChipID, 0, Adr, Data);
+                //((ay8910)(dicInst[enmInstrumentType.AY8910][0])).Write(ChipID, 0, Adr, Data);
+                ((ay8910_mame)(dicInst[enmInstrumentType.AY8910][0])).Write(ChipID, 0, Adr, Data);
             }
         }
 
@@ -1310,6 +1312,117 @@ namespace MDSound
         {
             if (!dicInst.ContainsKey(enmInstrumentType.AY8910)) return null;
             return ((ay8910_mame)dicInst[enmInstrumentType.AY8910][ChipIndex]).visVolume;
+        }
+
+        #endregion
+
+        #region WSwan
+
+        public void WriteWSwan(byte ChipID, byte Adr, byte Data)
+        {
+            lock (lockobj)
+            {
+                if (!dicInst.ContainsKey(enmInstrumentType.WSwan)) return;
+
+                ((ws_audio)(dicInst[enmInstrumentType.WSwan][0])).Write(ChipID, 0, Adr, Data);
+            }
+        }
+
+        public void WriteWSwan(int ChipIndex, byte ChipID, byte Adr, byte Data)
+        {
+            lock (lockobj)
+            {
+                if (!dicInst.ContainsKey(enmInstrumentType.WSwan)) return;
+
+                ((ws_audio)(dicInst[enmInstrumentType.WSwan][ChipIndex])).Write(ChipID, 0, Adr, Data);
+            }
+        }
+
+        public void WriteWSwanMem(byte ChipID, int Adr, byte Data)
+        {
+            lock (lockobj)
+            {
+                if (!dicInst.ContainsKey(enmInstrumentType.WSwan)) return;
+
+                ((ws_audio)(dicInst[enmInstrumentType.WSwan][0])).WriteMem(ChipID, Adr, Data);
+            }
+        }
+
+        public void WriteWSwanMem(int ChipIndex, byte ChipID, int Adr, byte Data)
+        {
+            lock (lockobj)
+            {
+                if (!dicInst.ContainsKey(enmInstrumentType.WSwan)) return;
+
+                ((ws_audio)(dicInst[enmInstrumentType.WSwan][ChipIndex])).WriteMem(ChipID, Adr, Data);
+            }
+        }
+
+        public void setVolumeWSwan(int vol)
+        {
+            if (!dicInst.ContainsKey(enmInstrumentType.WSwan)) return;
+
+            foreach (Chip c in insts)
+            {
+                if (c.type != enmInstrumentType.WSwan) continue;
+                c.Volume = Math.Max(Math.Min(vol, 20), -192);
+                //int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8) / insts.Length;
+                int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8);
+                //16384 = 0x4000 = short.MAXValue + 1
+                c.tVolume = Math.Max(Math.Min((int)(n * volumeMul), short.MaxValue), short.MinValue);
+            }
+        }
+
+        public void setWSwanMask(int chipID, int ch)
+        {
+            lock (lockobj)
+            {
+                ay8910Mask[0][chipID] |= ch;
+                if (!dicInst.ContainsKey(enmInstrumentType.WSwan)) return;
+                ((ws_audio)(dicInst[enmInstrumentType.WSwan][0])).SetMute((byte)chipID, WSwanMask[0][chipID]);
+            }
+        }
+
+        public void setWSwanMask(int ChipIndex, int chipID, int ch)
+        {
+            lock (lockobj)
+            {
+                WSwanMask[ChipIndex][chipID] |= ch;
+                if (!dicInst.ContainsKey(enmInstrumentType.WSwan)) return;
+                ((ws_audio)(dicInst[enmInstrumentType.WSwan][ChipIndex])).SetMute((byte)chipID, WSwanMask[ChipIndex][chipID]);
+            }
+        }
+
+        public void resetWSwanMask(int chipID, int ch)
+        {
+            lock (lockobj)
+            {
+                WSwanMask[0][chipID] &= ~ch;
+                if (!dicInst.ContainsKey(enmInstrumentType.WSwan)) return;
+                ((ws_audio)(dicInst[enmInstrumentType.WSwan][0])).SetMute((byte)chipID, WSwanMask[0][chipID]);
+            }
+        }
+
+        public void resetWSwanMask(int ChipIndex, int chipID, int ch)
+        {
+            lock (lockobj)
+            {
+                WSwanMask[ChipIndex][chipID] &= ~ch;
+                if (!dicInst.ContainsKey(enmInstrumentType.WSwan)) return;
+                ((ws_audio)(dicInst[enmInstrumentType.WSwan][ChipIndex])).SetMute((byte)chipID, WSwanMask[ChipIndex][chipID]);
+            }
+        }
+
+        public int[][][] getWSwanVisVolume()
+        {
+            if (!dicInst.ContainsKey(enmInstrumentType.WSwan)) return null;
+            return ((ws_audio)dicInst[enmInstrumentType.WSwan][0]).visVolume;
+        }
+
+        public int[][][] getWSwanVisVolume(int ChipIndex)
+        {
+            if (!dicInst.ContainsKey(enmInstrumentType.WSwan)) return null;
+            return ((ws_audio)dicInst[enmInstrumentType.WSwan][ChipIndex]).visVolume;
         }
 
         #endregion

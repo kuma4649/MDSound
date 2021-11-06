@@ -103,6 +103,7 @@
     <Compile Include="..\MDSound\sn76496.cs" Link="sn76496.cs" />
     <Compile Include="..\MDSound\visWaveBuffer.cs" Link="visWaveBuffer.cs" />
     <Compile Include="..\MDSound\VRC6.cs" Link="VRC6.cs" />
+    <Compile Include="..\MDSound\ws_audio.cs" Link="ws_audio.cs" />
     <Compile Include="..\MDSound\x1_010.cs" Link="x1_010.cs" />
     <Compile Include="..\MDSound\X68Sound\adpcm.cs" Link="X68Sound\adpcm.cs" />
     <Compile Include="..\MDSound\X68Sound\global.cs" Link="X68Sound\global.cs" />

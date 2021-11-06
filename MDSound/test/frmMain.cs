@@ -1061,6 +1061,25 @@ namespace test
                 {
                     if (version >= 0x171)
                     {
+                        if (GetLE32(0xc0) != 0 && 0xc0 < vgmDataOffset - 3)
+                        {
+                            chip = new MDSound.MDSound.Chip();
+                            chip.type = MDSound.MDSound.enmInstrumentType.WSwan;
+                            chip.ID = 0;
+                            MDSound.ws_audio wswan = new MDSound.ws_audio();
+                            chip.Instrument = wswan;
+                            chip.Update = wswan.Update;
+                            chip.Start = wswan.Start;
+                            chip.Stop = wswan.Stop;
+                            chip.Reset = wswan.Reset;
+                            chip.SamplingRate = SamplingRate;
+                            chip.Clock = GetLE32(0xc0);
+                            chip.Volume = 0;
+                            chip.Option = null;
+
+                            lstChip.Add(chip);
+                        }
+
                         if (GetLE32(0xdc) != 0 && 0xdc < vgmDataOffset - 3)
                         {
                             chip = new MDSound.MDSound.Chip();
@@ -1643,6 +1662,20 @@ namespace test
                     rDat = vgmBuf[vgmAdr + 2];
                     vgmAdr += 3;
                     //mds.WriteK053260(0, rAdr, rDat);
+
+                    break;
+                case 0xbc: //WSwan
+                    rAdr = vgmBuf[vgmAdr + 1];
+                    rDat = vgmBuf[vgmAdr + 2];
+                    vgmAdr += 3;
+                    mds.WriteWSwan(0, rAdr, rDat);
+
+                    break;
+                case 0xc6: //WSwan write memory
+                    int wsOfs = vgmBuf[vgmAdr + 1] * 0x100 + vgmBuf[vgmAdr + 2];
+                    rDat = vgmBuf[vgmAdr + 3];
+                    vgmAdr += 4;
+                    mds.WriteWSwanMem(0, wsOfs, rDat);
 
                     break;
                 case 0xbf: //GA20
