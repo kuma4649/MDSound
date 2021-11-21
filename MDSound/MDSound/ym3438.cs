@@ -1519,6 +1519,10 @@ namespace MDSound
                 ym3438_[ChipID].mute[i] = (mute >> (int)i) & 0x01;
             }
         }
+        public void OPN2_SetMute(byte ChipID, int ch,bool mute)
+        {
+            ym3438_[ChipID].mute[ch & 0x7] = (Bit32u)(mute ? 1 : 0);
+        }
 
 
 

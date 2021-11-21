@@ -144,7 +144,8 @@ namespace MDSound
             YM2612mame,
             SN76496,
             POKEY,
-            WSwan
+            WSwan,
+            AY8910mame
         }
 
         public class Chip
@@ -263,6 +264,7 @@ namespace MDSound
                 if (dicInst.ContainsKey(enmInstrumentType.YM2203)) for (int i = 0; i < dicInst[enmInstrumentType.YM2203].Length; i++) ym2203Mask.Add(new int[] { 0, 0 });
                 ym2612Mask = new List<int[]>();
                 if (dicInst.ContainsKey(enmInstrumentType.YM2612)) for (int i = 0; i < dicInst[enmInstrumentType.YM2612].Length; i++) ym2612Mask.Add(new int[] { 0, 0 });
+                else ym2612Mask.Add(new int[] { 0, 0 });
                 segapcmMask = new List<uint[]>();
                 if (dicInst.ContainsKey(enmInstrumentType.SEGAPCM)) for (int i = 0; i < dicInst[enmInstrumentType.SEGAPCM].Length; i++) segapcmMask.Add(new uint[] { 0, 0 });
                 qsoundMask = new List<uint[]>();
@@ -1140,8 +1142,8 @@ namespace MDSound
             {
                 if (!dicInst.ContainsKey(enmInstrumentType.AY8910)) return;
 
-                //((ay8910)(dicInst[enmInstrumentType.AY8910][0])).Write(ChipID, 0, Adr, Data);
-                ((ay8910_mame)(dicInst[enmInstrumentType.AY8910][0])).Write(ChipID, 0, Adr, Data);
+                ((ay8910)(dicInst[enmInstrumentType.AY8910][0])).Write(ChipID, 0, Adr, Data);
+                //((ay8910_mame)(dicInst[enmInstrumentType.AY8910][0])).Write(ChipID, 0, Adr, Data);
             }
         }
 
@@ -1231,9 +1233,10 @@ namespace MDSound
         {
             lock (lockobj)
             {
-                if (!dicInst.ContainsKey(enmInstrumentType.AY8910)) return;
+                if (!dicInst.ContainsKey(enmInstrumentType.AY8910mame)) return;
+                if (dicInst[enmInstrumentType.AY8910mame][0] == null) return;
 
-                ((ay8910_mame)(dicInst[enmInstrumentType.AY8910][0])).Write(ChipID, 0, Adr, Data);
+                ((ay8910_mame)(dicInst[enmInstrumentType.AY8910mame][0])).Write(ChipID, 0, Adr, Data);
             }
         }
 
@@ -1241,19 +1244,20 @@ namespace MDSound
         {
             lock (lockobj)
             {
-                if (!dicInst.ContainsKey(enmInstrumentType.AY8910)) return;
+                if (!dicInst.ContainsKey(enmInstrumentType.AY8910mame)) return;
+                if (dicInst[enmInstrumentType.AY8910mame][ChipIndex] == null) return;
 
-                ((ay8910_mame)(dicInst[enmInstrumentType.AY8910][ChipIndex])).Write(ChipID, 0, Adr, Data);
+                ((ay8910_mame)(dicInst[enmInstrumentType.AY8910mame][ChipIndex])).Write(ChipID, 0, Adr, Data);
             }
         }
 
         public void setVolumeAY8910mame(int vol)
         {
-            if (!dicInst.ContainsKey(enmInstrumentType.AY8910)) return;
+            if (!dicInst.ContainsKey(enmInstrumentType.AY8910mame)) return;
 
             foreach (Chip c in insts)
             {
-                if (c.type != enmInstrumentType.AY8910) continue;
+                if (c.type != enmInstrumentType.AY8910mame) continue;
                 c.Volume = Math.Max(Math.Min(vol, 20), -192);
                 //int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8) / insts.Length;
                 int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8);
@@ -1267,8 +1271,9 @@ namespace MDSound
             lock (lockobj)
             {
                 ay8910Mask[0][chipID] |= ch;
-                if (!dicInst.ContainsKey(enmInstrumentType.AY8910)) return;
-                ((ay8910_mame)(dicInst[enmInstrumentType.AY8910][0])).SetMute((byte)chipID, ay8910Mask[0][chipID]);
+                if (!dicInst.ContainsKey(enmInstrumentType.AY8910mame)) return;
+                if (dicInst[enmInstrumentType.AY8910mame][0] == null) return;
+                ((ay8910_mame)(dicInst[enmInstrumentType.AY8910mame][0])).SetMute((byte)chipID, ay8910Mask[0][chipID]);
             }
         }
 
@@ -1277,8 +1282,10 @@ namespace MDSound
             lock (lockobj)
             {
                 ay8910Mask[ChipIndex][chipID] |= ch;
-                if (!dicInst.ContainsKey(enmInstrumentType.AY8910)) return;
-                ((ay8910_mame)(dicInst[enmInstrumentType.AY8910][ChipIndex])).SetMute((byte)chipID, ay8910Mask[ChipIndex][chipID]);
+                if (!dicInst.ContainsKey(enmInstrumentType.AY8910mame)) return;
+                if (dicInst[enmInstrumentType.AY8910mame][ChipIndex] == null) return;
+
+                ((ay8910_mame)(dicInst[enmInstrumentType.AY8910mame][ChipIndex])).SetMute((byte)chipID, ay8910Mask[ChipIndex][chipID]);
             }
         }
 
@@ -1287,8 +1294,10 @@ namespace MDSound
             lock (lockobj)
             {
                 ay8910Mask[0][chipID] &= ~ch;
-                if (!dicInst.ContainsKey(enmInstrumentType.AY8910)) return;
-                ((ay8910_mame)(dicInst[enmInstrumentType.AY8910][0])).SetMute((byte)chipID, ay8910Mask[0][chipID]);
+                if (!dicInst.ContainsKey(enmInstrumentType.AY8910mame)) return;
+                if (dicInst[enmInstrumentType.AY8910mame][0] == null) return;
+
+                ((ay8910_mame)(dicInst[enmInstrumentType.AY8910mame][0])).SetMute((byte)chipID, ay8910Mask[0][chipID]);
             }
         }
 
@@ -1297,21 +1306,26 @@ namespace MDSound
             lock (lockobj)
             {
                 ay8910Mask[ChipIndex][chipID] &= ~ch;
-                if (!dicInst.ContainsKey(enmInstrumentType.AY8910)) return;
-                ((ay8910_mame)(dicInst[enmInstrumentType.AY8910][ChipIndex])).SetMute((byte)chipID, ay8910Mask[ChipIndex][chipID]);
+                if (!dicInst.ContainsKey(enmInstrumentType.AY8910mame)) return;
+                if (dicInst[enmInstrumentType.AY8910mame][ChipIndex] == null) return;
+
+                ((ay8910_mame)(dicInst[enmInstrumentType.AY8910mame][ChipIndex])).SetMute((byte)chipID, ay8910Mask[ChipIndex][chipID]);
             }
         }
 
         public int[][][] getAY8910mameVisVolume()
         {
-            if (!dicInst.ContainsKey(enmInstrumentType.AY8910)) return null;
-            return ((ay8910_mame)dicInst[enmInstrumentType.AY8910][0]).visVolume;
+            if (!dicInst.ContainsKey(enmInstrumentType.AY8910mame)) return null;
+            if (dicInst[enmInstrumentType.AY8910mame][0] == null) return null;
+            return ((ay8910_mame)dicInst[enmInstrumentType.AY8910mame][0]).visVolume;
         }
 
         public int[][][] getAY8910mameVisVolume(int ChipIndex)
         {
-            if (!dicInst.ContainsKey(enmInstrumentType.AY8910)) return null;
-            return ((ay8910_mame)dicInst[enmInstrumentType.AY8910][ChipIndex]).visVolume;
+            if (!dicInst.ContainsKey(enmInstrumentType.AY8910mame)) return null;
+            if (dicInst[enmInstrumentType.AY8910mame][ChipIndex] == null) return null;
+
+            return ((ay8910_mame)dicInst[enmInstrumentType.AY8910mame][ChipIndex]).visVolume;
         }
 
         #endregion
@@ -1323,6 +1337,7 @@ namespace MDSound
             lock (lockobj)
             {
                 if (!dicInst.ContainsKey(enmInstrumentType.WSwan)) return;
+                if (dicInst[enmInstrumentType.WSwan][0] == null) return;
 
                 ((ws_audio)(dicInst[enmInstrumentType.WSwan][0])).Write(ChipID, 0, Adr, Data);
             }
@@ -1333,6 +1348,7 @@ namespace MDSound
             lock (lockobj)
             {
                 if (!dicInst.ContainsKey(enmInstrumentType.WSwan)) return;
+                if (dicInst[enmInstrumentType.WSwan][ChipIndex] == null) return;
 
                 ((ws_audio)(dicInst[enmInstrumentType.WSwan][ChipIndex])).Write(ChipID, 0, Adr, Data);
             }
@@ -1343,6 +1359,7 @@ namespace MDSound
             lock (lockobj)
             {
                 if (!dicInst.ContainsKey(enmInstrumentType.WSwan)) return;
+                if (dicInst[enmInstrumentType.WSwan][0] == null) return;
 
                 ((ws_audio)(dicInst[enmInstrumentType.WSwan][0])).WriteMem(ChipID, Adr, Data);
             }
@@ -1353,6 +1370,7 @@ namespace MDSound
             lock (lockobj)
             {
                 if (!dicInst.ContainsKey(enmInstrumentType.WSwan)) return;
+                if (dicInst[enmInstrumentType.WSwan][0] == null) return;
 
                 ((ws_audio)(dicInst[enmInstrumentType.WSwan][ChipIndex])).WriteMem(ChipID, Adr, Data);
             }
@@ -1361,6 +1379,7 @@ namespace MDSound
         public void setVolumeWSwan(int vol)
         {
             if (!dicInst.ContainsKey(enmInstrumentType.WSwan)) return;
+            if (dicInst[enmInstrumentType.WSwan][0] == null) return;
 
             foreach (Chip c in insts)
             {
@@ -1379,6 +1398,7 @@ namespace MDSound
             {
                 ay8910Mask[0][chipID] |= ch;
                 if (!dicInst.ContainsKey(enmInstrumentType.WSwan)) return;
+                if (dicInst[enmInstrumentType.WSwan][0] == null) return;
                 ((ws_audio)(dicInst[enmInstrumentType.WSwan][0])).SetMute((byte)chipID, WSwanMask[0][chipID]);
             }
         }
@@ -1389,6 +1409,7 @@ namespace MDSound
             {
                 WSwanMask[ChipIndex][chipID] |= ch;
                 if (!dicInst.ContainsKey(enmInstrumentType.WSwan)) return;
+                if (dicInst[enmInstrumentType.WSwan][ChipIndex] == null) return;
                 ((ws_audio)(dicInst[enmInstrumentType.WSwan][ChipIndex])).SetMute((byte)chipID, WSwanMask[ChipIndex][chipID]);
             }
         }
@@ -1399,6 +1420,7 @@ namespace MDSound
             {
                 WSwanMask[0][chipID] &= ~ch;
                 if (!dicInst.ContainsKey(enmInstrumentType.WSwan)) return;
+                if (dicInst[enmInstrumentType.WSwan][0] == null) return;
                 ((ws_audio)(dicInst[enmInstrumentType.WSwan][0])).SetMute((byte)chipID, WSwanMask[0][chipID]);
             }
         }
@@ -1409,6 +1431,7 @@ namespace MDSound
             {
                 WSwanMask[ChipIndex][chipID] &= ~ch;
                 if (!dicInst.ContainsKey(enmInstrumentType.WSwan)) return;
+                if (dicInst[enmInstrumentType.WSwan][ChipIndex] == null) return;
                 ((ws_audio)(dicInst[enmInstrumentType.WSwan][ChipIndex])).SetMute((byte)chipID, WSwanMask[ChipIndex][chipID]);
             }
         }
@@ -1416,12 +1439,14 @@ namespace MDSound
         public int[][][] getWSwanVisVolume()
         {
             if (!dicInst.ContainsKey(enmInstrumentType.WSwan)) return null;
+            if (dicInst[enmInstrumentType.WSwan][0] == null) return null;
             return ((ws_audio)dicInst[enmInstrumentType.WSwan][0]).visVolume;
         }
 
         public int[][][] getWSwanVisVolume(int ChipIndex)
         {
             if (!dicInst.ContainsKey(enmInstrumentType.WSwan)) return null;
+            if (dicInst[enmInstrumentType.WSwan][ChipIndex] == null) return null;
             return ((ws_audio)dicInst[enmInstrumentType.WSwan][ChipIndex]).visVolume;
         }
 
@@ -4952,8 +4977,21 @@ namespace MDSound
             lock (lockobj)
             {
                 ym2612Mask[0][chipID] |= ch;
-                if (!dicInst.ContainsKey(enmInstrumentType.YM2612)) return;
-                ((ym2612)(dicInst[enmInstrumentType.YM2612][0])).YM2612_SetMute((byte)chipID, ym2612Mask[0][chipID]);
+                if (dicInst.ContainsKey(enmInstrumentType.YM2612))
+                {
+                    ((ym2612)(dicInst[enmInstrumentType.YM2612][0])).YM2612_SetMute((byte)chipID, ym2612Mask[0][chipID]);
+                }
+                if (dicInst.ContainsKey(enmInstrumentType.YM2612mame))
+                {
+                    ((ym2612mame)(dicInst[enmInstrumentType.YM2612mame][0])).SetMute((byte)chipID, (uint)ym2612Mask[0][chipID]);
+                }
+                if (dicInst.ContainsKey(enmInstrumentType.YM3438))
+                {
+                    uint mask = (uint)ym2612Mask[0][chipID];
+                    if ((mask & 0x0010_0000) == 0) mask &= 0x1011_1111;
+                    else mask |= 0x0100_0000;
+                    ((ym3438)(dicInst[enmInstrumentType.YM3438][0])).OPN2_SetMute((byte)chipID, mask);
+                }
             }
         }
 
@@ -4962,8 +5000,21 @@ namespace MDSound
             lock (lockobj)
             {
                 ym2612Mask[ChipIndex][chipID] |= ch;
-                if (!dicInst.ContainsKey(enmInstrumentType.YM2612)) return;
-                ((ym2612)(dicInst[enmInstrumentType.YM2612][ChipIndex])).YM2612_SetMute((byte)chipID, ym2612Mask[ChipIndex][chipID]);
+                if (dicInst.ContainsKey(enmInstrumentType.YM2612))
+                {
+                    ((ym2612)(dicInst[enmInstrumentType.YM2612][ChipIndex])).YM2612_SetMute((byte)chipID, ym2612Mask[ChipIndex][chipID]);
+                }
+                if (dicInst.ContainsKey(enmInstrumentType.YM2612mame))
+                {
+                    ((ym2612mame)(dicInst[enmInstrumentType.YM2612mame][ChipIndex])).SetMute((byte)chipID, (uint)ym2612Mask[ChipIndex][chipID]);
+                }
+                if (dicInst.ContainsKey(enmInstrumentType.YM3438))
+                {
+                    uint mask = (uint)ym2612Mask[ChipIndex][chipID];
+                    if ((mask & 0x0010_0000) == 0) mask &= 0x1011_1111;
+                    else mask |= 0x0100_0000;
+                   ((ym3438)(dicInst[enmInstrumentType.YM3438][ChipIndex])).OPN2_SetMute((byte)chipID, mask);
+                }
             }
         }
 
@@ -5221,8 +5272,21 @@ namespace MDSound
             lock (lockobj)
             {
                 ym2612Mask[0][chipID] &= ~ch;
-                if (!dicInst.ContainsKey(enmInstrumentType.YM2612)) return;
-                ((ym2612)(dicInst[enmInstrumentType.YM2612][0])).YM2612_SetMute((byte)chipID, ym2612Mask[0][chipID]);
+                if (dicInst.ContainsKey(enmInstrumentType.YM2612))
+                {
+                    ((ym2612)(dicInst[enmInstrumentType.YM2612][0])).YM2612_SetMute((byte)chipID, ym2612Mask[0][chipID]);
+                }
+                if (dicInst.ContainsKey(enmInstrumentType.YM2612mame))
+                {
+                    ((ym2612mame)(dicInst[enmInstrumentType.YM2612mame][0])).SetMute((byte)chipID, (uint)ym2612Mask[0][chipID]);
+                }
+                if (dicInst.ContainsKey(enmInstrumentType.YM3438))
+                {
+                    uint mask = (uint)ym2612Mask[0][chipID];
+                    if ((mask & 0x0010_0000) == 0) mask &= 0x1011_1111;
+                    else mask |= 0x0100_0000;
+                    ((ym3438)(dicInst[enmInstrumentType.YM3438][0])).OPN2_SetMute((byte)chipID, mask);
+                }
             }
         }
 
@@ -5231,8 +5295,21 @@ namespace MDSound
             lock (lockobj)
             {
                 ym2612Mask[ChipIndex][chipID] &= ~ch;
-                if (!dicInst.ContainsKey(enmInstrumentType.YM2612)) return;
-                ((ym2612)(dicInst[enmInstrumentType.YM2612][ChipIndex])).YM2612_SetMute((byte)chipID, ym2612Mask[ChipIndex][chipID]);
+                if (dicInst.ContainsKey(enmInstrumentType.YM2612))
+                {
+                    ((ym2612)(dicInst[enmInstrumentType.YM2612][ChipIndex])).YM2612_SetMute((byte)chipID, ym2612Mask[ChipIndex][chipID]);
+                }
+                if (dicInst.ContainsKey(enmInstrumentType.YM2612mame))
+                {
+                    ((ym2612mame)(dicInst[enmInstrumentType.YM2612mame][ChipIndex])).SetMute((byte)chipID, (uint)ym2612Mask[ChipIndex][chipID]);
+                }
+                if (dicInst.ContainsKey(enmInstrumentType.YM3438))
+                {
+                    uint mask = (uint)ym2612Mask[ChipIndex][chipID];
+                    if ((mask & 0x0010_0000) == 0) mask &= 0x1011_1111;
+                    else mask |= 0x0100_0000;
+                    ((ym3438)(dicInst[enmInstrumentType.YM3438][ChipIndex])).OPN2_SetMute((byte)chipID, mask);
+                }
             }
         }
 

@@ -72,5 +72,11 @@ namespace MDSound
 
             return YM2612_Chip[ChipID].ym2612_write(ChipID, ym2612[ChipID], (byte)adr, (byte)data);
         }
+
+        public void SetMute(byte ChipID, uint mask)
+        {
+            if (YM2612_Chip[ChipID] == null) return;
+            YM2612_Chip[ChipID].ym2612_set_mutemask(ChipID, ym2612[ChipID], mask);
+        }
     }
 }

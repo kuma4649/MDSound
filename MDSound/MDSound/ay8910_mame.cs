@@ -6,7 +6,7 @@ namespace MDSound
 {
 	public class ay8910_mame : Instrument
 	{
-		private ay8910_context[] chip = new ay8910_context[2];
+		private ay8910_context[] chip = new ay8910_context[2] { new ay8910_context(), new ay8910_context() };
 		private const uint DefaultAY8910ClockValue = 1789750;
 		private uint sampleRate = 44100;
 		private uint masterClock = DefaultAY8910ClockValue;
@@ -1754,39 +1754,35 @@ INLINE UINT16 mix_3D(ay8910_context *psg)
 
 		private uint ay8910_start(out ay8910_context chip, uint clock, byte ay_type, byte ay_flags)
 		{
-			chip = null;
-			ay8910_context info;
-			info = new ay8910_context();// (ay8910_context)calloc(1, sizeof(ay8910_context));
-			if (info == null) return 0;
-			chip = info;
+			chip = new ay8910_context();// (ay8910_context)calloc(1, sizeof(ay8910_context));
 
-			info.SmpRateFunc = null;
+			chip.SmpRateFunc = null;
 
-			info.clock = clock;
-			info.chip_flags = ay_flags;
-			ay8910_set_type(info, ay_type);
-			info.res_load[0] = info.res_load[1] = info.res_load[2] = 1000; //Default values for resistor loads
+			chip.clock = clock;
+			chip.chip_flags = ay_flags;
+			ay8910_set_type(chip, ay_type);
+			chip.res_load[0] = chip.res_load[1] = chip.res_load[2] = 1000; //Default values for resistor loads
 
-			if ((info.chip_flags & AY8910_ZX_STEREO) != 0)
+			if ((chip.chip_flags & AY8910_ZX_STEREO) != 0)
 			{
 				// ABC Stereo
-				info.StereoMask[0] = 0x01;
-				info.StereoMask[1] = 0x03;
-				info.StereoMask[2] = 0x02;
+				chip.StereoMask[0] = 0x01;
+				chip.StereoMask[1] = 0x03;
+				chip.StereoMask[2] = 0x02;
 			}
 			else
 			{
-				info.StereoMask[0] = 0x03;
-				info.StereoMask[1] = 0x03;
-				info.StereoMask[2] = 0x03;
+				chip.StereoMask[0] = 0x03;
+				chip.StereoMask[1] = 0x03;
+				chip.StereoMask[2] = 0x03;
 			}
 
-			build_mixer_table(info);
+			build_mixer_table(chip);
 
 			//ay8910_set_clock(info, clock);
-			ay8910_set_mute_mask(info, 0x00);
+			ay8910_set_mute_mask(chip, 0x00);
 
-			return ay8910_get_sample_rate(info);
+			return ay8910_get_sample_rate(chip);
 		}
 
 		private void ay8910_stop(ay8910_context chip)

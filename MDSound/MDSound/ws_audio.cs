@@ -8,8 +8,8 @@ namespace MDSound
 {
 	public class ws_audio : Instrument
 	{
-		private wsa_state[] chip = new wsa_state[2];
 		private const uint DefaultWSwanClockValue = 3072000;
+		private wsa_state[] chip = new wsa_state[2] { new wsa_state(DefaultWSwanClockValue), new wsa_state(DefaultWSwanClockValue) };
 		private uint sampleRate = 44100;
 		private uint masterClock = DefaultWSwanClockValue;
 		private double sampleCounter = 0;
@@ -583,8 +583,6 @@ namespace MDSound
 			wsa_state chip;
 
 			chip = new wsa_state(masterClock);// (wsa_state)calloc(1, sizeof(wsa_state));
-			if (chip == null)
-				return null;
 
 			// actual size is 64 KB, but the audio chip can only access 16 KB
 			chip.ws_internalRam = new byte[0x4000];// (UINT8*)malloc(0x4000);

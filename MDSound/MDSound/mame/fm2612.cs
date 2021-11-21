@@ -2891,7 +2891,7 @@ namespace MDSound.mame
 		}
 
 
-		private void ym2612_set_mutemask(fm.FM_base chip, uint MuteMask)
+		public void ym2612_set_mutemask(byte ChipID, fm.FM_base chip, uint MuteMask)
 		{
 			YM2612 F2612 = (YM2612)chip;
 			byte CurChn;
