@@ -510,8 +510,8 @@ namespace MDSound
 
                     ValSize = (byte)((BitDec + 7) / 8);
                     OutMask = (uint)((1 << BitDec) - 1);
-                    InPos = vgmBuf[Adr + 0xa];// Data + 0x0A;
-                    InDataEnd = vgmBuf[Adr + DataSize];// Data + DataSize;
+                    InPos = Adr + 0xa;
+                    InDataEnd = Adr + DataSize;
                     InShift = 0;
                     OutShift = (byte)(BitDec - BitCmp);
                     OutDataEnd = Bank.DataSize;// Bank.Data + Bank.DataSize;

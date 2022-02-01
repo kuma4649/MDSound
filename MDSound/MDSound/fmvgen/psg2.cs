@@ -21,6 +21,8 @@ namespace MDSound.fmvgen
         private int userDefCounter = 0;
         private Func<int, uint, int>[] tblGetSample;
         private int num;
+        protected double ncountDbl;
+        private const double ncountDiv = 32.0;
 
         public PSG2(int num,reverb reverb, distortion distortion,chorus chorus, effect.HPFLPF hpflpf, effect.ReversePhase reversePhase,effect.Compressor compressor, int efcStartCh)
         {
@@ -214,9 +216,10 @@ namespace MDSound.fmvgen
                             sample = 0;
                             for (int j = 0; j < (1 << oversampling); j++)
                             {
-                                noise = (int)(noisetable[(ncount >> (int)((noiseshift + oversampling + 6)) & (noisetablesize - 1))]
-                                    >> (int)(ncount >> (noiseshift + oversampling + 1)));
-                                ncount += nperiod;
+                                noise = (int)(noisetable[((uint)ncountDbl >> (int)((noiseshift + oversampling + 6)) & (noisetablesize - 1))]
+                                    >> (int)((uint)ncountDbl >> (noiseshift + oversampling + 1)));
+
+                                ncountDbl += ((double)nperiod / ((reg[6] & 0x20) != 0 ? ncountDiv : 1.0));
 
                                 for (int k = 0; k < 3; k++)
                                 {
@@ -250,6 +253,7 @@ namespace MDSound.fmvgen
                             sampleR /= (1 << oversampling);
                             StoreSample(ref dest[ptrDest + 0], sampleL);
                             StoreSample(ref dest[ptrDest + 1], sampleR);
+                            reverb.StoreDataC(revSampleL, revSampleR);
                             ptrDest += 2;
 
                             visVolume = sampleL;
@@ -288,9 +292,9 @@ namespace MDSound.fmvgen
                                     ecount |= (1 << (envshift + 5 + oversampling));
                                 ecount &= (1 << (envshift + 6 + oversampling)) - 1;
                             }
-                            noise = (int)(noisetable[(ncount >> (int)((noiseshift + oversampling + 6)) & (noisetablesize - 1))]
-                                >> (int)(ncount >> (noiseshift + oversampling + 1)));
-                            ncount += nperiod;
+                            noise = (int)(noisetable[((uint)ncountDbl >> (int)((noiseshift + oversampling + 6)) & (noisetablesize - 1))]
+                                >> (int)((uint)ncountDbl >> (noiseshift + oversampling + 1)));
+                            ncountDbl += (nperiod / ((reg[6] & 0x20) != 0 ? ncountDiv : 1.0));
 
                             for (int k = 0; k < 3; k++)
                             {

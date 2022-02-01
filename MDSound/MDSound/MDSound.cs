@@ -4976,7 +4976,7 @@ namespace MDSound
         {
             lock (lockobj)
             {
-                ym2612Mask[0][chipID] |= ch;
+                ym2612Mask[0][chipID] |= 1<<ch;
                 if (dicInst.ContainsKey(enmInstrumentType.YM2612))
                 {
                     ((ym2612)(dicInst[enmInstrumentType.YM2612][0])).YM2612_SetMute((byte)chipID, ym2612Mask[0][chipID]);
@@ -4988,8 +4988,8 @@ namespace MDSound
                 if (dicInst.ContainsKey(enmInstrumentType.YM3438))
                 {
                     uint mask = (uint)ym2612Mask[0][chipID];
-                    if ((mask & 0x0010_0000) == 0) mask &= 0x1011_1111;
-                    else mask |= 0x0100_0000;
+                    if ((mask & 0b0010_0000) == 0) mask &= 0b1011_1111;
+                    else mask |= 0b0100_0000;
                     ((ym3438)(dicInst[enmInstrumentType.YM3438][0])).OPN2_SetMute((byte)chipID, mask);
                 }
             }
@@ -4999,7 +4999,7 @@ namespace MDSound
         {
             lock (lockobj)
             {
-                ym2612Mask[ChipIndex][chipID] |= ch;
+                ym2612Mask[ChipIndex][chipID] |= 1<<ch;
                 if (dicInst.ContainsKey(enmInstrumentType.YM2612))
                 {
                     ((ym2612)(dicInst[enmInstrumentType.YM2612][ChipIndex])).YM2612_SetMute((byte)chipID, ym2612Mask[ChipIndex][chipID]);
@@ -5011,8 +5011,8 @@ namespace MDSound
                 if (dicInst.ContainsKey(enmInstrumentType.YM3438))
                 {
                     uint mask = (uint)ym2612Mask[ChipIndex][chipID];
-                    if ((mask & 0x0010_0000) == 0) mask &= 0x1011_1111;
-                    else mask |= 0x0100_0000;
+                    if ((mask & 0b0010_0000) == 0) mask &= 0b1011_1111;
+                    else mask |= 0b0100_0000;
                    ((ym3438)(dicInst[enmInstrumentType.YM3438][ChipIndex])).OPN2_SetMute((byte)chipID, mask);
                 }
             }
@@ -5271,7 +5271,7 @@ namespace MDSound
         {
             lock (lockobj)
             {
-                ym2612Mask[0][chipID] &= ~ch;
+                ym2612Mask[0][chipID] &= ~(1<<ch);
                 if (dicInst.ContainsKey(enmInstrumentType.YM2612))
                 {
                     ((ym2612)(dicInst[enmInstrumentType.YM2612][0])).YM2612_SetMute((byte)chipID, ym2612Mask[0][chipID]);
@@ -5283,8 +5283,8 @@ namespace MDSound
                 if (dicInst.ContainsKey(enmInstrumentType.YM3438))
                 {
                     uint mask = (uint)ym2612Mask[0][chipID];
-                    if ((mask & 0x0010_0000) == 0) mask &= 0x1011_1111;
-                    else mask |= 0x0100_0000;
+                    if ((mask & 0b0010_0000) == 0) mask &= 0b1011_1111;
+                    else mask |= 0b0100_0000;
                     ((ym3438)(dicInst[enmInstrumentType.YM3438][0])).OPN2_SetMute((byte)chipID, mask);
                 }
             }
@@ -5294,7 +5294,7 @@ namespace MDSound
         {
             lock (lockobj)
             {
-                ym2612Mask[ChipIndex][chipID] &= ~ch;
+                ym2612Mask[ChipIndex][chipID] &= ~(1<<ch);
                 if (dicInst.ContainsKey(enmInstrumentType.YM2612))
                 {
                     ((ym2612)(dicInst[enmInstrumentType.YM2612][ChipIndex])).YM2612_SetMute((byte)chipID, ym2612Mask[ChipIndex][chipID]);
@@ -5306,8 +5306,8 @@ namespace MDSound
                 if (dicInst.ContainsKey(enmInstrumentType.YM3438))
                 {
                     uint mask = (uint)ym2612Mask[ChipIndex][chipID];
-                    if ((mask & 0x0010_0000) == 0) mask &= 0x1011_1111;
-                    else mask |= 0x0100_0000;
+                    if ((mask & 0b0010_0000) == 0) mask &= 0b1011_1111;
+                    else mask |= 0b0100_0000;
                     ((ym3438)(dicInst[enmInstrumentType.YM3438][ChipIndex])).OPN2_SetMute((byte)chipID, mask);
                 }
             }
