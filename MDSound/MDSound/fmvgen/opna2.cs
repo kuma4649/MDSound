@@ -249,7 +249,7 @@ namespace MDSound.fmvgen
             RhythmMix(buffer, nsamples);
             adpcma.Mix(buffer, (uint)nsamples);
             ep3band.Mix(buffer, nsamples);
-
+            compressor.Mix(buffer, nsamples);
         }
 
 
@@ -379,6 +379,11 @@ namespace MDSound.fmvgen
                 psg2[1].SetReg(addr - 0x120, (byte)data);
                 return;
             }
+            else if (addr >= 0x1c0 && addr < 0x1c7)
+            {
+                compressor.SetReg(true, addr - 0x1c0 + 1, (byte)data);
+                return;
+            }
             else if (addr >= 0x200 && addr < 0x210)
             {
                 psg2[2].SetReg(addr - 0x200, (byte)data);
@@ -407,7 +412,7 @@ namespace MDSound.fmvgen
                     distortion.SetReg(0, (byte)data);//channel変更はアドレスを共有
                     chorus.SetReg(0, (byte)data);
                     hpflpf.SetReg(0, (byte)data);
-                    compressor.SetReg(0, (byte)data);
+                    compressor.SetReg(false,0, (byte)data);
                 }
                 return;
             }
@@ -432,7 +437,7 @@ namespace MDSound.fmvgen
             }
             else if (addr >= 0x3c6 && addr < 0x3cd)
             {
-                compressor.SetReg(addr - 0x3c5, (byte)data);
+                compressor.SetReg(false, addr - 0x3c5, (byte)data);
                 return;
             }
 
