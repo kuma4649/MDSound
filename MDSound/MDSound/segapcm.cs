@@ -392,10 +392,13 @@ namespace MDSound
         //WRITE8_DEVICE_HANDLER( sega_pcm_w )
         private void sega_pcm_w(byte ChipID, int offset, byte data)
         {
+            if (SPCMData == null || SPCMData.Length < ChipID + 1) return;
+
             //segapcm_state *spcm = get_safe_token(device);
             segapcm_state spcm = SPCMData[ChipID];
             //stream_update(spcm->stream);
 
+            if (spcm.ram == null) return;
             spcm.ram[offset & 0x07ff] = data;
         }
 
