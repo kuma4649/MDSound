@@ -429,8 +429,9 @@ namespace MDSound
 				/* Start state: we begin here as soon as a sample is triggered */
 				case STATE.START:
 					chip.req_sample = (byte)(chip.rom != null ? chip.fifo_in : 0x10);
+#if DEBUG
 					if (DEBUG_STATES != 0) DEBUG_METHOD(string.Format("UPD7759: req_sample = {0:02X}\n", chip.req_sample));
-
+#endif
 					/* 35+ cycles after we get here, the /DRQ goes low
 					 *     (first byte (number of samples in ROM) should be sent in response)
 					 *
@@ -445,7 +446,9 @@ namespace MDSound
 				/* First request state: issue a request for the first byte */
 				/* The expected response will be the index of the last sample */
 				case STATE.FIRST_REQ:
+#if DEBUG
 					if (DEBUG_STATES != 0) DEBUG_METHOD("UPD7759: first data request\n");
+#endif
 					chip.drq = 1;
 
 					/* 44 cycles later, we will latch this value and request another byte */
@@ -457,7 +460,9 @@ namespace MDSound
 				/* The second byte read will be just a dummy */
 				case STATE.LAST_SAMPLE:
 					chip.last_sample = chip.rom != null ? chip.rom[chip.romPtr + 0] : chip.fifo_in;
+#if DEBUG
 					if (DEBUG_STATES != 0) DEBUG_METHOD(string.Format("UPD7759: last_sample = {0:02X}, requesting dummy 1\n", chip.last_sample));
+#endif
 					chip.drq = 1;
 
 					/* 28 cycles later, we will latch this value and request another byte */
@@ -468,7 +473,9 @@ namespace MDSound
 				/* First dummy state: ignore any data here and issue a request for the third byte */
 				/* The expected response will be the MSB of the sample address */
 				case STATE.DUMMY1:
+#if DEBUG
 					if (DEBUG_STATES != 0) DEBUG_METHOD("UPD7759: dummy1, requesting offset_hi\n");
+#endif
 					chip.drq = 1;
 
 					/* 32 cycles later, we will latch this value and request another byte */
@@ -480,7 +487,9 @@ namespace MDSound
 				/* The expected response will be the LSB of the sample address */
 				case STATE.ADDR_MSB:
 					chip.offset = (uint)((chip.rom != null ? chip.rom[chip.romPtr+(chip.req_sample * 2 + 5)] : chip.fifo_in) << 9);
+#if DEBUG
 					if (DEBUG_STATES != 0) DEBUG_METHOD(string.Format("UPD7759: offset_hi = {0:02X}, requesting offset_lo\n", chip.offset >> 9));
+#endif
 					chip.drq = 1;
 
 					/* 44 cycles later, we will latch this value and request another byte */
@@ -492,7 +501,9 @@ namespace MDSound
 				/* The expected response will be just a dummy */
 				case STATE.ADDR_LSB:
 					chip.offset |= (uint)((chip.rom != null ? chip.rom[chip.romPtr+(chip.req_sample * 2 + 6)] : chip.fifo_in) << 1);
+#if DEBUG
 					if (DEBUG_STATES != 0) DEBUG_METHOD(string.Format("UPD7759: offset_lo = {0:02X}, requesting dummy 2\n", (chip.offset >> 1) & 0xff));
+#endif
 					chip.drq = 1;
 
 					/* 36 cycles later, we will latch this value and request another byte */
@@ -505,7 +516,9 @@ namespace MDSound
 				case STATE.DUMMY2:
 					chip.offset++;
 					chip.first_valid_header = 0;
+#if DEBUG
 					if (DEBUG_STATES != 0) DEBUG_METHOD("UPD7759: dummy2, requesting block header\n");
+#endif
 					chip.drq = 1;
 
 					/* 36?? cycles later, we will latch this value and request another byte */
@@ -523,7 +536,9 @@ namespace MDSound
 						chip.offset = chip.repeat_offset;
 					}
 					chip.block_header = chip.rom != null ? chip.rom[chip.romPtr + (chip.offset++ & 0x1ffff)] : chip.fifo_in;
+#if DEBUG
 					if (DEBUG_STATES != 0) DEBUG_METHOD(string.Format("UPD7759: header (@{0:05X}) = {1:02X}, requesting next byte\n", chip.offset, chip.block_header));
+#endif
 					chip.drq = 1;
 
 					/* our next step depends on the top two bits */
@@ -566,8 +581,10 @@ namespace MDSound
 				/* The expected response will be the first data byte */
 				case STATE.NIBBLE_COUNT:
 					chip.nibbles_left = (UInt16)((chip.rom != null ? chip.rom[chip.romPtr + (chip.offset++ & 0x1ffff)] : chip.fifo_in) + 1);
+#if DEBUG
 					if (DEBUG_STATES != 0)
 						DEBUG_METHOD(string.Format("UPD7759: nibble_count = {0}, requesting next byte\n", chip.nibbles_left));
+#endif
 					chip.drq = 1;
 
 					/* 36?? cycles later, we will latch this value and request another byte */
@@ -930,8 +947,9 @@ namespace MDSound
 			byte oldstart = chip.start;
 			chip.start = (byte)((data != 0) ? 1 : 0);
 
+#if DEBUG
 			if (DEBUG_STATES != 0) logerror(string.Format("upd7759_start_w: {0}->{1}\n", oldstart, chip.start));
-
+#endif
 			/* update the stream first */
 			//stream_update(chip.channel);
 
