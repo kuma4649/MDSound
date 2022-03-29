@@ -19,12 +19,14 @@ namespace MDSound
 
         public override uint Start(byte ChipID, uint clock)
         {
-            return (uint)device_start_multipcm(ChipID, (int)clock);
+            uint ret= (uint)device_start_multipcm(ChipID, (int)clock);
+            return ret;
         }
 
         public override uint Start(byte ChipID, uint samplingrate, uint clock, params object[] option)
         {
-            return (uint)device_start_multipcm(ChipID, (int)clock);
+            uint ret= (uint)device_start_multipcm(ChipID, (int)clock);
+            return ret;
         }
 
         public override void Stop(byte ChipID)
@@ -96,36 +98,45 @@ namespace MDSound
         //# include <stddef.h>	// for NULL
         //# include "multipcm.h"
 
-        //????
-        private const double MULTIPCM_CLOCKDIV = (180.0);
+        private const double MULTIPCM_CLOCKDIV = 180.0f;// (224.0f);
 
         public class _Sample
         {
-            public UInt32 Start;
-            public UInt32 Loop;
-            public UInt32 End;
-            public byte AR, DR1, DR2, DL, RR;
-            public byte KRS;
-            public byte LFOVIB;
-            public byte AM;
+            public UInt32 start;
+            public UInt32 loop;
+            public UInt32 end;
+            public byte attack_reg;
+            public byte decay1_reg;
+            public byte decay2_reg;
+            public byte decay_level;
+            public byte release_reg;
+            public byte key_rate_scale;
+            public byte lfo_vibrato_reg;
+            public byte lfo_amplitude_reg;
+            public byte format;
         };
 
-        public enum _STATE { ATTACK, DECAY1, DECAY2, RELEASE }
+        public enum _STATE {
+            ATTACK,
+            DECAY1,
+            DECAY2,
+            RELEASE 
+        }
 
-        public class _EG
+        public class _envelope_gen_t
         {
             public Int32 volume; //
             public _STATE state;
             public Int32 step=0;
             //step vals
-            public Int32 AR;     //Attack
-            public Int32 D1R;    //Decay1
-            public Int32 D2R;    //Decay2
-            public Int32 RR;     //Release
-            public Int32 DL;     //Decay level
+            public Int32 attack_rate;     //Attack
+            public Int32 decay1_rate;    //Decay1
+            public Int32 decay2_rate;    //Decay2
+            public Int32 release_rate;     //Release
+            public Int32 decay_level;     //Decay level
         };
 
-        public class _LFO
+        public class _lfo_t
         {
             public UInt16 phase;
             public UInt32 phase_step;
@@ -134,51 +145,67 @@ namespace MDSound
         };
 
 
-        public class _SLOT
+        public class _slot_t
         {
-            public byte Num;
-            public byte[] Regs = new byte[8];
-            public Int32 Playing;
-            public _Sample Sample;
+            public byte slot_index;
+            public byte[] regs = new byte[8];
+            public byte playing;
+            public _Sample sample = new _Sample();
             public UInt32 Base;
             public UInt32 offset;
             public UInt32 step;
-            public UInt32 Pan, TL;
-            public UInt32 DstTL;
-            public Int32 TLStep;
-            public Int32 Prev;
-            public _EG EG=null;
-            public _LFO PLFO = null;   //Phase lfo
-            public _LFO ALFO = null;   //AM lfo
+            public UInt32 pan;
+            public UInt32 total_level;
+            public UInt32 dest_total_level;
+            public Int32 total_level_step;
+            public Int32 prev_sample;
+            public _envelope_gen_t envelope_gen =new _envelope_gen_t();
+            public _lfo_t pitch_lfo =new _lfo_t();   //Phase lfo
+            public _lfo_t amplitude_lfo = new _lfo_t();   //AM lfo
+            public byte format;
 
-            public byte Muted;
+            public byte muted;
         };
 
         //private _MultiPCM MultiPCM;
         public class _MultiPCM
         {
             //sound_stream * stream;
-            public _Sample[] Samples = new _Sample[0x200];        //Max 512 samples
-            public _SLOT[] Slots = new _SLOT[28];
-            public UInt32 CurSlot;
-            public UInt32 Address;
-            public UInt32 BankR, BankL;
-            public float Rate;
+            //public _Sample[] Samples = new _Sample[0x200];        //Max 512 samples
+
+            public _slot_t[] slots = new _slot_t[28]{
+                new _slot_t(), new _slot_t(), new _slot_t(), new _slot_t(), new _slot_t(), new _slot_t(), new _slot_t(),
+                new _slot_t(),new _slot_t(),new _slot_t(),new _slot_t(),new _slot_t(),new _slot_t(),new _slot_t(),
+                new _slot_t(),new _slot_t(),new _slot_t(),new _slot_t(),new _slot_t(),new _slot_t(),new _slot_t(),
+                new _slot_t(),new _slot_t(),new _slot_t(),new _slot_t(),new _slot_t(),new _slot_t(),new _slot_t() };
+            public Int32 cur_slot;
+            public Int32 address;
+            public byte sega_banking;
+            public UInt32 bank0;
+            public UInt32 bank1;
+            public float rate;
+
+            //I include these in the chip because they depend on the chip clock
+            public UInt32[] attack_step = new UInt32[0x40];
+            public UInt32[] decay_release_step = new UInt32[0x40];    //Envelope step table
+            public UInt32[] freq_step_table = new UInt32[0x400];      //Frequency step table
+            
+            public Int32[] total_level_steps=new int[2];
+
             public UInt32 ROMMask;
             public UInt32 ROMSize;
-            public sbyte[] ROM;
-            //I include these in the chip because they depend on the chip clock
-            public UInt32[] ARStep = new UInt32[0x40], DRStep = new UInt32[0x40];    //Envelope step table
-            public UInt32[] FNS_Table = new UInt32[0x400];      //Frequency step table
+            public byte[] ROM;
+
         };
 
 
         private byte IsInit = 0x00;
-        private Int32[] LPANTABLE = new Int32[0x800], RPANTABLE = new Int32[0x800];
+        private Int32[] left_pan_table = new Int32[0x800];
+        private Int32[] right_pan_table = new Int32[0x800];
 
-        private UInt32 FIX(float v) { return ((UInt32)((float)(1 << SHIFT) * (v))); }
+        //private UInt32 FIX(float v) { return ((UInt32)((float)(1 << SHIFT) * (v))); }
 
-        private Int32[] val2chan = new Int32[]{
+        private readonly Int32[] VALUE_TO_CHANNEL = new Int32[]{
     0, 1, 2, 3, 4, 5, 6 , -1,
     7, 8, 9, 10,11,12,13, -1,
     14,15,16,17,18,19,20, -1,
@@ -186,21 +213,21 @@ namespace MDSound
         };
 
 
-        private Int32 SHIFT = 12;
+        //private Int32 SHIFT = 12;
 
 
-        //private double MULTIPCM_RATE = 44100.0;
+        ////private double MULTIPCM_RATE = 44100.0;
 
 
         private Int32 MAX_CHIPS = 0x02;
         private _MultiPCM[] MultiPCMData = new _MultiPCM[2] { new _MultiPCM(), new _MultiPCM() };// MAX_CHIPS];
 
-        /*INLINE MultiPCM *get_safe_token(running_device *device)
-        {
-            assert(device != NULL);
-            assert(device->type() == MULTIPCM);
-            return (MultiPCM *)downcast<legacy_device_base *>(device)->token();
-        }*/
+        ///*INLINE MultiPCM *get_safe_token(running_device *device)
+        //{
+        //    assert(device != NULL);
+        //    assert(device->type() == MULTIPCM);
+        //    return (MultiPCM *)downcast<legacy_device_base *>(device)->token();
+        //}*/
 
 
         /*******************************
@@ -209,86 +236,120 @@ namespace MDSound
 
         //Times are based on a 44100Hz timebase. It's adjusted to the actual sampling rate on startup
 
-        private double[] BaseTimes = new double[64] {
-            0,0,0,0,6222.95,4978.37,4148.66,3556.01,3111.47,2489.21,2074.33,1778.00,1555.74,1244.63,1037.19,889.02,
-            777.87,622.31,518.59,444.54,388.93,311.16,259.32,222.27,194.47,155.60,129.66,111.16,97.23,77.82,64.85,55.60,
-            48.62,38.91,32.43,27.80,24.31,19.46,16.24,13.92,12.15,9.75,8.12,6.98,6.08,4.90,4.08,3.49,
-            3.04,2.49,2.13,1.90,1.72,1.41,1.18,1.04,0.91,0.73,0.59,0.50,0.45,0.45,0.45,0.45
+        private readonly double[] BASE_TIMES = new double[64] {
+    0,          0,          0,          0,
+    6222.95,    4978.37,    4148.66,    3556.01,
+    3111.47,    2489.21,    2074.33,    1778.00,
+    1555.74,    1244.63,    1037.19,    889.02,
+    777.87,     622.31,     518.59,     444.54,
+    388.93,     311.16,     259.32,     222.27,
+    194.47,     155.60,     129.66,     111.16,
+    97.23,      77.82,      64.85,      55.60,
+    48.62,      38.91,      32.43,      27.80,
+    24.31,      19.46,      16.24,      13.92,
+    12.15,      9.75,       8.12,       6.98,
+    6.08,       4.90,       4.08,       3.49,
+    3.04,       2.49,       2.13,       1.90,
+    1.72,       1.41,       1.18,       1.04,
+    0.91,       0.73,       0.59,       0.50,
+    0.45,       0.45,       0.45,       0.45
         };
 
-        private double AR2DR = 14.32833;
-        private Int32[] lin2expvol = new Int32[0x400];
-        private Int32[] TLSteps = new Int32[2];
+        private const double attack_rate_to_decay_rate = 14.32833;
+        private Int32[] linear_to_exp_volume = new Int32[0x400];
+        //private Int32[] TLSteps = new Int32[2];
 
+        private const Int32 TL_SHIFT = 12;
         private const Int32 EG_SHIFT = 16;
 
-        private Int32 EG_Update(_SLOT slot)
+        private void init_sample(_MultiPCM ptChip, _Sample sample, UInt16 index)
         {
-            switch (slot.EG.state)
+            UInt32 address = (UInt32)((index * 12) & ptChip.ROMMask);
+
+            sample.start = (uint)((ptChip.ROM[address + 0] << 16) | (ptChip.ROM[address + 1] << 8) | ptChip.ROM[address + 2]);
+            sample.format = (byte)((sample.start >> 20) & 0xfe);
+            sample.start &= 0x3fffff;
+            sample.loop = (uint)((ptChip.ROM[address + 3] << 8) | ptChip.ROM[address + 4]);
+            sample.end = (uint)(0xffff - ((ptChip.ROM[address + 5] << 8) | ptChip.ROM[address + 6]));
+            sample.attack_reg = (byte)((ptChip.ROM[address + 8] >> 4) & 0xf);
+            sample.decay1_reg = (byte)(ptChip.ROM[address + 8] & 0xf);
+            sample.decay2_reg = (byte)(ptChip.ROM[address + 9] & 0xf);
+            sample.decay_level = (byte)((ptChip.ROM[address + 9] >> 4) & 0xf);
+            sample.release_reg = (byte)(ptChip.ROM[address + 10] & 0xf);
+            sample.key_rate_scale = (byte)((ptChip.ROM[address + 10] >> 4) & 0xf);
+            sample.lfo_vibrato_reg = ptChip.ROM[address + 7];
+            sample.lfo_amplitude_reg = (byte)(ptChip.ROM[address + 11] & 0xf);
+        }
+
+        private Int32 envelope_generator_update(_slot_t slot)
+        {
+            switch (slot.envelope_gen.state)
             {
                 case _STATE.ATTACK:
-                    slot.EG.volume += slot.EG.AR;
-                    if (slot.EG.volume >= (0x3ff << EG_SHIFT))
+                    slot.envelope_gen.volume += slot.envelope_gen.attack_rate;
+                    if (slot.envelope_gen.volume >= (0x3ff << EG_SHIFT))
                     {
-                        slot.EG.state = _STATE.DECAY1;
-                        if (slot.EG.D1R >= (0x400 << EG_SHIFT)) //Skip DECAY1, go directly to DECAY2
-                            slot.EG.state = _STATE.DECAY2;
-                        slot.EG.volume = 0x3ff << EG_SHIFT;
+                        slot.envelope_gen.state = _STATE.DECAY1;
+                        if (slot.envelope_gen.decay1_rate >= (0x400 << EG_SHIFT)) //Skip DECAY1, go directly to DECAY2
+                            slot.envelope_gen.state = _STATE.DECAY2;
+                        slot.envelope_gen.volume = 0x3ff << EG_SHIFT;
                     }
                     break;
                 case _STATE.DECAY1:
-                    slot.EG.volume -= slot.EG.D1R;
-                    if (slot.EG.volume <= 0)
-                        slot.EG.volume = 0;
-                    if (slot.EG.volume >> EG_SHIFT <= (slot.EG.DL << (10 - 4)))
-                        slot.EG.state = _STATE.DECAY2;
+                    slot.envelope_gen.volume -= slot.envelope_gen.decay1_rate;
+                    if (slot.envelope_gen.volume <= 0)
+                        slot.envelope_gen.volume = 0;
+                    if (slot.envelope_gen.volume >> EG_SHIFT <= (slot.envelope_gen.decay_level << (10 - 4)))
+                        slot.envelope_gen.state = _STATE.DECAY2;
                     break;
                 case _STATE.DECAY2:
-                    slot.EG.volume -= slot.EG.D2R;
-                    if (slot.EG.volume <= 0)
-                        slot.EG.volume = 0;
+                    slot.envelope_gen.volume -= slot.envelope_gen.decay2_rate;
+                    if (slot.envelope_gen.volume <= 0)
+                        slot.envelope_gen.volume = 0;
                     break;
                 case _STATE.RELEASE:
-                    slot.EG.volume -= slot.EG.RR;
-                    if (slot.EG.volume <= 0)
+                    slot.envelope_gen.volume -= slot.envelope_gen.release_rate;
+                    if (slot.envelope_gen.volume <= 0)
                     {
-                        slot.EG.volume = 0;
-                        slot.Playing = 0;
+                        slot.envelope_gen.volume = 0;
+                        slot.playing = 0;
                     }
                     break;
                 default:
-                    return 1 << SHIFT;
+                    return 1 << TL_SHIFT;
             }
-            return lin2expvol[slot.EG.volume >> EG_SHIFT];
+            return linear_to_exp_volume[slot.envelope_gen.volume >> EG_SHIFT];
         }
 
-        private UInt32 Get_RATE(UInt32[] Steps, UInt32 rate, UInt32 val)
+        private UInt32 get_rate(UInt32[] steps, UInt32 rate, UInt32 val)
         {
             Int32 r = (Int32)(4 * val + rate);
             if (val == 0)
-                return Steps[0];
+                return steps[0];
             if (val == 0xf)
-                return Steps[0x3f];
+                return steps[0x3f];
             if (r > 0x3f)
                 r = 0x3f;
-            return Steps[r];
+            return steps[r];
         }
 
-        private void EG_Calc(_MultiPCM ptChip, _SLOT slot)
+        private void envelope_generator_calc(_MultiPCM ptChip, _slot_t slot)
         {
-            Int32 octave = ((slot.Regs[3] >> 4) - 1) & 0xf;
+            Int32 octave = ((slot.regs[3] >> 4) - 1) & 0xf;
             Int32 rate;
-            if ((octave & 8) != 0) octave = octave - 16;
-            if (slot.Sample.KRS != 0xf)
-                rate = (octave + slot.Sample.KRS) * 2 + ((slot.Regs[3] >> 3) & 1);
+            if ((octave & 8) != 0)
+                octave = octave - 16;
+
+            if (slot.sample.key_rate_scale != 0xf)
+                rate = (octave + slot.sample.key_rate_scale) * 2 + ((slot.regs[3] >> 3) & 1);
             else
                 rate = 0;
 
-            slot.EG.AR = (Int32)Get_RATE(ptChip.ARStep, (UInt32)rate, slot.Sample.AR);
-            slot.EG.D1R = (Int32)Get_RATE(ptChip.DRStep, (UInt32)rate, slot.Sample.DR1);
-            slot.EG.D2R = (Int32)Get_RATE(ptChip.DRStep, (UInt32)rate, slot.Sample.DR2);
-            slot.EG.RR = (Int32)Get_RATE(ptChip.DRStep, (UInt32)rate, slot.Sample.RR);
-            slot.EG.DL = 0xf - slot.Sample.DL;
+            slot.envelope_gen.attack_rate = (Int32)get_rate(ptChip.attack_step, (UInt32)rate, slot.sample.attack_reg);
+            slot.envelope_gen.decay1_rate = (Int32)get_rate(ptChip.decay_release_step, (UInt32)rate, slot.sample.decay1_reg);
+            slot.envelope_gen.decay2_rate = (Int32)get_rate(ptChip.decay_release_step, (UInt32)rate, slot.sample.decay2_reg);
+            slot.envelope_gen.release_rate = (Int32)get_rate(ptChip.decay_release_step, (UInt32)rate, slot.sample.release_reg);
+            slot.envelope_gen.decay_level = 0xf - slot.sample.decay_level;
 
         }
 
@@ -299,189 +360,227 @@ namespace MDSound
         private const Int32 LFO_SHIFT = 8;
 
 
-        private UInt32 LFIX(float v) { return ((UInt32)((float)(1 << LFO_SHIFT) * (v))); }
+        //private UInt32 LFIX(float v) { return ((UInt32)((float)(1 << LFO_SHIFT) * (v))); }
 
-        //Convert DB to multiply amplitude
-        private UInt32 DB(float v) { return LFIX((float)Math.Pow(10.0, (v / 20.0))); }
+        ////Convert DB to multiply amplitude
+        //private UInt32 DB(float v) { return LFIX((float)Math.Pow(10.0, (v / 20.0))); }
 
-        //Convert cents to step increment
-        private UInt32 CENTS(float v) { return LFIX((float)Math.Pow(2.0, v / 1200.0)); }
+        ////Convert cents to step increment
+        //private UInt32 CENTS(float v) { return LFIX((float)Math.Pow(2.0, v / 1200.0)); }
 
-        private Int32[] PLFO_TRI = new Int32[256];
-        private Int32[] ALFO_TRI = new Int32[256];
+        private Int32[] pitch_table = new Int32[256];
+        private Int32[] amplitude_table = new Int32[256];
 
-        private float[] LFOFreq = new float[8] { 0.168f, 2.019f, 3.196f, 4.206f, 5.215f, 5.888f, 6.224f, 7.066f };  //Hz;
-        private float[] PSCALE = new float[8] { 0.0f, 3.378f, 5.065f, 6.750f, 10.114f, 20.170f, 40.180f, 79.307f }; //cents
-        private float[] ASCALE = new float[8] { 0.0f, 0.4f, 0.8f, 1.5f, 3.0f, 6.0f, 12.0f, 24.0f };                 //DB
-        private Int32[][] PSCALES = new Int32[8][] { new Int32[256], new Int32[256], new Int32[256], new Int32[256], new Int32[256], new Int32[256], new Int32[256], new Int32[256] };
-        private Int32[][] ASCALES = new Int32[8][] { new Int32[256], new Int32[256], new Int32[256], new Int32[256], new Int32[256], new Int32[256], new Int32[256], new Int32[256] };
+        private readonly float[] LFO_FREQ = new float[8] {
+    0.168f,
+    2.019f,
+    3.196f,
+    4.206f,
+    5.215f,
+    5.888f,
+    6.224f,
+    7.066f
+        };  //Hz;
 
-        public override string Name { get { return "Multi PCM"; } set { } }
-        public override string ShortName { get { return "mPCM"; } set { } }
+        private readonly float[] PHASE_SCALE_LIMIT = new float[8] {
+    0.0f,
+    3.378f,
+    5.065f,
+    6.750f,
+    10.114f,
+    20.170f,
+    40.180f,
+    79.307f
+        }; //cents
 
-        private void LFO_Init()
+        private readonly float[] AMPLITUDE_SCALE_LIMIT = new float[8] {
+    0.0f,
+    0.4f,
+    0.8f,
+    1.5f,
+    3.0f,
+    6.0f,
+    12.0f,
+    24.0f
+        };                 //DB
+
+        private Int32[][] pitch_scale_tables = new Int32[8][] { new Int32[256], new Int32[256], new Int32[256], new Int32[256], new Int32[256], new Int32[256], new Int32[256], new Int32[256] };
+        private Int32[][] amplitude_scale_tables = new Int32[8][] { new Int32[256], new Int32[256], new Int32[256], new Int32[256], new Int32[256], new Int32[256], new Int32[256], new Int32[256] };
+
+        private UInt32 value_to_fixed(UInt32 bits, float value)
         {
-            Int32 i, s;
+
+            float float_shift = (float)(1 << (int)bits);
+            return (UInt32)(float_shift * value);
+        }
+
+        private void lfo_init()
+        {
+            Int32 i, table;
+
             for (i = 0; i < 256; ++i)
             {
-                int a;  //amplitude
-                int p;  //phase
-
-                //Tri
-                if (i < 128)
-                    a = 255 - (i * 2);
-                else
-                    a = (i * 2) - 256;
                 if (i < 64)
-                    p = i * 2;
+                    pitch_table[i] = i * 2 + 128;
                 else if (i < 128)
-                    p = 255 - i * 2;
+                    pitch_table[i] = 383 - i * 2;
                 else if (i < 192)
-                    p = 256 - i * 2;
+                    pitch_table[i] = 384 - i * 2;
                 else
-                    p = i * 2 - 511;
-                ALFO_TRI[i] = a;
-                PLFO_TRI[i] = p;
+                    pitch_table[i] = i * 2 - 383;
+
+                if (i < 128)
+                    amplitude_table[i] = 255 - (i * 2);
+                else
+                    amplitude_table[i] = (i * 2) - 256;
             }
 
-            for (s = 0; s < 8; ++s)
+            for (table = 0; table < 8; ++table)
             {
-                float limit = PSCALE[s];
+                float limit = PHASE_SCALE_LIMIT[table];
                 for (i = -128; i < 128; ++i)
                 {
-                    PSCALES[s][i + 128] = (Int32)CENTS((float)((limit * (float)i) / 128.0F));
+                    float value = (limit * (float)i) / 128.0f;
+                    float converted = (float)Math.Pow(2.0f, value / 1200.0f);
+                    pitch_scale_tables[table][i + 128] = (int)value_to_fixed(LFO_SHIFT, converted);
                 }
-                limit = -ASCALE[s];
+
+                limit = -AMPLITUDE_SCALE_LIMIT[table];
                 for (i = 0; i < 256; ++i)
                 {
-                    ASCALES[s][i] = (Int32)DB((float)((limit * (float)i) / 256.0F));
+                    float value = (limit * (float)i) / 256.0f;
+                    float converted = (float)Math.Pow(10.0f, value / 20.0f);
+                    amplitude_scale_tables[table][i] = (int)value_to_fixed(LFO_SHIFT, converted);
                 }
             }
         }
 
-        private Int32 PLFO_Step(_LFO LFO)
+        private Int32 pitch_lfo_step(_lfo_t lfo)
         {
             int p;
-            LFO.phase += (UInt16)LFO.phase_step;
-            p = LFO.table[(LFO.phase >> LFO_SHIFT) & 0xff];
-            p = LFO.scale[p + 128];
-            return p << (SHIFT - LFO_SHIFT);
+            lfo.phase += (UInt16)lfo.phase_step;
+            p = lfo.table[(lfo.phase >> LFO_SHIFT) & 0xff];
+            p = lfo.scale[p];
+            return p << (TL_SHIFT - LFO_SHIFT);
         }
 
-        private Int32 ALFO_Step(_LFO LFO)
+        private Int32 amplitude_lfo_step(_lfo_t lfo)
         {
             Int32 p;
-            LFO.phase += (UInt16)LFO.phase_step;
-            p = LFO.table[(LFO.phase >> LFO_SHIFT) & 0xff];
-            p = LFO.scale[p];
-            return p << (SHIFT - LFO_SHIFT);
+            lfo.phase += (UInt16)lfo.phase_step;
+            p = lfo.table[(lfo.phase >> LFO_SHIFT) & 0xff];
+            p = lfo.scale[p];
+            return p << (TL_SHIFT - LFO_SHIFT);
         }
 
-        private void LFO_ComputeStep(_MultiPCM ptChip, _LFO LFO, UInt32 LFOF, UInt32 LFOS, Int32 ALFO)
+        private void lfo_compute_step(_MultiPCM ptChip, _lfo_t lfo, UInt32 lfo_frequency, UInt32 lfo_scale, Int32 amplitude_lfo)
         {
-            float step = (float)(LFOFreq[LFOF] * 256.0 / (float)ptChip.Rate);
-            LFO.phase_step = (UInt32)((float)(1 << LFO_SHIFT) * step);
-            if (ALFO != 0)
+            float step = (float)(LFO_FREQ[lfo_frequency] * 256.0f / (float)ptChip.rate);
+            lfo.phase_step = (UInt32)((float)(1 << LFO_SHIFT) * step);
+            if (amplitude_lfo != 0)
             {
-                LFO.table = ALFO_TRI;
-                LFO.scale = ASCALES[LFOS];
+                lfo.table = amplitude_table;
+                lfo.scale = amplitude_scale_tables[lfo_scale];
             }
             else
             {
-                LFO.table = PLFO_TRI;
-                LFO.scale = PSCALES[LFOS];
+                lfo.table = pitch_table;
+                lfo.scale = pitch_scale_tables[lfo_scale];
             }
         }
 
 
 
-        private void WriteSlot(_MultiPCM ptChip, _SLOT slot, Int32 reg, byte data)
+        private void write_slot(_MultiPCM ptChip, _slot_t slot, Int32 reg, byte data)
         {
-            slot.Regs[reg] = data;
+            slot.regs[reg] = data;
 
             switch (reg)
             {
                 case 0: //PANPOT
-                    slot.Pan = (UInt32)((data >> 4) & 0xf);
+                    slot.pan = (UInt32)((data >> 4) & 0xf);
                     break;
                 case 1: //Sample
                         //according to YMF278 sample write causes some base params written to the regs (envelope+lfos)
                         //the game should never change the sample while playing.
-                    {
-                        _Sample Sample = ptChip.Samples[slot.Regs[1]];
-                        WriteSlot(ptChip, slot, 6, Sample.LFOVIB);
-                        WriteSlot(ptChip, slot, 7, Sample.AM);
-                    }
+                        // patched to load all sample data here, so registers 6 and 7 aren't overridden by KeyOn -Valley Bell
+                    init_sample(ptChip, slot.sample, (ushort)(slot.regs[1] | ((slot.regs[2] & 1) << 8)));
+                    write_slot(ptChip, slot, 6, slot.sample.lfo_vibrato_reg);
+                    write_slot(ptChip, slot, 7, slot.sample.lfo_amplitude_reg);
                     break;
                 case 2: //Pitch
                 case 3:
                     {
-                        UInt32 oct = (UInt32)(((slot.Regs[3] >> 4) - 1) & 0xf);
-                        UInt32 pitch = (UInt32)(((slot.Regs[3] & 0xf) << 6) | (slot.Regs[2] >> 2));
-                        pitch = ptChip.FNS_Table[pitch];
+                        UInt32 oct = (UInt32)(((slot.regs[3] >> 4) - 1) & 0xf);
+                        UInt32 pitch = (UInt32)(((slot.regs[3] & 0xf) << 6) | (slot.regs[2] >> 2));
+                        pitch = ptChip.freq_step_table[pitch];
                         if ((oct & 0x8) != 0)
                             pitch >>= (Int32)(16 - oct);
                         else
                             pitch <<= (Int32)oct;
-                        slot.step = (UInt32)(pitch / ptChip.Rate);
+                        slot.step = (UInt32)(pitch / ptChip.rate);
                     }
                     break;
                 case 4:     //KeyOn/Off (and more?)
                     {
                         if ((data & 0x80) != 0) //KeyOn
                         {
-                            slot.Sample = ptChip.Samples[slot.Regs[1]];
-                            slot.Playing = 1;
-                            slot.Base = slot.Sample.Start;
+                            slot.playing = 1;
+                            slot.Base = slot.sample.start;
                             slot.offset = 0;
-                            slot.Prev = 0;
-                            slot.TL = slot.DstTL << SHIFT;
+                            slot.prev_sample = 0;
+                            slot.total_level = slot.dest_total_level << TL_SHIFT;
+                            slot.format = slot.sample.format;
 
-                            EG_Calc(ptChip, slot);
-                            slot.EG.state = _STATE.ATTACK;
-                            slot.EG.volume = 0;
+                            envelope_generator_calc(ptChip, slot);
+                            slot.envelope_gen.state = _STATE.ATTACK;
+                            slot.envelope_gen.volume = 0;
 
-                            if (slot.Base >= 0x100000)
+                            if (ptChip.sega_banking != 0)
                             {
-                                if ((slot.Pan & 8) != 0)
-                                    slot.Base = (slot.Base & 0xfffff) | (ptChip.BankL);
-                                else
-                                    slot.Base = (slot.Base & 0xfffff) | (ptChip.BankR);
-                            }
+                                slot.Base &= 0x1fffff;
+                                if (slot.Base >= 0x100000)
+                                {
+                                    if ((slot.Base & 0x080000) != 0)
+                                        slot.Base = (slot.Base & 0x07ffff) | ptChip.bank1;
 
+                                    else
+                                        slot.Base = (slot.Base & 0x07ffff) | ptChip.bank0;
+                                }
+                            }
                         }
                         else
                         {
-                            if (slot.Playing != 0)
+                            if (slot.playing != 0)
                             {
-                                if (slot.Sample.RR != 0xf)
-                                    slot.EG.state = _STATE.RELEASE;
+                                if (slot.sample.release_reg != 0xf)
+                                    slot.envelope_gen.state = _STATE.RELEASE;
                                 else
-                                    slot.Playing = 0;
+                                    slot.playing = 0;
                             }
                         }
                     }
                     break;
                 case 5: //TL+Interpolation
                     {
-                        slot.DstTL = (UInt32)((data >> 1) & 0x7f);
+                        slot.dest_total_level = (UInt32)((data >> 1) & 0x7f);
                         if ((data & 1) == 0)    //Interpolate TL
                         {
-                            if ((slot.TL >> SHIFT) > slot.DstTL)
-                                slot.TLStep = TLSteps[0];       //decrease
+                            if ((slot.total_level >> TL_SHIFT) > slot.dest_total_level)
+                                slot.total_level_step = ptChip.total_level_steps[0]; // decrease
                             else
-                                slot.TLStep = TLSteps[1];       //increase
+                                slot.total_level_step = ptChip.total_level_steps[1]; // increase
                         }
                         else
-                            slot.TL = slot.DstTL << SHIFT;
+                            slot.total_level = slot.dest_total_level << TL_SHIFT;
                     }
                     break;
                 case 6: //LFO freq+PLFO
                     {
                         if (data != 0)
                         {
-                            LFO_ComputeStep(ptChip, slot.PLFO, (UInt32)(slot.Regs[6] >> 3) & 7, (UInt32)(slot.Regs[6] & 7), 0);
-                            LFO_ComputeStep(ptChip, slot.ALFO, (UInt32)(slot.Regs[6] >> 3) & 7, (UInt32)(slot.Regs[7] & 7), 1);
+                            lfo_compute_step(ptChip, slot.pitch_lfo, (UInt32)(slot.regs[6] >> 3) & 7, (UInt32)(slot.regs[6] & 7), 0);
+                            lfo_compute_step(ptChip, slot.amplitude_lfo, (UInt32)(slot.regs[6] >> 3) & 7, (UInt32)(slot.regs[7] & 7), 1);
                         }
                     }
                     break;
@@ -489,12 +588,17 @@ namespace MDSound
                     {
                         if (data != 0)
                         {
-                            LFO_ComputeStep(ptChip, slot.PLFO, (UInt32)(slot.Regs[6] >> 3) & 7, (UInt32)(slot.Regs[6] & 7), 0);
-                            LFO_ComputeStep(ptChip, slot.ALFO, (UInt32)(slot.Regs[6] >> 3) & 7, (UInt32)(slot.Regs[7] & 7), 1);
+                            lfo_compute_step(ptChip, slot.pitch_lfo, (UInt32)(slot.regs[6] >> 3) & 7, (UInt32)(slot.regs[6] & 7), 0);
+                            lfo_compute_step(ptChip, slot.amplitude_lfo, (UInt32)(slot.regs[6] >> 3) & 7, (UInt32)(slot.regs[7] & 7), 1);
                         }
                     }
                     break;
             }
+        }
+
+        private byte read_byte(_MultiPCM ptChip, UInt32 addr)
+        {
+            return ptChip.ROM[addr & ptChip.ROMMask];
         }
 
         //static STREAM_UPDATE( MultiPCM_update )
@@ -502,16 +606,16 @@ namespace MDSound
         {
             //MultiPCM *ptChip = (MultiPCM *)param;
             _MultiPCM ptChip = MultiPCMData[ChipID];
-            Int32[][] datap = new Int32[2][];
+            //Int32[][] datap = new Int32[2][];
             Int32 i, sl;
 
-            datap[0] = outputs[0];
-            datap[1] = outputs[1];
+            //datap[0] = outputs[0];
+            //datap[1] = outputs[1];
 
             for (int j = 0; j < samples; j++)
             {
-                datap[0][j] = 0;
-                datap[1][j] = 0;
+                outputs[0][j] = 0;
+                outputs[1][j] = 0;
             }
             //memset(datap[0], 0, sizeof(*datap[0]) * samples);
             //memset(datap[1], 0, sizeof(*datap[1]) * samples);
@@ -523,61 +627,98 @@ namespace MDSound
                 Int32 smpr = 0;
                 for (sl = 0; sl < 28; ++sl)
                 {
-                    _SLOT slot = ptChip.Slots[sl];
-                    if (slot.Playing != 0 && slot.Muted == 0)
+                    _slot_t slot = ptChip.slots[sl];
+                    if (slot.playing != 0 && slot.muted == 0)
                     {
-                        UInt32 vol = (slot.TL >> SHIFT) | (slot.Pan << 7);
-                        UInt32 adr = slot.offset >> SHIFT;
-                        Int32 sample;
+                        UInt32 vol = (slot.total_level >> TL_SHIFT) | (slot.pan << 7);
+                        UInt32 spos = slot.offset >> TL_SHIFT;
                         UInt32 step = slot.step;
-                        Int32 csample = (Int16)(ptChip.ROM[(slot.Base + adr) & ptChip.ROMMask] << 8);
-                        Int32 fpart = (Int32)(slot.offset & ((1 << SHIFT) - 1));
-                        sample = (csample * fpart + slot.Prev * ((1 << SHIFT) - fpart)) >> SHIFT;
+                        Int32 csample = 0;
+                        Int32 fpart = (Int32)(slot.offset & ((1 << TL_SHIFT) - 1));
+                        Int32 sample;// = (csample * fpart + slot.prev_sample * ((1 << SHIFT) - fpart)) >> SHIFT;
 
-                        if ((slot.Regs[6] & 7) != 0)    //Vibrato enabled
+
+                        if ((slot.format & 8) != 0)   // 12-bit linear
                         {
-                            step = (UInt32)(step * PLFO_Step(slot.PLFO));
-                            step >>= SHIFT;
+                            UInt32 adr = slot.Base + (spos >> 2) * 6;
+                            switch (spos & 3)
+                            {
+                                case 0:
+                                    { // ab.c .... ....
+                                        Int16 w0 = (short)(read_byte(ptChip, adr) << 8 | ((read_byte(ptChip, adr + 1) & 0xf) << 4));
+                                        csample = w0;
+                                        break;
+                                    }
+                                case 1:
+                                    { // ..C. AB.. ....
+                                        Int16 w0 = (short)((read_byte(ptChip, adr + 2) << 8) | (read_byte(ptChip, adr + 1) & 0xf0));
+                                        csample = w0;
+                                        break;
+                                    }
+                                case 2:
+                                    { // .... ..ab .c..
+                                        Int16 w0 = (short)(read_byte(ptChip, adr + 3) << 8 | ((read_byte(ptChip, adr + 4) & 0xf) << 4));
+                                        csample = w0;
+                                        break;
+                                    }
+                                case 3:
+                                    { // .... .... C.AB
+                                        Int16 w0 = (short)((read_byte(ptChip, adr + 5) << 8) | (read_byte(ptChip, adr + 4) & 0xf0));
+                                        csample = w0;
+                                        break;
+                                    }
+                            }
+                        }
+                        else
+                        {
+                            csample = (Int16)(read_byte(ptChip, slot.Base + spos) << 8);
+                        }
+
+                        sample = (csample * fpart + slot.prev_sample * ((1 << TL_SHIFT) - fpart)) >> TL_SHIFT;
+
+                        if ((slot.regs[6] & 7) != 0) // Vibrato enabled
+                        {
+                            step = (uint)(step * pitch_lfo_step(slot.pitch_lfo));
+                            step >>= TL_SHIFT;
                         }
 
                         slot.offset += step;
-                        if (slot.offset >= (slot.Sample.End << SHIFT))
+                        if (slot.offset >= (slot.sample.end << TL_SHIFT))
                         {
-                            slot.offset = slot.Sample.Loop << SHIFT;
-                        }
-                        if ((adr ^ (slot.offset >> SHIFT)) != 0)
-                        {
-                            slot.Prev = csample;
+                            slot.offset = slot.sample.loop << TL_SHIFT;
                         }
 
-                        if ((slot.TL >> SHIFT) != slot.DstTL)
-                            slot.TL += (UInt32)slot.TLStep;
-
-                        if ((slot.Regs[7] & 7) != 0)    //Tremolo enabled
+                        if ((spos ^ (slot.offset >> TL_SHIFT)) != 0)
                         {
-                            sample = sample * ALFO_Step(slot.ALFO);
-                            sample >>= SHIFT;
+                            slot.prev_sample = csample;
                         }
 
-                        sample = (sample * EG_Update(slot)) >> 10;
+                        if ((slot.total_level >> TL_SHIFT) != slot.dest_total_level)
+                        {
+                            slot.total_level += (uint)slot.total_level_step;
+                        }
 
-                        smpl += (LPANTABLE[vol] * sample) >> SHIFT;
-                        smpr += (RPANTABLE[vol] * sample) >> SHIFT;
+                        if ((slot.regs[7] & 7) != 0) // Tremolo enabled
+                        {
+                            sample = sample * amplitude_lfo_step(slot.amplitude_lfo);
+                            sample >>= TL_SHIFT;
+                        }
+
+                        sample = (sample * envelope_generator_update(slot)) >> 10;
+
+                        smpl += (left_pan_table[vol] * sample) >> TL_SHIFT;
+                        smpr += (right_pan_table[vol] * sample) >> TL_SHIFT;
                     }
                 }
-                /*#define ICLIP16(x) (x<-32768)?-32768:((x>32767)?32767:x)
-                        datap[0][i]=ICLIP16(smpl);
-                        datap[1][i]=ICLIP16(smpr);*/
-                datap[0][i] = smpl;
-                datap[1][i] = smpr;
+
+                outputs[0][i] = smpl;
+                outputs[1][i] = smpr;
             }
         }
 
         //READ8_DEVICE_HANDLER( multipcm_r )
         public _MultiPCM multipcm_r(int ChipID)//, Int32 offset)
         {
-            //  MultiPCM *ptChip = get_safe_token(device);
-            //	MultiPCM *ptChip = &MultiPCMData[ChipID];
             return MultiPCMData[ChipID];
         }
 
@@ -592,174 +733,115 @@ namespace MDSound
                 return 0;
 
             ptChip = MultiPCMData[ChipID];
+            if (ptChip == null)
+                return -1;
 
-            for (i = 0; i < ptChip.Slots.Length; i++)
-            {
-                ptChip.Slots[i] = new _SLOT();
-                ptChip.Slots[i].EG = new _EG();
-                ptChip.Slots[i].ALFO = new _LFO();
-                ptChip.Slots[i].PLFO = new _LFO();
-            }
-            for (i = 0; i < ptChip.Samples.Length; i++)
-            {
-                ptChip.Samples[i] = new _Sample();
-            }
-            //ptChip->ROM=*device->region();
+            ptChip.ROM = null;
             ptChip.ROMMask = 0x00;
             ptChip.ROMSize = 0x00;
             ptChip.ROM = null;
             //ptChip->Rate=(float) device->clock() / MULTIPCM_CLOCKDIV;
-            ptChip.Rate = (float)(clock / MULTIPCM_CLOCKDIV);
+            ptChip.rate = (float)(clock / MULTIPCM_CLOCKDIV);
 
-            //ptChip->stream = stream_create(device, 0, 2, ptChip->Rate, ptChip, MultiPCM_update);
 
             if (IsInit == 0)
             {
+                Int32 level;
+
+                IsInit = 1;
+
                 //Volume+pan table
-                for (i = 0; i < 0x800; ++i)
+                for (level = 0; level < 0x80; ++level)
                 {
-                    float SegaDB = 0;
-                    float TL;
-                    float LPAN, RPAN;
+                    float vol_db = (float)level * (-24.0f) / 64.0f;
+                    float total_level = (float)Math.Pow(10.0f, vol_db / 20.0f) / 4.0f;
+                    Int32 pan;
 
-                    byte iTL = (byte)(i & 0x7f);
-                    byte iPAN = (byte)((i >> 7) & 0xf);
-
-                    SegaDB = (float)(iTL * (-24.0) / (float)0x40);
-
-                    TL = (float)Math.Pow(10.0, SegaDB / 20.0);
-
-
-                    if (iPAN == 0x8)
+                    for (pan = 0; pan < 0x10; ++pan)
                     {
-                        LPAN = RPAN = 0.0F;
+                        float pan_left, pan_right;
+                        if (pan == 0x8)
+                        {
+                            pan_left = 0.0f;
+                            pan_right = 0.0f;
+                        }
+                        else if (pan == 0x0)
+                        {
+                            pan_left = 1.0f;
+                            pan_right = 1.0f;
+                        }
+                        else if ((pan & 0x8) != 0)
+                        {
+                            Int32 inverted_pan = 0x10 - pan;
+                            float pan_vol_db = (float)inverted_pan * (-12.0f) / 4.0f;
+
+                            pan_left = 1.0f;
+                            pan_right = (float)Math.Pow(10.0f, pan_vol_db / 20.0f);
+
+                            if ((inverted_pan & 0x7) == 7)
+                                pan_right = 0.0f;
+                        }
+                        else
+                        {
+                            float pan_vol_db = (float)pan * (-12.0f) / 4.0f;
+
+                            pan_left = (float)Math.Pow(10.0f, pan_vol_db / 20.0f);
+                            pan_right = 1.0f;
+
+                            if ((pan & 0x7) == 7)
+                                pan_left = 0.0f;
+                        }
+
+                        left_pan_table[(pan << 7) | level] = (int)value_to_fixed(TL_SHIFT, pan_left * total_level);
+                        right_pan_table[(pan << 7) | level] = (int)value_to_fixed(TL_SHIFT, pan_right * total_level);
+
                     }
-                    else if (iPAN == 0x0)
-                    {
-                        LPAN = RPAN = 1.0F;
-                    }
-                    else if ((iPAN & 0x8) != 0)
-                    {
-                        LPAN = 1.0F;
-
-                        iPAN = (byte)(0x10 - iPAN);
-
-                        SegaDB = (float)(iPAN * (-12.0) / (float)0x4);
-
-                        RPAN = (float)Math.Pow(10.0, SegaDB / 20.0);
-
-                        if ((iPAN & 0x7) == 7)
-                            RPAN = 0.0F;
-                    }
-                    else
-                    {
-                        RPAN = 1.0F;
-
-                        SegaDB = (float)(iPAN * (-12.0) / (float)0x4);
-
-                        LPAN = (float)Math.Pow(10.0, SegaDB / 20.0);
-                        if ((iPAN & 0x7) == 7)
-                            LPAN = 0.0F;
-                    }
-
-                    TL /= 4.0F;
-
-                    LPANTABLE[i] = (Int32)FIX(LPAN * TL);
-                    RPANTABLE[i] = (Int32)FIX(RPAN * TL);
                 }
 
-                IsInit = 0x01;
+                // build the linear->exponential ramps
+                for (i = 0; i < 0x400; ++i)
+                {
+                    float db = -(96.0f - (96.0f * (float)i / (float)0x400));
+                    float exp_volume = (float)Math.Pow(10.0f, db / 20.0f);
+                    linear_to_exp_volume[i] = (int)value_to_fixed(TL_SHIFT, exp_volume);
+                }
+
+                lfo_init();
             }
 
             //Pitch steps
             for (i = 0; i < 0x400; ++i)
             {
-                float fcent = (float)(ptChip.Rate * (1024.0 + (float)i) / 1024.0);
-                ptChip.FNS_Table[i] = (UInt32)((float)(1 << SHIFT) * fcent);
+                float fcent = ptChip.rate * (1024.0f + (float)i) / 1024.0f;
+                ptChip.freq_step_table[i] = value_to_fixed(TL_SHIFT, fcent);
             }
 
             //Envelope steps
             for (i = 0; i < 0x40; ++i)
             {
                 //Times are based on 44100 clock, adjust to real chip clock
-                ptChip.ARStep[i] = (UInt32)((float)(0x400 << EG_SHIFT) / (BaseTimes[i] * 44100.0 / (1000.0)));
-                ptChip.DRStep[i] = (UInt32)((float)(0x400 << EG_SHIFT) / (BaseTimes[i] * AR2DR * 44100.0 / (1000.0)));
+                ptChip.attack_step[i] = (UInt32)((float)(0x400 << EG_SHIFT) / (BASE_TIMES[i] * 44100.0 / (1000.0)));
+                ptChip.decay_release_step[i] = (UInt32)((float)(0x400 << EG_SHIFT) / (BASE_TIMES[i] * attack_rate_to_decay_rate * 44100.0 / (1000.0)));
             }
-            ptChip.ARStep[0] = ptChip.ARStep[1] = ptChip.ARStep[2] = ptChip.ARStep[3] = 0;
-            ptChip.ARStep[0x3f] = 0x400 << EG_SHIFT;
-            ptChip.DRStep[0] = ptChip.DRStep[1] = ptChip.DRStep[2] = ptChip.DRStep[3] = 0;
+            ptChip.attack_step[0] = ptChip.attack_step[1] = ptChip.attack_step[2] = ptChip.attack_step[3] = 0;
+            ptChip.attack_step[0x3f] = 0x400 << EG_SHIFT;
+            ptChip.decay_release_step[0] = ptChip.decay_release_step[1] = ptChip.decay_release_step[2] = ptChip.decay_release_step[3] = 0;
 
             //TL Interpolation steps
             //lower
-            TLSteps[0] = -(Int32)((float)(0x80 << SHIFT) / (78.2 * 44100.0 / 1000.0));
+            ptChip.total_level_steps[0] = -(Int32)((float)(0x80 << TL_SHIFT) / (78.2 * 44100.0 / 1000.0));
             //raise
-            TLSteps[1] = (Int32)((float)(0x80 << SHIFT) / (78.2 * 2 * 44100.0 / 1000.0));
+            ptChip.total_level_steps[1] = (Int32)((float)(0x80 << TL_SHIFT) / (78.2 * 2 * 44100.0 / 1000.0));
 
-            //build the linear->exponential ramps
-            for (i = 0; i < 0x400; ++i)
-            {
-                float db = -(float)((96.0 - (96.0 * (float)i / (float)0x400)));
-                lin2expvol[i] = (Int32)(Math.Pow(10.0, db / 20.0) * (float)(1 << SHIFT));
-            }
+            ptChip.sega_banking = 0;
+            ptChip.bank0 = ptChip.bank1 = 0x000000;
 
+            multipcm_set_mute_mask(ChipID, 0x00);
 
-            /*for(i=0;i<512;++i)
-            {
-                UINT8 *ptSample=(UINT8 *) ptChip->ROM+i*12;
-                ptChip->Samples[i].Start=(ptSample[0]<<16)|(ptSample[1]<<8)|(ptSample[2]<<0);
-                ptChip->Samples[i].Loop=(ptSample[3]<<8)|(ptSample[4]<<0);
-                ptChip->Samples[i].End=0xffff-((ptSample[5]<<8)|(ptSample[6]<<0));
-                ptChip->Samples[i].LFOVIB=ptSample[7];
-                ptChip->Samples[i].DR1=ptSample[8]&0xf;
-                ptChip->Samples[i].AR=(ptSample[8]>>4)&0xf;
-                ptChip->Samples[i].DR2=ptSample[9]&0xf;
-                ptChip->Samples[i].DL=(ptSample[9]>>4)&0xf;
-                ptChip->Samples[i].RR=ptSample[10]&0xf;
-                ptChip->Samples[i].KRS=(ptSample[10]>>4)&0xf;
-                ptChip->Samples[i].AM=ptSample[11];
-            }*/
+            //ptChip._devData.chipInf = ptChip;
+            //INIT_DEVINF(retDevInf, ptChip._devData, (UInt32)ptChip.rate, &devDef);
 
-            /*state_save_register_device_item(device, 0, ptChip->CurSlot);
-            state_save_register_device_item(device, 0, ptChip->Address);
-            state_save_register_device_item(device, 0, ptChip->BankL);
-            state_save_register_device_item(device, 0, ptChip->BankR);*/
-
-            // reset is done via DEVICE_RESET
-            /*for(i=0;i<28;++i)
-            {
-                ptChip->Slots[i].Num=i;
-                ptChip->Slots[i].Playing=0;
-
-                state_save_register_device_item(device, i, ptChip->Slots[i].Num);
-                state_save_register_device_item_array(device, i, ptChip->Slots[i].Regs);
-                state_save_register_device_item(device, i, ptChip->Slots[i].Playing);
-                state_save_register_device_item(device, i, ptChip->Slots[i].Base);
-                state_save_register_device_item(device, i, ptChip->Slots[i].offset);
-                state_save_register_device_item(device, i, ptChip->Slots[i].step);
-                state_save_register_device_item(device, i, ptChip->Slots[i].Pan);
-                state_save_register_device_item(device, i, ptChip->Slots[i].TL);
-                state_save_register_device_item(device, i, ptChip->Slots[i].DstTL);
-                state_save_register_device_item(device, i, ptChip->Slots[i].TLStep);
-                state_save_register_device_item(device, i, ptChip->Slots[i].Prev);
-                state_save_register_device_item(device, i, ptChip->Slots[i].EG.volume);
-                state_save_register_device_item(device, i, ptChip->Slots[i].EG.state);
-                state_save_register_device_item(device, i, ptChip->Slots[i].EG.step);
-                state_save_register_device_item(device, i, ptChip->Slots[i].EG.AR);
-                state_save_register_device_item(device, i, ptChip->Slots[i].EG.D1R);
-                state_save_register_device_item(device, i, ptChip->Slots[i].EG.D2R);
-                state_save_register_device_item(device, i, ptChip->Slots[i].EG.RR);
-                state_save_register_device_item(device, i, ptChip->Slots[i].EG.DL);
-                state_save_register_device_item(device, i, ptChip->Slots[i].PLFO.phase);
-                state_save_register_device_item(device, i, ptChip->Slots[i].PLFO.phase_step);
-                state_save_register_device_item(device, i, ptChip->Slots[i].ALFO.phase);
-                state_save_register_device_item(device, i, ptChip->Slots[i].ALFO.phase_step);
-            }*/
-
-            LFO_Init();
-
-            multipcm_set_bank(ChipID, 0x00, 0x00);
-
-            return (Int32)(ptChip.Rate + 0.5);
+            return (Int32)(ptChip.rate + 0.5);
         }
 
 
@@ -780,161 +862,118 @@ namespace MDSound
 
             for (i = 0; i < 28; ++i)
             {
-                ptChip.Slots[i].Num = (byte)i;
-                ptChip.Slots[i].Playing = 0;
+                ptChip.slots[i].slot_index = (byte)i;
+                ptChip.slots[i].playing = 0;
             }
 
             return;
         }
 
 
+        public override string Name { get { return "Multi PCM"; } set { } }
+        public override string ShortName { get { return "mPCM"; } set { } }
+
+
         //WRITE8_DEVICE_HANDLER( multipcm_w )
-        private void multipcm_w(byte ChipID, Int32 offset, byte data)
+        private void multipcm_write(byte ChipID, Int32 offset, byte data)
         {
             //MultiPCM *ptChip = get_safe_token(device);
             _MultiPCM ptChip = MultiPCMData[ChipID];
             switch (offset)
             {
                 case 0:     //Data write
-                    WriteSlot(ptChip, ptChip.Slots[ptChip.CurSlot], (Int32)ptChip.Address, data);
+                    if (ptChip.cur_slot == -1)
+                        return;
+                    write_slot(ptChip, ptChip.slots[ptChip.cur_slot], ptChip.address, data);
                     break;
                 case 1:
-                    ptChip.CurSlot = (UInt32)val2chan[data & 0x1f];
-                    //Console.WriteLine("CurSlot{0}", ptChip.CurSlot);
+                    ptChip.cur_slot = VALUE_TO_CHANNEL[data & 0x1f];
                     break;
+
                 case 2:
-                    ptChip.Address = (UInt32)((data > 7) ? 7 : data);
+                    ptChip.address = (data > 7) ? 7 : data;
+                    break;
+
+                // special SEGA banking
+                case 0x10:  // 1 MB banking (Sega Model 1)
+                    ptChip.sega_banking = 1;
+                    ptChip.bank0 = (uint)((data << 20) | 0x000000);
+                    ptChip.bank1 = (uint)((data << 20) | 0x080000);
+                    break;
+                case 0x11:  // 512 KB banking - low bank (Sega Multi 32)
+                    ptChip.sega_banking = 1;
+                    ptChip.bank0 = (uint)(data << 19);
+                    break;
+                case 0x12:  // 512 KB banking - high bank (Sega Multi 32)
+                    ptChip.sega_banking = 1;
+                    ptChip.bank1 = (uint)(data << 19);
                     break;
             }
-            /*ptChip->CurSlot = val2chan[(offset >> 3) & 0x1F];
-            ptChip->Address = offset & 0x07;
-            WriteSlot(ptChip, ptChip->Slots + ptChip->CurSlot, ptChip->Address, data);*/
+        }
+
+        private void multipcm_w_quick(byte ChipID, byte offset, byte data)
+        {
+            _MultiPCM ptChip = MultiPCMData[ChipID];
+
+            ptChip.cur_slot = VALUE_TO_CHANNEL[(offset >> 3) & 0x1F];
+            ptChip.address = offset & 0x07;
+            if (ptChip.cur_slot == -1)
+                return;
+            write_slot(ptChip, ptChip.slots[ptChip.cur_slot], ptChip.address, data);
         }
 
         /* MAME/M1 access functions */
 
-        //void multipcm_set_bank(running_device *device, UINT32 leftoffs, UINT32 rightoffs)
-        public void multipcm_set_bank(byte ChipID, UInt32 leftoffs, UInt32 rightoffs)
-        {
-            //MultiPCM *ptChip = get_safe_token(device);
-            _MultiPCM ptChip = MultiPCMData[ChipID];
-            ptChip.BankL = leftoffs;
-            ptChip.BankR = rightoffs;
-        }
-
-        public void multipcm_bank_write(byte ChipID, byte offset, UInt16 data)
+        public void multipcm_alloc_rom(byte ChipID, UInt32 memsize)
         {
             _MultiPCM ptChip = MultiPCMData[ChipID];
 
-            if ((offset & 0x01) != 0)
-                ptChip.BankL = (UInt32)(data << 16);
-            if ((offset & 0x02) != 0)
-                ptChip.BankR = (UInt32)(data << 16);
+            if (ptChip.ROMSize == memsize)
+                return;
+
+            ptChip.ROM =new byte[memsize];
+            ptChip.ROMSize = memsize;
+            for (int i = 0; i < memsize; i++) ptChip.ROM[i] = 0xFF;
+
+            ptChip.ROMMask = common.pow2_mask(memsize);
 
             return;
         }
 
-        public void multipcm_write_rom(byte ChipID, Int32 ROMSize, Int32 DataStart, Int32 DataLength, byte[] ROMData)
+        public void multipcm_write_rom(byte ChipID, UInt32 offset, UInt32 length, byte[] data)
         {
             _MultiPCM ptChip = MultiPCMData[ChipID];
-            UInt16 CurSmpl;
-            _Sample TempSmpl;
-            //byte[] ptSample;
-            Int32 ptSample;
 
-            if (ptChip.ROMSize != ROMSize)
-            {
-                ptChip.ROM = new sbyte[ROMSize];// (INT8*)realloc(ptChip.ROM, ROMSize);
-                ptChip.ROMSize = (UInt32)ROMSize;
-
-                for (ptChip.ROMMask = 1; ptChip.ROMMask < ROMSize; ptChip.ROMMask <<= 1)
-                    ;
-                ptChip.ROMMask--;
-
-                for (int i = 0; i < ROMSize; i++) ptChip.ROM[i] = -1;//0xff;
-                //memset(ptChip.ROM, 0xFF, ROMSize);
-            }
-            if (DataStart > ROMSize)
+            if (offset > ptChip.ROMSize)
                 return;
-            if (DataStart + DataLength > ROMSize)
-                DataLength = ROMSize - DataStart;
+            if (offset + length > ptChip.ROMSize)
+                length = (uint)(ptChip.ROMSize - offset);
 
-            for (int i = 0; i < DataLength; i++) ptChip.ROM[i + DataStart] = (sbyte)ROMData[i];
-            //memcpy(ptChip.ROM + DataStart, ROMData, DataLength);
-
-            if (DataStart < 0x200 * 12)
-            {
-                for (CurSmpl = 0; CurSmpl < 512; CurSmpl++)
-                {
-                    TempSmpl = ptChip.Samples[CurSmpl];
-                    //ptSample = (byte*)ptChip.ROM + CurSmpl * 12;
-                    ptSample = CurSmpl * 12;
-                    TempSmpl.Start = (UInt32)((ptChip.ROM[ptSample + 0] << 16) | (ptChip.ROM[ptSample + 1] << 8) | (ptChip.ROM[ptSample + 2] << 0));
-                    TempSmpl.Loop = (UInt32)((ptChip.ROM[ptSample + 3] << 8) | (ptChip.ROM[ptSample + 4] << 0));
-                    TempSmpl.End = (UInt32)(0xffff - ((ptChip.ROM[ptSample + 5] << 8) | (ptChip.ROM[ptSample + 6] << 0)));
-                    TempSmpl.LFOVIB = (byte)ptChip.ROM[ptSample + 7];
-                    TempSmpl.DR1 = (byte)(ptChip.ROM[ptSample + 8] & 0xf);
-                    TempSmpl.AR = (byte)((ptChip.ROM[ptSample + 8] >> 4) & 0xf);
-                    TempSmpl.DR2 = (byte)(ptChip.ROM[ptSample + 9] & 0xf);
-                    TempSmpl.DL = (byte)((ptChip.ROM[ptSample + 9] >> 4) & 0xf);
-                    TempSmpl.RR = (byte)(ptChip.ROM[ptSample + 10] & 0xf);
-                    TempSmpl.KRS = (byte)((ptChip.ROM[ptSample + 10] >> 4) & 0xf);
-                    TempSmpl.AM = (byte)(ptChip.ROM[ptSample + 11]);
-                }
-            }
+            for (int i = 0; i < length; i++) ptChip.ROM[i + offset] = data[i];
 
             return;
         }
 
-        public void multipcm_write_rom2(byte ChipID, Int32 ROMSize, Int32 DataStart, Int32 DataLength, byte[] ROMData, Int32 srcStartAddress)
+        public void multipcm_write_rom2(byte ChipID,UInt32 ROMSize, UInt32 offset, UInt32 length, byte[] data, Int32 srcStartAddress)
         {
             _MultiPCM ptChip = MultiPCMData[ChipID];
-            UInt16 CurSmpl;
-            _Sample TempSmpl;
-            //byte[] ptSample;
-            Int32 ptSample;
 
-            if (ptChip.ROMSize != ROMSize)
+            if (ptChip.ROM == null || ptChip.ROM.Length<ROMSize)
             {
-                ptChip.ROM = new sbyte[ROMSize];// (INT8*)realloc(ptChip.ROM, ROMSize);
-                ptChip.ROMSize = (UInt32)ROMSize;
-
-                for (ptChip.ROMMask = 1; ptChip.ROMMask < ROMSize; ptChip.ROMMask <<= 1)
-                    ;
-                ptChip.ROMMask--;
-
-                for (int i = 0; i < ROMSize; i++) ptChip.ROM[i] = -1;//0xff;
-                //memset(ptChip.ROM, 0xFF, ROMSize);
+                multipcm_alloc_rom(ChipID, ROMSize);
             }
-            if (DataStart > ROMSize)
+
+            if (offset > ptChip.ROMSize)
                 return;
-            if (DataStart + DataLength > ROMSize)
-                DataLength = ROMSize - DataStart;
+            if (offset + length > ptChip.ROMSize)
+                length = (uint)(ptChip.ROMSize - offset);
 
-            for (int i = 0; i < DataLength; i++) ptChip.ROM[i + DataStart] = (sbyte)ROMData[i+srcStartAddress];
-            //memcpy(ptChip.ROM + DataStart, ROMData, DataLength);
-
-            if (DataStart < 0x200 * 12)
+            for (int i = 0; i < length; i++)
             {
-                for (CurSmpl = 0; CurSmpl < 512; CurSmpl++)
-                {
-                    TempSmpl = ptChip.Samples[CurSmpl];
-                    //ptSample = (byte*)ptChip.ROM + CurSmpl * 12;
-                    ptSample = CurSmpl * 12;
-                    TempSmpl.Start = (UInt32)(((byte)ptChip.ROM[ptSample + 0] << 16) | ((byte)ptChip.ROM[ptSample + 1] << 8) | ((byte)ptChip.ROM[ptSample + 2] << 0));
-                    TempSmpl.Loop = (UInt32)(((byte)ptChip.ROM[ptSample + 3] << 8) | ((byte)ptChip.ROM[ptSample + 4] << 0));
-                    TempSmpl.End = (UInt32)(0xffff - (((byte)ptChip.ROM[ptSample + 5] << 8) | ((byte)ptChip.ROM[ptSample + 6] << 0)));
-                    TempSmpl.LFOVIB = (byte)ptChip.ROM[ptSample + 7];
-                    TempSmpl.DR1 = (byte)((byte)ptChip.ROM[ptSample + 8] & 0xf);
-                    TempSmpl.AR = (byte)(((byte)ptChip.ROM[ptSample + 8] >> 4) & 0xf);
-                    TempSmpl.DR2 = (byte)((byte)ptChip.ROM[ptSample + 9] & 0xf);
-                    TempSmpl.DL = (byte)(((byte)ptChip.ROM[ptSample + 9] >> 4) & 0xf);
-                    TempSmpl.RR = (byte)((byte)ptChip.ROM[ptSample + 10] & 0xf);
-                    TempSmpl.KRS = (byte)(((byte)ptChip.ROM[ptSample + 10] >> 4) & 0xf);
-                    TempSmpl.AM = (byte)(ptChip.ROM[ptSample + 11]);
-                    //Console.WriteLine("LFOVIB{0}  AM{1}", ptChip.ROM[ptSample + 7], ptChip.ROM[ptSample + 11]);
-                }
+                if (data.Length <= i + srcStartAddress) break;
+                ptChip.ROM[i + offset] = data[i + srcStartAddress];
             }
+
 
             return;
         }
@@ -945,71 +984,34 @@ namespace MDSound
             byte CurChn;
 
             for (CurChn = 0; CurChn < 28; CurChn++)
-                ptChip.Slots[CurChn].Muted = (byte)((MuteMask >> CurChn) & 0x01);
+                ptChip.slots[CurChn].muted = (byte)((MuteMask >> CurChn) & 0x01);
 
             return;
         }
 
         public override int Write(byte ChipID, int port, int adr, int data)
         {
-            multipcm_w(ChipID, adr, (byte)data);
+            multipcm_write(ChipID, adr, (byte)data);
+            //multipcm_w_quick(ChipID, (byte)adr, (byte)data);
             return 0;
         }
 
-        //#if 0	// for debugging only
-        //UINT8 multipcm_get_channels(UINT8 ChipID, UINT32* ChannelMask)
-        //{
-        //	MultiPCM* ptChip = &MultiPCMData[ChipID];
-        //	UINT8 CurChn;
-        //	UINT8 UsedChns;
-        //	UINT32 ChnMask;
-
-        //	ChnMask = 0x00000000;
-        //	UsedChns = 0x00;
-        //	for (CurChn = 0; CurChn < 28; CurChn ++)
-        //	{
-        //		if (ptChip->Slots[CurChn].Playing)
-        //		{
-        //			ChnMask |= (1 << CurChn);
-        //			UsedChns ++;
-        //		}
-        //	}
-        //	if (ChannelMask != NULL)
-        //		*ChannelMask = ChnMask;
-
-        //	return UsedChns;
-        //}
-        //#endif
-
-
-
-        /**************************************************************************
-         * Generic get_info
-         **************************************************************************/
-
-        /*DEVICE_GET_INFO( multipcm )
+        public void multipcm_bank_write(byte chipID, byte ch, ushort adr)
         {
-            switch (state)
+            byte bankmask =(byte)( ch & 0x03);
+            if (bankmask == 0x03 && (adr & 0x08)==0)
             {
-                // --- the following bits of info are returned as 64-bit signed integers ---
-                case DEVINFO_INT_TOKEN_BYTES:					info->i = sizeof(MultiPCM);				break;
-
-                // --- the following bits of info are returned as pointers to data or functions ---
-                case DEVINFO_FCT_START:							info->start = DEVICE_START_NAME( multipcm );		break;
-                case DEVINFO_FCT_STOP:							// Nothing										break;
-                case DEVINFO_FCT_RESET:							// Nothing										break;
-
-                // --- the following bits of info are returned as NULL-terminated strings ---
-                case DEVINFO_STR_NAME:							strcpy(info->s, "Sega/Yamaha 315-5560");		break;
-                case DEVINFO_STR_FAMILY:					strcpy(info->s, "Sega custom");					break;
-                case DEVINFO_STR_VERSION:					strcpy(info->s, "2.0");							break;
-                case DEVINFO_STR_SOURCE_FILE:						strcpy(info->s, __FILE__);						break;
-                case DEVINFO_STR_CREDITS:					strcpy(info->s, "Copyright Nicola Salmoria and the MAME Team"); break;
+                // 1 MB banking (reg 0x10)
+                multipcm_write(chipID, 0x10, (byte)(adr / 0x10));
             }
-        }*/
-
-
-        //DEFINE_LEGACY_SOUND_DEVICE(MULTIPCM, multipcm);
-
+            else
+            {
+                // 512 KB banking (regs 0x11/0x12)
+                if ((bankmask & 0x02)!=0)    // low bank
+                    multipcm_write(chipID, 0x11, (byte)(adr / 0x08));
+                if ((bankmask & 0x01)!=0)    // high bank
+                    multipcm_write(chipID, 0x12, (byte)(adr / 0x08));
+            }
+        }
     }
 }

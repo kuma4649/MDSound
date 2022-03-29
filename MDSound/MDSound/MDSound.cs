@@ -145,7 +145,8 @@ namespace MDSound
             SN76496,
             POKEY,
             WSwan,
-            AY8910mame
+            AY8910mame,
+            uPD7759
         }
 
         public class Chip
@@ -397,11 +398,11 @@ namespace MDSound
                 mul = 4;
                 return CHIP_VOLS[0x15];
             }
-            //else if (inst.type == enmInstrumentType.UPD7759)
-            //{
-            //    mul = 1;
-            //    return CHIP_VOLS[0x16];
-            //}
+            else if (inst.type == enmInstrumentType.uPD7759)
+            {
+                mul = 1;
+                return CHIP_VOLS[0x16];
+            }
             else if (inst.type == enmInstrumentType.OKIM6258)
             {
                 mul = 2;
@@ -3547,7 +3548,7 @@ namespace MDSound
             }
         }
 
-        public void WriteMultiPCMSetBank(int ChipIndex,byte ChipID, byte Ch, int Adr)
+        public void WriteMultiPCMSetBank(int ChipIndex, byte ChipID, byte Ch, int Adr)
         {
             lock (lockobj)
             {
@@ -3563,7 +3564,8 @@ namespace MDSound
             {
                 if (!dicInst.ContainsKey(enmInstrumentType.MultiPCM)) return;
 
-                ((multipcm)(dicInst[enmInstrumentType.MultiPCM][0])).multipcm_write_rom2(ChipID, (int)ROMSize, (int)DataStart, (int)DataLength, ROMData, (int)SrcStartAdr);
+                //((multipcm)(dicInst[enmInstrumentType.MultiPCM][0])).multipcm_write_rom2(ChipID, (int)ROMSize, (int)DataStart, (int)DataLength, ROMData, (int)SrcStartAdr);
+                ((multipcm)(dicInst[enmInstrumentType.MultiPCM][0])).multipcm_write_rom2(ChipID, ROMSize, DataStart, DataLength, ROMData, (int)SrcStartAdr);
             }
         }
 
@@ -3573,7 +3575,52 @@ namespace MDSound
             {
                 if (!dicInst.ContainsKey(enmInstrumentType.MultiPCM)) return;
 
-                ((multipcm)(dicInst[enmInstrumentType.MultiPCM][ChipIndex])).multipcm_write_rom2(ChipID, (int)ROMSize, (int)DataStart, (int)DataLength, ROMData, (int)SrcStartAdr);
+                //((multipcm)(dicInst[enmInstrumentType.MultiPCM][ChipIndex])).multipcm_write_rom2(ChipID, (int)ROMSize, (int)DataStart, (int)DataLength, ROMData, (int)SrcStartAdr);
+                ((multipcm)(dicInst[enmInstrumentType.MultiPCM][ChipIndex])).multipcm_write_rom2(ChipID, ROMSize, DataStart, DataLength, ROMData, (int)SrcStartAdr);
+            }
+        }
+
+        #endregion
+
+        #region uPD7759
+
+        public void WriteuPD7759(byte ChipID, byte Adr, byte Data)
+        {
+            lock (lockobj)
+            {
+                if (!dicInst.ContainsKey(enmInstrumentType.uPD7759)) return;
+
+                ((upd7759)(dicInst[enmInstrumentType.uPD7759][0])).Write(ChipID, 0, Adr, Data);
+            }
+        }
+
+        public void WriteuPD7759(int ChipIndex, byte ChipID, byte Adr, byte Data)
+        {
+            lock (lockobj)
+            {
+                if (!dicInst.ContainsKey(enmInstrumentType.uPD7759)) return;
+
+                ((upd7759)(dicInst[enmInstrumentType.uPD7759][ChipIndex])).Write(ChipID, 0, Adr, Data);
+            }
+        }
+
+        public void WriteuPD7759PCMData(byte ChipID, uint ROMSize, uint DataStart, uint DataLength, byte[] ROMData, uint SrcStartAdr)
+        {
+            lock (lockobj)
+            {
+                if (!dicInst.ContainsKey(enmInstrumentType.uPD7759)) return;
+
+                ((upd7759)(dicInst[enmInstrumentType.uPD7759][0])).uPD7759_write_rom2(ChipID, (int)ROMSize, (int)DataStart, (int)DataLength, ROMData, (int)SrcStartAdr);
+            }
+        }
+
+        public void WriteuPD7759PCMData(int ChipIndex, byte ChipID, uint ROMSize, uint DataStart, uint DataLength, byte[] ROMData, uint SrcStartAdr)
+        {
+            lock (lockobj)
+            {
+                if (!dicInst.ContainsKey(enmInstrumentType.uPD7759)) return;
+
+                ((upd7759)(dicInst[enmInstrumentType.uPD7759][ChipIndex])).uPD7759_write_rom2(ChipID, (int)ROMSize, (int)DataStart, (int)DataLength, ROMData, (int)SrcStartAdr);
             }
         }
 
@@ -4394,6 +4441,23 @@ namespace MDSound
             }
         }
 
+        public void SetVolumeuPD7759(int vol)
+        {
+            if (!dicInst.ContainsKey(enmInstrumentType.uPD7759)) return;
+
+            if (insts == null) return;
+
+            foreach (Chip c in insts)
+            {
+                if (c.type != enmInstrumentType.uPD7759) continue;
+                c.Volume = Math.Max(Math.Min(vol, 20), -192);
+                //int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8) / insts.Length;
+                int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8);
+                //16384 = 0x4000 = short.MAXValue + 1
+                c.tVolume = Math.Max(Math.Min((int)(n * volumeMul), short.MaxValue), short.MinValue);
+            }
+        }
+
         public void SetVolumeSegaPCM(int vol)
         {
             if (!dicInst.ContainsKey(enmInstrumentType.SEGAPCM)) return;
@@ -4719,6 +4783,24 @@ namespace MDSound
             {
                 if (!dicInst.ContainsKey(enmInstrumentType.MultiPCM)) return null;
                 return ((multipcm)(dicInst[enmInstrumentType.MultiPCM][ChipIndex])).multipcm_r(chipID);
+            }
+        }
+
+        public upd7759._upd7759_state ReaduPD7759Register(int chipID)
+        {
+            lock (lockobj)
+            {
+                if (!dicInst.ContainsKey(enmInstrumentType.uPD7759)) return null;
+                return ((upd7759)(dicInst[enmInstrumentType.uPD7759][0])).uPD7759_r(chipID);
+            }
+        }
+
+        public upd7759._upd7759_state ReaduPD7759Register(int ChipIndex, int chipID)
+        {
+            lock (lockobj)
+            {
+                if (!dicInst.ContainsKey(enmInstrumentType.uPD7759)) return null;
+                return ((upd7759)(dicInst[enmInstrumentType.uPD7759][ChipIndex])).uPD7759_r(chipID);
             }
         }
 
@@ -5960,6 +6042,17 @@ namespace MDSound
         {
             if (!dicInst.ContainsKey(enmInstrumentType.MultiPCM)) return null;
             return dicInst[enmInstrumentType.MultiPCM][ChipIndex].visVolume;
+        }
+
+        public int[][][] getuPD7759VisVolume()
+        {
+            if (!dicInst.ContainsKey(enmInstrumentType.uPD7759)) return null;
+            return dicInst[enmInstrumentType.uPD7759][0].visVolume;
+        }
+        public int[][][] getuPD7759VisVolume(int ChipIndex)
+        {
+            if (!dicInst.ContainsKey(enmInstrumentType.uPD7759)) return null;
+            return dicInst[enmInstrumentType.uPD7759][ChipIndex].visVolume;
         }
 
         public int[][][] getK053260VisVolume()

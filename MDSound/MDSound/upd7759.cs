@@ -244,7 +244,7 @@ namespace MDSound
 		private const int FRAC_MASK = (FRAC_ONE - 1);
 
 		/* chip states */
-		private enum STATE
+		public enum STATE
 		{
 			IDLE,
 			DROP_DRQ,
@@ -269,7 +269,7 @@ namespace MDSound
 
 		*************************************************************/
 
-		private class _upd7759_state
+		public class _upd7759_state
 		{
 			//running_device *device;
 			//sound_stream *channel;					/* stream channel for playback */
@@ -363,7 +363,7 @@ namespace MDSound
 
 
 		private const int MAX_CHIPS = 0x02;
-		private static _upd7759_state[] UPD7759Data = new _upd7759_state[MAX_CHIPS];
+		private static _upd7759_state[] UPD7759Data = new _upd7759_state[MAX_CHIPS] { new _upd7759_state(), new _upd7759_state() };
 
         /************************************************************
 
@@ -1052,17 +1052,46 @@ namespace MDSound
 			return;
 		}
 
-        public override int Write(byte ChipID, int port, int adr, int data)
+		public void uPD7759_write_rom2(byte ChipID, int ROMSize, int DataStart, int DataLength,  byte[] ROMData,int SrcStartAdr)
+		{
+			_upd7759_state chip = UPD7759Data[ChipID];
+
+			if (chip.romsize != ROMSize)
+			{
+				chip.rombase = new byte[ROMSize];// (UINT8*) realloc(chip.rombase, ROMSize);
+				chip.romsize = (uint)ROMSize;
+				for (int i = 0; i < ROMSize; i++) chip.rombase[i] = 0xff;
+
+				chip.rom = chip.rombase;
+				chip.romPtr = (int)chip.romoffset;
+			}
+			if (DataStart > ROMSize)
+				return;
+			if (DataStart + DataLength > ROMSize)
+				DataLength = ROMSize - DataStart;
+
+			for (int i = 0; i < DataLength; i++) chip.rombase[i + DataStart] = ROMData[i + SrcStartAdr];
+
+			return;
+		}
+		
+		public override int Write(byte ChipID, int port, int adr, int data)
         {
-            throw new NotImplementedException();
+			upd7759_write(ChipID, (byte)adr, (byte)data);
+			return 0;
         }
 
+		public _upd7759_state uPD7759_r(int ChipID)
+		{
+			return UPD7759Data[ChipID];
+		}
 
-        /**************************************************************************
+
+		/**************************************************************************
 		 * Generic get_info
 		 **************************************************************************/
 
-        /*DEVICE_GET_INFO( upd7759 )
+		/*DEVICE_GET_INFO( upd7759 )
 		{
 			switch (state)
 			{
@@ -1084,7 +1113,7 @@ namespace MDSound
 		}*/
 
 
-        //DEFINE_LEGACY_SOUND_DEVICE(UPD7759, upd7759);
+		//DEFINE_LEGACY_SOUND_DEVICE(UPD7759, upd7759);
 
-    }
+	}
 }
