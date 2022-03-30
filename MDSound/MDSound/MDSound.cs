@@ -2545,6 +2545,26 @@ namespace MDSound
             }
         }
 
+        public void ChangeYM2608_PSGMode(byte ChipID,int mode)
+        {
+            lock (lockobj)
+            {
+                if (!dicInst.ContainsKey(enmInstrumentType.YM2608)) throw new Exception();
+
+                ((ym2608)(dicInst[enmInstrumentType.YM2608][0])).ChangePSGMode(ChipID, mode);
+            }
+        }
+
+        public void ChangeYM2608_PSGMode(int ChipIndex, byte ChipID, int mode)
+        {
+            lock (lockobj)
+            {
+                if (!dicInst.ContainsKey(enmInstrumentType.YM2608)) throw new Exception();
+
+                ((ym2608)(dicInst[enmInstrumentType.YM2608][ChipIndex])).ChangePSGMode(ChipID, mode);
+            }
+        }
+
         #endregion
 
 
@@ -2652,6 +2672,26 @@ namespace MDSound
                 if (!dicInst.ContainsKey(enmInstrumentType.YM2610)) return;
 
                 ((ym2610)(dicInst[enmInstrumentType.YM2610][ChipIndex])).YM2610_setAdpcmB(ChipID, Buf, Buf.Length);
+            }
+        }
+
+        public void ChangeYM2610_PSGMode(byte ChipID, int mode)
+        {
+            lock (lockobj)
+            {
+                if (!dicInst.ContainsKey(enmInstrumentType.YM2610)) throw new Exception();
+
+                ((ym2610)(dicInst[enmInstrumentType.YM2610][0])).ChangePSGMode(ChipID, mode);
+            }
+        }
+
+        public void ChangeYM2610_PSGMode(int ChipIndex, byte ChipID, int mode)
+        {
+            lock (lockobj)
+            {
+                if (!dicInst.ContainsKey(enmInstrumentType.YM2610)) throw new Exception();
+
+                ((ym2610)(dicInst[enmInstrumentType.YM2610][ChipIndex])).ChangePSGMode(ChipID, mode);
             }
         }
 

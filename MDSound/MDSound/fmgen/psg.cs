@@ -64,7 +64,7 @@ namespace MDSound.fmgen
         //
         public void Reset()
         {
-            for (int i = 0; i < 14; i++)
+            for (int i = 0; i < 15; i++)
                 SetReg((uint)i, 0);
             SetReg(7, 0xff);
             SetReg(14, 0xff);

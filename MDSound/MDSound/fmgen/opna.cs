@@ -108,6 +108,22 @@ namespace MDSound.fmgen
             psg.Reset();
         }
 
+        public void ChangePSGMode(int mode)
+        {
+            if (mode == 0)
+            {
+                psg = new PSG();
+            }
+            else
+            {
+                psg = new fmvgen.psg2Light();
+            }
+            sbyte[] table = new sbyte[3] { 4, 2, 1 };
+            psg.SetClock((int)(clock / table[prescale]), (int)psgrate);
+            psg.Reset();
+            psg.SetVolume(psg_db);
+        }
+
         //	音量設定
         public void SetVolumeFM(int db)
         {
@@ -121,6 +137,7 @@ namespace MDSound.fmgen
         public void SetVolumePSG(int db)
         {
             psg.SetVolume(db);
+            psg_db = db;
         }
 
         public void SetLPFCutoff(uint freq)
@@ -242,6 +259,7 @@ namespace MDSound.fmgen
 
         protected fmgen.Chip chip;
         public PSG psg;
+        public int psg_db = 0;
 
     }
 

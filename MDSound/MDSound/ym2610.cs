@@ -49,6 +49,11 @@ namespace MDSound
             chip[ChipID] = null;
         }
 
+        public void ChangePSGMode(byte ChipID, int mode)
+        {
+            chip[ChipID].ChangePSGMode(mode);
+        }
+
         public override void Update(byte ChipID, int[][] outputs, int samples)
         {
             if (chip[ChipID] == null) return;
