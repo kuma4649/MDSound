@@ -12,6 +12,7 @@ namespace MDSound.fmvgen
         protected byte[] duty = new byte[3];
         private byte[][] user = new byte[6][] { new byte[64], new byte[64], new byte[64], new byte[64], new byte[64], new byte[64] };
         private int userDefCounter = 0;
+        private int userDefNum = 0;
         private Func<int, uint, int>[] tblGetSample;
         protected double ncountDbl;
         private const double ncountDiv = 32.0;
@@ -97,11 +98,12 @@ namespace MDSound.fmvgen
                 case 13:    // Envelop shape
                     ecount = 0;
                     envelop = enveloptable[data & 15];
+                    if ((data & 0x80) != 0) userDefCounter = 0;
+                    userDefNum = ((data & 0x70) >> 4) % 6;
                     break;
 
                 case 14:    // Define Wave Data
-                    if ((data & 0x80) != 0) userDefCounter = 0;
-                    user[((data & 0x70) >> 4) % 6][userDefCounter & 63] = (byte)(data & 0xf);
+                    user[userDefNum][userDefCounter & 63] = data;
                     //Console.WriteLine("{3} : WF {0} {1} {2} ", ((data & 0x70) >> 4) % 6, userDefCounter & 63, (byte)(data & 0xf), data);
                     userDefCounter++;
                     break;
@@ -342,9 +344,9 @@ namespace MDSound.fmvgen
 
             //ユーザー定義
             uint pos = (scount[k] >> (toneshift + oversampling - 3 - 2)) & 63;
-            int n = ((int)user[duty[k] - 10][pos] & chenable[k]);
-            int x = n - 8;
-            return (int)((lv * x) >> 2);
+            int n = user[duty[k] - 10][pos];
+            int x = n - 128;
+            return (int)((lv * x) >> 6);
         }
 
         private int GetSampleFromSaw(int k, uint lv)
