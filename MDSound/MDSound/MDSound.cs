@@ -146,7 +146,8 @@ namespace MDSound
             POKEY,
             WSwan,
             AY8910mame,
-            uPD7759
+            uPD7759,
+            Gigatron
         }
 
         public class Chip
@@ -2565,6 +2566,26 @@ namespace MDSound
             }
         }
 
+        public string ReadErrMsgYM2608(byte ChipID)
+        {
+            lock (lockobj)
+            {
+                if (!dicInst.ContainsKey(enmInstrumentType.YM2608)) throw new Exception();
+
+                return ((ym2608)(dicInst[enmInstrumentType.YM2608][0])).ReadErrMsg(ChipID);
+            }
+        }
+
+        public string ReadErrMsgYM2608(int ChipIndex, byte ChipID)
+        {
+            lock (lockobj)
+            {
+                if (!dicInst.ContainsKey(enmInstrumentType.YM2608)) throw new Exception();
+
+                return ((ym2608)(dicInst[enmInstrumentType.YM2608][ChipIndex])).ReadErrMsg(ChipID);
+            }
+        }
+
         #endregion
 
 
@@ -3686,6 +3707,49 @@ namespace MDSound
                 if (!dicInst.ContainsKey(enmInstrumentType.Nes)) return null;
 
                 return ((nes_intf)(dicInst[enmInstrumentType.Nes][ChipIndex])).nes_r_fds(ChipID);
+            }
+        }
+
+        #endregion
+
+
+        #region Gigatron
+
+        public void WriteGigatron(byte ChipID, uint Adr, byte Data)
+        {
+            lock (lockobj)
+            {
+                if (!dicInst.ContainsKey(enmInstrumentType.Gigatron)) return;
+
+                dicInst[enmInstrumentType.Gigatron][0].Write(ChipID, 0, (int)Adr, Data);
+            }
+        }
+
+        public void WriteGigatron(int ChipIndex, byte ChipID, uint Adr, byte Data)
+        {
+            lock (lockobj)
+            {
+                if (!dicInst.ContainsKey(enmInstrumentType.Gigatron)) return;
+
+                dicInst[enmInstrumentType.Gigatron][ChipIndex].Write(ChipID, 0, (int)Adr, Data);
+            }
+        }
+
+        public gigatron.GigatronState ReadGigatronRegister(int cur)
+        {
+            lock (lockobj)
+            {
+                if (!dicInst.ContainsKey(enmInstrumentType.Gigatron)) return null;
+                return ((gigatron)dicInst[enmInstrumentType.Gigatron][0]).gig[cur];
+            }
+        }
+
+        public gigatron.GigatronState ReadGigatronRegister(int ChipIndex, int cur)
+        {
+            lock (lockobj)
+            {
+                if (!dicInst.ContainsKey(enmInstrumentType.Gigatron)) return null;
+                return ((gigatron)dicInst[enmInstrumentType.Gigatron][ChipIndex]).gig[cur];
             }
         }
 

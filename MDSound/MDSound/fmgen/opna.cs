@@ -84,6 +84,8 @@ namespace MDSound.fmgen
     //	OPN Base -------------------------------------------------------
     public class OPNBase : Timer
     {
+        public string errMsg = "";
+
         public OPNBase()
         {
             prescale = 0;
@@ -1469,6 +1471,9 @@ namespace MDSound.fmgen
     //	YM2608(OPNA) ---------------------------------------------------
     public class OPNA : OPNABase
     {
+        //プリセット保持向け
+        public List<byte[]> presetRhythmPCMData = null;
+
         // ---------------------------------------------------------------------------
         //	構築
         //
@@ -1553,6 +1558,7 @@ namespace MDSound.fmgen
             return LoadRhythmSample(fname => CreateRhythmFileStream(path, fname));
         }
 
+
         // ---------------------------------------------------------------------------
         //	リズム音を読みこむ
         //
@@ -1563,6 +1569,8 @@ namespace MDSound.fmgen
                 "BD", "SD", "TOP", "HH", "TOM", "RIM",
             };
 
+            errMsg = "";
+
             int i;
             for (i = 0; i < 6; i++)
                 rhythm[i].pos = ~(uint)0;
@@ -1572,17 +1580,30 @@ namespace MDSound.fmgen
                 try
                 {
                     uint fsize;
-                    bool f = true;
                     string buf1 = string.Format("2608_{0}_{1}.WAV", rhythmname[i], chipID);
                     string buf2 = string.Format("2608_{0}.WAV", rhythmname[i]);
                     string rymBuf1 = string.Format("2608_RYM_{0}.WAV", chipID);
                     string rymBuf2 = "2608_RYM.WAV";
                     byte[] file;
 
+                    //先ずはchipID付きのファイルを読んでみる
                     using (Stream st = appendFileReaderCallback?.Invoke(buf1))
                     {
                         file = common.ReadAllBytes(st);
                     }
+                    //読み込めなかった場合はプリセットを参照してみる
+                    if (file == null)
+                    {
+                        if (presetRhythmPCMData != null)
+                        {
+                            if (presetRhythmPCMData.Count > i)
+                            {
+                                file = presetRhythmPCMData[i];
+                                if (file != null && file.Length < 1) file = null;
+                            }
+                        }
+                    }
+                    //読み込めなかった場合はいつものファイルを読んでみる
                     if (file == null)
                     {
                         using (Stream st = appendFileReaderCallback?.Invoke(buf2))
@@ -1591,9 +1612,9 @@ namespace MDSound.fmgen
                         }
                     }
 
+                    //リムショットのファイル名は2パターンあるので更に読み込みに挑戦する
                     if (file == null)
                     {
-                        f = false;
                         if (i == 5)
                         {
                             using (Stream st = appendFileReaderCallback?.Invoke(rymBuf1))
@@ -1607,15 +1628,15 @@ namespace MDSound.fmgen
                                     file = common.ReadAllBytes(st);
                                 }
                             }
-                            if (file != null)
-                            {
-                                f = true;
-                            }
                         }
                     }
 
-                    if (!f)
+                    //読み込みができなかった場合は次のファイルの読み込みに挑戦する
+                    if (file == null)
                     {
+                        errMsg += string.Format(
+                            "Failed to load 2608_{0}.wav / 2608_{0}_{1}.wav ... \r\n",
+                            rhythmname[i], chipID);
                         continue;
                     }
 
@@ -1665,9 +1686,11 @@ namespace MDSound.fmgen
                     rhythm[i].step = rhythm[i].rate * 1024 / rate;
                     rhythm[i].pos = rhythm[i].size = fsize * 1024;
                 }
-                catch 
+                catch(Exception e) 
                 {
-                    //無視
+                    errMsg += string.Format(
+                        "ExceptionMessage:{0} stacktrace:{1} \r\n",
+                        e.Message,e.StackTrace);
                 }
             }
             if (i != 6)
@@ -1890,6 +1913,11 @@ namespace MDSound.fmgen
                     }
                 }
             }
+        }
+
+        public string ReadErrMsg()
+        {
+            return errMsg;
         }
 
         // リズム音源関係

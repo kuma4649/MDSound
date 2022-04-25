@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 
 namespace MDSound
@@ -47,10 +48,17 @@ namespace MDSound
         {
             chip[ChipID] = new fmgen.OPNA(ChipID);
             //chip[ChipID] = new fmgen.OPNA2();
-            if (option != null && option.Length > 0 && option[0] is Func<string, Stream>)
+            if (option != null && option.Length > 0)
             {
+                if (option.Length > 1 && option[1] is List<byte[]>)
+                {
+                    chip[ChipID].presetRhythmPCMData = (List<byte[]>)option[1];
+                }
+
                 if (option[0] is Func<string, Stream>)
+                {
                     chip[ChipID].Init(FMClockValue, clock, false, (Func<string, Stream>)option[0]);
+                }
                 else if (option[0] is string)
                     chip[ChipID].Init(FMClockValue, clock, false, (string)option[0]);
             }
@@ -70,6 +78,11 @@ namespace MDSound
         public void ChangePSGMode(byte ChipID, int mode)
         {
             chip[ChipID].ChangePSGMode(mode);
+        }
+
+        public string ReadErrMsg(byte ChipID)
+        {
+            return chip[ChipID].ReadErrMsg();
         }
 
         int[] buffer = new int[2];

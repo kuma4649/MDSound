@@ -346,7 +346,7 @@ namespace MDSound.fmvgen
             uint pos = (scount[k] >> (toneshift + oversampling - 3 - 2)) & 63;
             int n = user[duty[k] - 10][pos];
             int x = n - 128;
-            return (int)((lv * x) >> 6);
+            return (int)((lv * x) >> 7);
         }
 
         private int GetSampleFromSaw(int k, uint lv)

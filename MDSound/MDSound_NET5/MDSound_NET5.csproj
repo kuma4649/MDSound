@@ -49,6 +49,7 @@
     <Compile Include="..\MDSound\fmvgen\psg2.cs" Link="fmvgen\psg2.cs" />
     <Compile Include="..\MDSound\fmvgen\psg2Light.cs" Link="fmvgen\psg2Light.cs" />
     <Compile Include="..\MDSound\gb.cs" Link="gb.cs" />
+    <Compile Include="..\MDSound\gigatron.cs" Link="gigatron.cs" />
     <Compile Include="..\MDSound\Instrument.cs" Link="Instrument.cs" />
     <Compile Include="..\MDSound\iremga20.cs" Link="iremga20.cs" />
     <Compile Include="..\MDSound\k005289.cs" Link="k005289.cs" />
