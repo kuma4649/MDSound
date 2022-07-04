@@ -1749,6 +1749,7 @@ namespace MDSound.fmgen
         public new void SetReg(uint addr, uint data)
         {
             addr &= 0x1ff;
+            //Console.WriteLine("adr:[{0:x03}] dat:[{1:x02}]", addr, data);
 
             switch (addr)
             {

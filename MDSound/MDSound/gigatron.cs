@@ -55,7 +55,7 @@ namespace MDSound
             g.audioSampleRate = clock;
             g.scanlines = 521.0;
             g.vSync = 59.98;
-            g.bClock = g.scanlines * g.vSync;
+            g.bClock = g.scanlines * g.vSync*2;
 
             Reset(chipID);
 
@@ -67,7 +67,7 @@ namespace MDSound
             chipID &= 1;
             GigatronState g = gig[chipID];
             g.audioSampleRate = clock;
-            g.bClock = ClockValue;
+            g.bClock = ClockValue*2;
 
             Reset(chipID);  
 

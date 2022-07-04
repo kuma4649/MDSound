@@ -14,6 +14,10 @@ namespace MDSound.fmvgen
             typeM = 1
         };
 
+        public const int waveChSize = 12;
+        public const int waveTypeSize = 4;
+        public const int waveBufSize = 1024;
+
         public static uint[][][] sinetable = new uint[12][][]{
             new uint[4][] { new uint[1024], new uint[1024], new uint[1024], new uint[1024] },
             new uint[4][] { new uint[1024], new uint[1024], new uint[1024], new uint[1024] },

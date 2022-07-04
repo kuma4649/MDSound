@@ -205,6 +205,41 @@ namespace MDSound.fmvgen
             adpcma.size = _adpcma_size;
         }
 
+        public void setAdpcm012(int p,byte[] _adpcmb)
+        {
+            adpcmb[p].adpcmbuf = _adpcmb;
+        }
+
+        public void setOperatorWave(byte[] buf)
+        {
+            int waveCh=0;
+            int wavetype=0;
+            int wavecounter = 0;
+
+            foreach (byte b in buf)
+            {
+                int cnt = wavecounter / 2;
+                int d = wavecounter % 2;
+
+                uint s;
+                if (d == 0) s = b;
+                else s = ((fmvgen.sinetable[waveCh][wavetype][cnt] & 0xff) | (uint)((b & 0x1f) << 8));
+
+                fmvgen.sinetable[waveCh][wavetype][cnt] = s;
+                wavecounter++;
+                if (wavecounter > fmvgen.waveBufSize * 2)
+                {
+                    wavecounter = 0;
+                    wavetype++;
+                    if (wavetype > fmvgen.waveTypeSize)
+                    {
+                        wavetype = 0;
+                        waveCh = 0;
+                    }
+                }
+            }
+        }
+
         // ---------------------------------------------------------------------------
         //	サンプリングレート変更
         //

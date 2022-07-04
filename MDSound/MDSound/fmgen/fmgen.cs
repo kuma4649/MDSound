@@ -575,9 +575,11 @@ namespace MDSound.fmgen
                 switch (nextphase)
                 {
                     case EGPhase.attack:        // Attack Phase
+                        //Console.WriteLine("a1");
                         tl_ = tl_latch_;
                         if (ssg_type_!=0)
                         {
+                            //Console.WriteLine("a2");
                             ssg_phase_ = ssg_phase_ + 1;
                             if (ssg_phase_ > 2)
                                 ssg_phase_ = 1;
@@ -591,6 +593,7 @@ namespace MDSound.fmgen
                             ssg_offset_ = table[0] * 0x200;
                             ssg_vector_ = table[1];
                         }
+                        //Console.WriteLine("a3");
                         if ((ar_ + key_scale_rate_) < 62)
                         {
                             SetEGRate(ar_!=0 ? Math.Min(63, ar_ + key_scale_rate_) : 0);
@@ -598,6 +601,8 @@ namespace MDSound.fmgen
                             break;
                         }
 
+                        //Console.WriteLine("a4");
+                        //Console.WriteLine("key_scale_rate_[{0}]", key_scale_rate_);
                         if (sl_ != 0)
                         {
                             eg_level_ = 0;
@@ -608,6 +613,7 @@ namespace MDSound.fmgen
                             break;
                         }
 
+                        //Console.WriteLine("a5");
                         eg_level_ = (int)(sl_ * 8);
                         eg_level_on_next_phase_ = ssg_type_ != 0 ? 0x200 : 0x400;
 
