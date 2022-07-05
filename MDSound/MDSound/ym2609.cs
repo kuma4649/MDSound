@@ -176,6 +176,12 @@ namespace MDSound
             chip[ChipID].setOperatorWave(wave);
         }
 
+        public void SetOperatorWaveDic(byte ChipID, int n, byte[] wave)
+        {
+            if (chip[ChipID] == null) return;
+            chip[ChipID].setOperatorWaveDic(n, wave);
+        }
+
         public override int Write(byte ChipID, int port, int adr, int data)
         {
             return YM2609_Write(ChipID, (uint)adr, (byte)data);

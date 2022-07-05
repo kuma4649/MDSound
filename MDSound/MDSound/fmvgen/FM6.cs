@@ -34,6 +34,7 @@ namespace MDSound.fmvgen
         public int wavetype = 0;
         public int waveCh = 0;
         public int wavecounter = 0;
+        public bool waveSetDic = false;
 
         protected uint[] lfotable = new uint[8];
         private reverb reverb;
@@ -42,10 +43,11 @@ namespace MDSound.fmvgen
         private effect.HPFLPF hpflpf;
         private effect.ReversePhase reversePhase;
         private effect.Compressor compressor;
+        private Dictionary<int, uint[]> dicOpeWav;
         private int efcStartCh;
         private int num;
 
-        public FM6(int n, reverb reverb, distortion distortion, chorus chorus, effect.HPFLPF hpflpf, effect.ReversePhase reversePhase,effect.Compressor compressor, int efcStartCh)
+        public FM6(int n, reverb reverb, distortion distortion, chorus chorus, effect.HPFLPF hpflpf, effect.ReversePhase reversePhase,effect.Compressor compressor, int efcStartCh, Dictionary<int, uint[]> dicOpeWav)
         {
             this.num = n;
             this.reverb = reverb;
@@ -55,6 +57,7 @@ namespace MDSound.fmvgen
             this.reversePhase = reversePhase;
             this.efcStartCh = efcStartCh;
             this.compressor = compressor;
+            this.dicOpeWav = dicOpeWav;
 
             chip = new fmvgen.Chip();
 
@@ -122,10 +125,20 @@ namespace MDSound.fmvgen
                     waveCh = Math.Max(Math.Min(waveCh, 11), 0);
                     wavecounter = 0;
                     if ((data & 0x4) != 0) fmvgen.waveReset(waveCh, wavetype);
+                    waveSetDic = ((data & 0x8) != 0);
                     break;
 
                 // Write WaveData -----------------------------------------------------------
                 case 0x2c:
+
+                    if (waveSetDic)
+                    {
+                        if (dicOpeWav.ContainsKey((int)data))
+                        {
+                            fmvgen.sinetable[waveCh][wavetype] = dicOpeWav[(int)data];
+                        }
+                        break;
+                    }
 
                     int cnt = wavecounter / 2;
                     int d = wavecounter % 2;

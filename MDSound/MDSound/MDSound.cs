@@ -2671,6 +2671,26 @@ namespace MDSound
             }
         }
 
+        public void WriteYM2609_SetOperatorWaveDic(byte ChipID,int n, byte[] Buf)
+        {
+            lock (lockobj)
+            {
+                if (!dicInst.ContainsKey(enmInstrumentType.YM2609)) return;
+
+                ((ym2609)(dicInst[enmInstrumentType.YM2609][0])).SetOperatorWaveDic(ChipID, n, Buf);
+            }
+        }
+
+        public void WriteYM2609_SetOperatorWaveDic(int ChipIndex, byte ChipID,int n, byte[] Buf)
+        {
+            lock (lockobj)
+            {
+                if (!dicInst.ContainsKey(enmInstrumentType.YM2609)) return;
+
+                ((ym2609)(dicInst[enmInstrumentType.YM2609][ChipIndex])).SetOperatorWaveDic(ChipID, n, Buf);
+            }
+        }
+
         #endregion
 
 

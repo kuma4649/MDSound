@@ -31,6 +31,7 @@ namespace MDSound.fmvgen
         private effect.ReversePhase reversePhase;
         private effect.HPFLPF hpflpf;
         private effect.Compressor compressor;
+        public Dictionary<int, uint[]> dicOpeWav = new Dictionary<int, uint[]>();
 
         public class Rhythm
         {
@@ -91,8 +92,8 @@ namespace MDSound.fmvgen
             this.compressor = compressor;
 
             fm6 = new FM6[2] {
-                new FM6(0, reverb, distortion, chorus, hpflpf,reversePhase,compressor, 0),
-                new FM6(1, reverb, distortion, chorus, hpflpf,reversePhase,compressor, 6) };
+                new FM6(0, reverb, distortion, chorus, hpflpf,reversePhase,compressor, 0,dicOpeWav),
+                new FM6(1, reverb, distortion, chorus, hpflpf,reversePhase,compressor, 6,dicOpeWav) };
             psg2 = new PSG2[4] {
                 new PSG2(0,reverb, distortion, chorus, hpflpf,reversePhase,compressor, 12),
                 new PSG2(1,reverb, distortion, chorus, hpflpf,reversePhase,compressor, 15),
@@ -165,6 +166,7 @@ namespace MDSound.fmvgen
         {
             rate = 8000;
             LoadRhythmSample(appendFileReaderCallback);
+            dicOpeWav.Clear();
 
             if (adpcmb[0].adpcmbuf == null)
                 adpcmb[0].adpcmbuf = new byte[0x40000];
@@ -238,6 +240,38 @@ namespace MDSound.fmvgen
                     }
                 }
             }
+        }
+
+
+        public void setOperatorWaveDic(int n, byte[] buf)
+        {
+            int wavecounter = 0;
+
+            if (dicOpeWav.ContainsKey(n))
+            {
+                dicOpeWav.Remove(n);
+            }
+
+            uint[] ubuf = new uint[fmvgen.waveBufSize]
+;
+            foreach (byte b in buf)
+            {
+                int cnt = wavecounter / 2;
+                int d = wavecounter % 2;
+
+                uint s;
+                if (d == 0) s = b;
+                else s = ((ubuf[cnt] & 0xff) | (uint)((b & 0x1f) << 8));
+
+                ubuf[cnt] = s;
+                wavecounter++;
+                if (wavecounter > fmvgen.waveBufSize * 2)
+                {
+                    wavecounter = 0;
+                }
+            }
+
+            dicOpeWav.Add(n,ubuf);
         }
 
         // ---------------------------------------------------------------------------
