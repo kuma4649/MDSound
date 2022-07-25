@@ -242,6 +242,10 @@ namespace MDSound.fmvgen
             }
         }
 
+        public uint[] getOperatorWave(int waveCh,int wavetype)
+        {
+            return fmvgen.sinetable[waveCh][wavetype];
+        }
 
         public void setOperatorWaveDic(int n, byte[] buf)
         {
@@ -252,14 +256,13 @@ namespace MDSound.fmvgen
                 dicOpeWav.Remove(n);
             }
 
-            uint[] ubuf = new uint[fmvgen.waveBufSize]
-;
+            uint[] ubuf = new uint[fmvgen.waveBufSize];
+            uint s;
             foreach (byte b in buf)
             {
                 int cnt = wavecounter / 2;
                 int d = wavecounter % 2;
 
-                uint s;
                 if (d == 0) s = b;
                 else s = ((ubuf[cnt] & 0xff) | (uint)((b & 0x1f) << 8));
 
@@ -272,6 +275,11 @@ namespace MDSound.fmvgen
             }
 
             dicOpeWav.Add(n,ubuf);
+        }
+
+        public byte[] getPSGuserWave(int p, int n)
+        {
+            return psg2[p].GetUserWave(n);
         }
 
         // ---------------------------------------------------------------------------

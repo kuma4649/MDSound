@@ -7,6 +7,9 @@ namespace MDSound.fmvgen
     {
 
         protected byte[] panpot = new byte[3];
+        protected byte[] panpotLM = new byte[3];
+        protected byte[] panpotRM = new byte[3];
+        public static readonly float[] panTable = new float[8] { 1.0f, 0.8756f, 0.7512f, 0.6012f, 0.4512f, 0.2506f, 0.0500f, 0.0250f };
         protected byte[] phaseReset = new byte[3];
         protected bool[] phaseResetBefore = new bool[3];
         protected byte[] duty = new byte[3];
@@ -107,6 +110,13 @@ namespace MDSound.fmvgen
                     //Console.WriteLine("{3} : WF {0} {1} {2} ", ((data & 0x70) >> 4) % 6, userDefCounter & 63, (byte)(data & 0xf), data);
                     userDefCounter++;
                     break;
+
+                case 15:    // Pan mul
+                    int ch = (data >> 6) & 0x3;
+                    if (ch == 3) break;
+                    panpotLM[ch] = (byte)((data >> 3) & 7);
+                    panpotRM[ch] = (byte)(data & 7);
+                    break;
             }
 
         }
@@ -160,8 +170,8 @@ namespace MDSound.fmvgen
                                     sample = tblGetSample[duty[k]](k, olevel[k]);
                                     int L = sample;
                                     int R = sample;
-                                    L = (panpot[k] & 2) != 0 ? L : 0;
-                                    R = (panpot[k] & 1) != 0 ? R : 0;
+                                    L = (panpot[k] & 2) != 0 ? (int)(L * panTable[panpotLM[k]]) : 0;
+                                    R = (panpot[k] & 1) != 0 ? (int)(R * panTable[panpotRM[k]]) : 0;
                                     L *= (reg[15] & revBit) != 0 ? 1 : -1;
                                     revBit >>= 1;
                                     R *= (reg[15] & revBit) != 0 ? 1 : -1;
@@ -216,8 +226,8 @@ namespace MDSound.fmvgen
                                     L += sample;
                                     R += sample;
 
-                                    L = (panpot[k] & 2) != 0 ? L : 0;
-                                    R = (panpot[k] & 1) != 0 ? R : 0;
+                                    L = (panpot[k] & 2) != 0 ? (int)(L * panTable[panpotLM[k]]) : 0;
+                                    R = (panpot[k] & 1) != 0 ? (int)(R * panTable[panpotRM[k]]) : 0;
                                     L *= (reg[15] & revBit) != 0 ? 1 : -1;
                                     revBit >>= 1;
                                     R *= (reg[15] & revBit) != 0 ? 1 : -1;
@@ -288,8 +298,8 @@ namespace MDSound.fmvgen
                                 L += sample;
                                 R += sample;
 
-                                L = (panpot[k] & 2) != 0 ? L : 0;
-                                R = (panpot[k] & 1) != 0 ? R : 0;
+                                L = (panpot[k] & 2) != 0 ? (int)(L * panTable[panpotLM[k]]) : 0;
+                                R = (panpot[k] & 1) != 0 ? (int)(R * panTable[panpotRM[k]]) : 0;
                                 L *= (reg[15] & revBit) != 0 ? 1 : -1;
                                 revBit >>= 1;
                                 R *= (reg[15] & revBit) != 0 ? 1 : -1;

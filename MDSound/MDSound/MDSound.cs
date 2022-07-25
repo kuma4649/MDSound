@@ -2691,6 +2691,24 @@ namespace MDSound
             }
         }
 
+        public byte[] ReadYM2609_GetPSGUserWave(byte ChipID, int p, int n)
+        {
+            lock (lockobj)
+            {
+                if (!dicInst.ContainsKey(enmInstrumentType.YM2609)) return null;
+                return ((ym2609)(dicInst[enmInstrumentType.YM2609][0])).GetPSGUserWave(ChipID, p, n);
+            }
+        }
+
+        public byte[] ReadYM2609_GetPSGUserWave(int ChipIndex, byte ChipID,int p, int n)
+        {
+            lock (lockobj)
+            {
+                if (!dicInst.ContainsKey(enmInstrumentType.YM2609)) return null;
+                return ((ym2609)(dicInst[enmInstrumentType.YM2609][ChipIndex])).GetPSGUserWave(ChipID,p, n);
+            }
+        }
+
         #endregion
 
 

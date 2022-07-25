@@ -182,6 +182,11 @@ namespace MDSound
             chip[ChipID].setOperatorWaveDic(n, wave);
         }
 
+        public byte[] GetPSGUserWave(byte ChipID,int p, int n)
+        {
+            return chip[ChipID].getPSGuserWave(p, n);
+        }
+
         public override int Write(byte ChipID, int port, int adr, int data)
         {
             return YM2609_Write(ChipID, (uint)adr, (byte)data);
