@@ -258,6 +258,10 @@ namespace MDSound
                     }
 
                     SetupResampler(inst);
+                    if (inst.type == enmInstrumentType.ES5503)
+                    {
+                        ((Es5503)inst.Instrument).es5503_set_srchg_cb(inst.ID, ChangeChipSampleRate, inst);
+                    }
                 }
 
                 dacControl = new dacControl(SamplingRate, this);
@@ -553,6 +557,61 @@ namespace MDSound
                 chip.NSmpl[1] = 0x00;
             }
 
+        }
+
+        private void ChangeChipSampleRate(Chip chip,UInt32 NewSmplRate)
+        {
+            if (chip.SamplingRate == NewSmplRate)
+            {
+                return;
+            }
+
+            chip.SamplingRate = NewSmplRate;
+
+            if (chip.SamplingRate == 0)
+            {
+                chip.Resampler = 0xff;
+                return;
+            }
+
+            if (chip.SamplingRate < SamplingRate)
+            {
+                chip.Resampler = 0x01;
+            }
+            else if (chip.SamplingRate == SamplingRate)
+            {
+                chip.Resampler = 0x02;
+            }
+            else if (chip.SamplingRate > SamplingRate)
+            {
+                chip.Resampler = 0x03;
+            }
+            if (chip.Resampler == 0x01 || chip.Resampler == 0x03)
+            {
+                if (ResampleMode == 0x02 || (ResampleMode == 0x01 && chip.Resampler == 0x03))
+                    chip.Resampler = 0x00;
+            }
+
+            chip.SmpP = 0x00;
+            chip.SmpLast = 0x00;
+            chip.SmpNext = 0x00;
+            chip.LSmpl = new int[2];
+            chip.LSmpl[0] = 0x00;
+            chip.LSmpl[1] = 0x00;
+            chip.NSmpl = new int[2];
+            if (chip.Resampler == 0x01)
+            {
+                // Pregenerate first Sample (the upsampler is always one too late)
+                int[][] buf = new int[2][] { new int[1], new int[1] };
+                chip.Update?.Invoke(chip.ID, buf, 1);
+                chip.NSmpl[0] = buf[0x00][0x00];
+                chip.NSmpl[1] = buf[0x01][0x00];
+            }
+            else
+            {
+                chip.NSmpl[0] = 0x00;
+                chip.NSmpl[1] = 0x00;
+            }
         }
 
 
@@ -1581,7 +1640,7 @@ namespace MDSound
 
         #region ES5503
 
-        public void WriteES5503(byte ChipID, byte Adr, byte Data)
+        public void WriteES5503(byte ChipID, int Adr, byte Data)
         {
             lock (lockobj)
             {
@@ -1592,7 +1651,7 @@ namespace MDSound
             }
         }
 
-        public void WriteES5503(int ChipIndex, byte ChipID, byte Adr, byte Data)
+        public void WriteES5503(int ChipIndex, byte ChipID, int Adr, byte Data)
         {
             lock (lockobj)
             {

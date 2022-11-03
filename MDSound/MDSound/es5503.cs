@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using static MDSound.MDSound;
 
 namespace MDSound
 {
@@ -18,12 +19,16 @@ namespace MDSound
 
 		public override uint Start(byte ChipID, uint clock)
 		{
-			return device_start_es5503(es5503[ChipID], clock, 0);
-		}
+            byte ret = device_start_es5503(es5503[ChipID], clock, 2);
+            if (ret == 0) return clock;
+            return 0;
+        }
 
-		public override uint Start(byte ChipID, uint clock, uint ClockValue, params object[] option)
+        public override uint Start(byte ChipID, uint clock, uint ClockValue, params object[] option)
 		{
-			return device_start_es5503(es5503[ChipID], clock, 0);
+			byte ret= device_start_es5503(es5503[ChipID], ClockValue, (byte)option[0]);
+			if (ret == 0) return ClockValue;
+			return 0;
 		}
 
 		public override void Stop(byte ChipID)
@@ -205,8 +210,8 @@ namespace MDSound
 			public byte outchn_mask;
 			public UInt32 output_rate;
 
-			//public DEVCB_SRATE_CHG SmpRateFunc;
-			//public void* SmpRateData;
+			public Action<Chip,UInt32> SmpRateFunc=null;
+			public Chip SmpRateData = null;
 		}
 
 		// useful constants
@@ -282,7 +287,7 @@ namespace MDSound
 			if (chip.docram == null)
 				return;
 
-			chnsStereo = (byte)(chip.output_channels & 0xff);// ~1;
+			chnsStereo = (byte)(chip.output_channels & 0xfe);// ~1;
 			for (osc = 0; osc < chip.oscsenabled; osc++)
 			{
 				ES5503Osc pOsc = chip.oscillators[osc];
@@ -326,7 +331,7 @@ namespace MDSound
 								if (chan == chnMask)
 									outputs[chan & 1][snum] += outData;
 							}
-							outData = (outData * 181) >> 8; // outData *= sqrt(2)
+							outData = (outData * 181) >> 10;// 8; // outData *= sqrt(2)
 															// send remaining channels to L+R
 							for (; chan < chip.output_channels; chan++)
 							{
@@ -378,9 +383,9 @@ namespace MDSound
 			chip.outchn_mask = (byte)pow2_mask(chip.output_channels);
 
 			chip.oscsenabled = 1;
-			chip.output_rate = (uint)((chip.clock / 8) / (2 + chip.oscsenabled));  // (input clock / 8) / # of oscs. enabled + 2
+			chip.output_rate = (uint)((chip.clock / 8) / 34); // (2 + chip.oscsenabled));// ;  // (input clock / 8) / # of oscs. enabled + 2
 
-			es5503_set_mute_mask(chip, 0x00000000);
+            es5503_set_mute_mask(chip, 0x00000000);
 
 			//chip._devData.chipInf = chip;
 			//INIT_DEVINF(retDevInf, &chip._devData, chip.output_rate, &devDef);
@@ -440,8 +445,8 @@ namespace MDSound
 			for (int i = 0; i < chip.dramsize; i++) chip.docram[i] = 0x00;
 
 			chip.output_rate = (uint)((chip.clock / 8) / (2 + chip.oscsenabled));  // (input clock / 8) / # of oscs. enabled + 2
-			//if (chip.SmpRateFunc != null)
-				//chip.SmpRateFunc(chip.SmpRateData, chip.output_rate);
+			if (chip.SmpRateFunc != null)
+				chip.SmpRateFunc(chip.SmpRateData, chip.output_rate);
 
 			return;
 		}
@@ -608,8 +613,8 @@ namespace MDSound
 						chip.oscsenabled = (byte)(1 + ((data >> 1) & 0x1f));
 
 						chip.output_rate = (uint)((chip.clock / 8) / (2 + chip.oscsenabled));
-						//if (chip.SmpRateFunc != null)
-							//chip.SmpRateFunc(chip.SmpRateData, chip.output_rate);
+						if (chip.SmpRateFunc != null)
+							chip.SmpRateFunc(chip.SmpRateData, chip.output_rate);
 						break;
 
 					case 0xe2:  // A/D converter
@@ -646,13 +651,13 @@ namespace MDSound
 			return;
 		}
 
-		private void es5503_set_srchg_cb()//(ES5503Chip info, DEVCB_SRATE_CHG CallbackFunc, void* DataPtr)
+		public void es5503_set_srchg_cb(int chipid, Action<Chip, UInt32> CallbackFunc, Chip DataPtr)
 		{
-			//ES5503Chip chip = info;
+			ES5503Chip chip = es5503[chipid];
 
-			//// set Sample Rate Change Callback routine
-			//chip.SmpRateFunc = CallbackFunc;
-			//chip.SmpRateData = DataPtr;
+			// set Sample Rate Change Callback routine
+			chip.SmpRateFunc = CallbackFunc;
+			chip.SmpRateData = DataPtr;
 
 			return;
 		}
