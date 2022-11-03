@@ -42,14 +42,23 @@ namespace MDSound
 			return 0;
 		}
 
+        public void SetMute(byte chipID, int v)
+        {
+			es5503_set_mute_mask(es5503[chipID], (uint)v);
+        }
+
+        public void WriteMem(byte chipID, int adr, byte data)
+        {
+			es5503_write_ram(es5503[chipID], (uint)adr, 1, new byte[] { data });
+        }
 
 
 
 
 
-		// license:BSD-3-Clause
-		// copyright-holders:R. Belmont
-		/*
+        // license:BSD-3-Clause
+        // copyright-holders:R. Belmont
+        /*
 		  ES5503 - Ensoniq ES5503 "DOC" emulator v2.1.2
 		  By R. Belmont.
 		  Copyright R. Belmont.
@@ -78,66 +87,66 @@ namespace MDSound
 					   want to loop.
 		*/
 
-		//# include <stdlib.h>
-		//# include <string.h>
+        //# include <stdlib.h>
+        //# include <string.h>
 
-		//# include "../../stdtype.h"
-		//# include "../EmuStructs.h"
-		//# include "../EmuCores.h"
-		//# include "../snddef.h"
-		//# include "../EmuHelper.h"
-		//# include "es5503.h"
-
-
-		//		static void es5503_w(void* info, byte offset, byte data);
-		//		static byte es5503_r(void* info, byte offset);
-
-		//		static void es5503_pcm_update(void* param, UInt32 samples, DEV_SMPL** outputs);
-		//		static byte device_start_es5503(const DEV_GEN_CFG* cfg, DEV_INFO* retDevInf);
-		//static void device_stop_es5503(void* info);
-		//		static void device_reset_es5503(void* info);
-
-		//		static void es5503_write_ram(void* info, UInt32 offset, UInt32 length, const byte* data);
-
-		//		static void es5503_set_mute_mask(void* info, UInt32 MuteMask);
-		//		static void es5503_set_srchg_cb(void* info, DEVCB_SRATE_CHG CallbackFunc, void* DataPtr);
+        //# include "../../stdtype.h"
+        //# include "../EmuStructs.h"
+        //# include "../EmuCores.h"
+        //# include "../snddef.h"
+        //# include "../EmuHelper.h"
+        //# include "es5503.h"
 
 
-		//		static DEVDEF_RWFUNC devFunc[] =
-		//		{
-		//	{RWF_REGISTER | RWF_WRITE, DEVRW_A8D8, 0, es5503_w},
-		//	{RWF_REGISTER | RWF_READ, DEVRW_A8D8, 0, es5503_r},
-		//	{RWF_MEMORY | RWF_WRITE, DEVRW_BLOCK, 0, es5503_write_ram},
-		//	{RWF_CHN_MUTE | RWF_WRITE, DEVRW_ALL, 0, es5503_set_mute_mask},
-		//	{0x00, 0x00, 0, NULL}
-		//};
-		//		static DEV_DEF devDef =
-		//		{
-		//	"ES5503", "MAME", FCC_MAME,
+        //		static void es5503_w(void* info, byte offset, byte data);
+        //		static byte es5503_r(void* info, byte offset);
 
-		//	device_start_es5503,
-		//	device_stop_es5503,
-		//	device_reset_es5503,
-		//	es5503_pcm_update,
+        //		static void es5503_pcm_update(void* param, UInt32 samples, DEV_SMPL** outputs);
+        //		static byte device_start_es5503(const DEV_GEN_CFG* cfg, DEV_INFO* retDevInf);
+        //static void device_stop_es5503(void* info);
+        //		static void device_reset_es5503(void* info);
 
-		//	NULL,	// SetOptionBits
-		//	es5503_set_mute_mask,
-		//	NULL,	// SetPanning
-		//	es5503_set_srchg_cb,	// SetSampleRateChangeCallback
-		//	NULL,	// SetLoggingCallback
-		//	NULL,	// LinkDevice
+        //		static void es5503_write_ram(void* info, UInt32 offset, UInt32 length, const byte* data);
 
-		//	devFunc,	// rwFuncs
-		//};
-
-		//		const DEV_DEF* devDefList_ES5503[] =
-		//		{
-		//	&devDef,
-		//	NULL
-		//};
+        //		static void es5503_set_mute_mask(void* info, UInt32 MuteMask);
+        //		static void es5503_set_srchg_cb(void* info, DEVCB_SRATE_CHG CallbackFunc, void* DataPtr);
 
 
-		private enum MODE
+        //		static DEVDEF_RWFUNC devFunc[] =
+        //		{
+        //	{RWF_REGISTER | RWF_WRITE, DEVRW_A8D8, 0, es5503_w},
+        //	{RWF_REGISTER | RWF_READ, DEVRW_A8D8, 0, es5503_r},
+        //	{RWF_MEMORY | RWF_WRITE, DEVRW_BLOCK, 0, es5503_write_ram},
+        //	{RWF_CHN_MUTE | RWF_WRITE, DEVRW_ALL, 0, es5503_set_mute_mask},
+        //	{0x00, 0x00, 0, NULL}
+        //};
+        //		static DEV_DEF devDef =
+        //		{
+        //	"ES5503", "MAME", FCC_MAME,
+
+        //	device_start_es5503,
+        //	device_stop_es5503,
+        //	device_reset_es5503,
+        //	es5503_pcm_update,
+
+        //	NULL,	// SetOptionBits
+        //	es5503_set_mute_mask,
+        //	NULL,	// SetPanning
+        //	es5503_set_srchg_cb,	// SetSampleRateChangeCallback
+        //	NULL,	// SetLoggingCallback
+        //	NULL,	// LinkDevice
+
+        //	devFunc,	// rwFuncs
+        //};
+
+        //		const DEV_DEF* devDefList_ES5503[] =
+        //		{
+        //	&devDef,
+        //	NULL
+        //};
+
+
+        private enum MODE
 		{
 			FREE = 0,
 			ONESHOT = 1,

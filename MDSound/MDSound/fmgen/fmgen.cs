@@ -130,9 +130,9 @@ namespace MDSound.fmgen
         public static void StoreSample(ref int dest, int data)
         {
             //if (sizeof(int) == 2)
-            //    dest = (int)Limit(dest + data, 0x7fff, -0x8000);
+            dest = (int)Limit(dest + data, 0x7fff, -0x8000);
             //else
-            dest += data;
+            //dest += data;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

@@ -96,7 +96,10 @@ namespace MDSound
             {
                 outputs[0][i] = buffer[i * 2 + 0];
                 outputs[1][i] = buffer[i * 2 + 1];
-                //Console.Write("[{0:d8}] : [{1:d8}] [{2}]\r\n", outputs[0][i], outputs[1][i],i);
+#if LIMIT_CHECKER
+                if (outputs[0][i] > 0x7fff || outputs[0][i] < -0x8000)
+                 Console.Write("limit over [{0:d8}] : [{1:d8}]\r\n", outputs[0][i], outputs[1][i]);
+#endif
             }
 
             visVolume[ChipID][0][0] = outputs[0][0];

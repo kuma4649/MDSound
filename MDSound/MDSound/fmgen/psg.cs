@@ -289,8 +289,8 @@ namespace MDSound.fmgen
                                 scount[2] += speriod[2];
                             }
                             sample /= (1 << oversampling);
-                            StoreSample(ref dest[ptrDest + 0], sample);
-                            StoreSample(ref dest[ptrDest + 1], sample);
+                            fmgen.StoreSample(ref dest[ptrDest + 0], sample);
+                            fmgen.StoreSample(ref dest[ptrDest + 1], sample);
                             ptrDest += 2;
 
                             visVolume = sample;
@@ -334,8 +334,8 @@ namespace MDSound.fmgen
 
                             }
                             sample /= (1 << oversampling);
-                            StoreSample(ref dest[ptrDest + 0], sample);
-                            StoreSample(ref dest[ptrDest + 1], sample);
+                            fmgen.StoreSample(ref dest[ptrDest + 0], sample);
+                            fmgen.StoreSample(ref dest[ptrDest + 1], sample);
                             ptrDest += 2;
 
                             visVolume = sample;
@@ -395,8 +395,8 @@ namespace MDSound.fmgen
 
                         }
                         sample /= (1 << oversampling);
-                        StoreSample(ref dest[ptrDest + 0], sample);
-                        StoreSample(ref dest[ptrDest + 1], sample);
+                        fmgen.StoreSample(ref dest[ptrDest + 0], sample);
+                        fmgen.StoreSample(ref dest[ptrDest + 1], sample);
                         ptrDest += 2;
 
                         visVolume = sample;
@@ -411,13 +411,13 @@ namespace MDSound.fmgen
             return reg[regnum & 0x0f];
         }
 
-        protected static void StoreSample(ref int dest, int data)
-        {
-            //if (sizeof(int) == 2)
-            //dest = (int)Limit(dest + data, 0x7fff, -0x8000);
-            //else
-            dest += data;
-        }
+        //protected static void StoreSample(ref int dest, int data)
+        //{
+        //    //if (sizeof(int) == 2)
+        //    //dest = (int)Limit(dest + data, 0x7fff, -0x8000);
+        //    //else
+        //    dest += data;
+        //}
 
         protected byte[] reg = new byte[16];
 

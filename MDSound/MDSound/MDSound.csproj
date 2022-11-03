@@ -4,7 +4,7 @@
     <AssemblyTitle>MDSound</AssemblyTitle>
     <Product>MDSound</Product>
     <Copyright>Copyright ©  2020</Copyright>
-    <DefineConstants />
+    <DefineConstants></DefineConstants>
     <OutputPath>bin\$(Configuration)\</OutputPath>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">

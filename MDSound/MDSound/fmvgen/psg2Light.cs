@@ -187,8 +187,8 @@ namespace MDSound.fmvgen
                             revSampleL /= (1 << oversampling);
                             revSampleR /= (1 << oversampling);
 
-                            StoreSample(ref dest[ptrDest + 0], sampleL);
-                            StoreSample(ref dest[ptrDest + 1], sampleR);
+                            fmvgen.StoreSample(ref dest[ptrDest + 0], sampleL);
+                            fmvgen.StoreSample(ref dest[ptrDest + 1], sampleR);
                             ptrDest += 2;
 
                             visVolume = sampleL;
@@ -240,8 +240,8 @@ namespace MDSound.fmvgen
 
                             sampleL /= (1 << oversampling);
                             sampleR /= (1 << oversampling);
-                            StoreSample(ref dest[ptrDest + 0], sampleL);
-                            StoreSample(ref dest[ptrDest + 1], sampleR);
+                            fmvgen.StoreSample(ref dest[ptrDest + 0], sampleL);
+                            fmvgen.StoreSample(ref dest[ptrDest + 1], sampleR);
                             ptrDest += 2;
 
                             visVolume = sampleL;
@@ -315,8 +315,8 @@ namespace MDSound.fmvgen
                         revSampleL /= (1 << oversampling);
                         revSampleR /= (1 << oversampling);
 
-                        StoreSample(ref dest[ptrDest + 0], sampleL);
-                        StoreSample(ref dest[ptrDest + 1], sampleR);
+                        fmvgen.StoreSample(ref dest[ptrDest + 0], sampleL);
+                        fmvgen.StoreSample(ref dest[ptrDest + 1], sampleR);
                         ptrDest += 2;
 
                         visVolume = sampleL;

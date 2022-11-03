@@ -752,10 +752,12 @@ namespace MDSound.fmgen
                 }
 
                 int v = ((fmgen.Limit(ibuf[2] + ibuf[3], 0x7fff, -0x8000) * fmvolume) >> 14);
+                //int v = fmgen.Limit((ibuf[2] + ibuf[3]) , 0x7fff, -0x8000);
                 fmgen.StoreSample(ref buffer[dest + 0], v);// ((fmgen.Limit(ibuf[2] + ibuf[3], 0x7fff, -0x8000) * fmvolume) >> 14));
                 visVolume[0] = v;
 
                 v = ((fmgen.Limit(ibuf[1] + ibuf[3], 0x7fff, -0x8000) * fmvolume) >> 14);
+                //v = fmgen.Limit((ibuf[1] + ibuf[3]) , 0x7fff, -0x8000);
                 fmgen.StoreSample(ref buffer[dest + 1], v);// ((fmgen.Limit(ibuf[1] + ibuf[3], 0x7fff, -0x8000) * fmvolume) >> 14));
                 visVolume[1] = v;
             }
