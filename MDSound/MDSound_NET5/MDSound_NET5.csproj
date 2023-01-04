@@ -25,6 +25,7 @@
     <Compile Include="..\MDSound\c352.cs" Link="c352.cs" />
     <Compile Include="..\MDSound\common.cs" Link="common.cs" />
     <Compile Include="..\MDSound\dacControl.cs" Link="dacControl.cs" />
+    <Compile Include="..\MDSound\emu2413.cs" Link="emu2413.cs" />
     <Compile Include="..\MDSound\es5503.cs" Link="es5503.cs" />
     <Compile Include="..\MDSound\fmgen\file.cs" Link="fmgen\file.cs" />
     <Compile Include="..\MDSound\fmgen\fmgen.cs" Link="fmgen\fmgen.cs" />

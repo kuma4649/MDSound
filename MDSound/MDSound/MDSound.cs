@@ -106,6 +106,7 @@ namespace MDSound
             YM2610,
             AY8910,
             YM2413,
+            YM2413emu,
             HuC6280,
             C352,
             K054539,
@@ -3226,6 +3227,26 @@ namespace MDSound
             }
         }
 
+        public void WriteYM2413emu(byte ChipID, byte Adr, byte Data)
+        {
+            lock (lockobj)
+            {
+                if (!dicInst.ContainsKey(enmInstrumentType.YM2413emu)) return;
+
+                ((emu2413)(dicInst[enmInstrumentType.YM2413emu][0])).Write(ChipID, 0, Adr, Data);
+            }
+        }
+
+        public void WriteYM2413emu(int ChipIndex, byte ChipID, byte Adr, byte Data)
+        {
+            lock (lockobj)
+            {
+                if (!dicInst.ContainsKey(enmInstrumentType.YM2413emu)) return;
+
+                ((emu2413)(dicInst[enmInstrumentType.YM2413emu][ChipIndex])).Write(ChipID, 0, Adr, Data);
+            }
+        }
+
         #endregion
 
 
@@ -4122,18 +4143,29 @@ namespace MDSound
 
         public void SetVolumeYM2413(int vol)
         {
-            if (!dicInst.ContainsKey(enmInstrumentType.YM2413)) return;
-
             if (insts == null) return;
 
-            foreach (Chip c in insts)
+            if (dicInst.ContainsKey(enmInstrumentType.YM2413))
             {
-                if (c.type != enmInstrumentType.YM2413) continue;
-                c.Volume = Math.Max(Math.Min(vol, 20), -192);
-                //int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8) / insts.Length;
-                int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8);
-                //16384 = 0x4000 = short.MAXValue + 1
-                c.tVolume = Math.Max(Math.Min((int)(n * volumeMul), short.MaxValue), short.MinValue);
+                foreach (Chip c in insts)
+                {
+                    if (c.type != enmInstrumentType.YM2413) continue;
+                    c.Volume = Math.Max(Math.Min(vol, 20), -192);
+                    //int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8) / insts.Length;
+                    int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8);
+                    //16384 = 0x4000 = short.MAXValue + 1
+                    c.tVolume = Math.Max(Math.Min((int)(n * volumeMul), short.MaxValue), short.MinValue);
+                }
+            }
+            else if (dicInst.ContainsKey(enmInstrumentType.YM2413emu))
+            {
+                foreach (Chip c in insts)
+                {
+                    if (c.type != enmInstrumentType.YM2413emu) continue;
+                    c.Volume = Math.Max(Math.Min(vol, 20), -192);
+                    int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8);
+                    c.tVolume = Math.Max(Math.Min((int)(n * volumeMul), short.MaxValue), short.MinValue);
+                }
             }
         }
 
@@ -6029,14 +6061,31 @@ namespace MDSound
 
         public int[][][] getYM2413VisVolume()
         {
-            if (!dicInst.ContainsKey(enmInstrumentType.YM2413)) return null;
-            return ((ym2413)dicInst[enmInstrumentType.YM2413][0]).visVolume;
+            if (dicInst.ContainsKey(enmInstrumentType.YM2413))
+            {
+                object obj = dicInst[enmInstrumentType.YM2413][0];
+                if (obj == null) return null;
+                return ((ym2413)obj).visVolume;
+            }
+            else if (dicInst.ContainsKey(enmInstrumentType.YM2413emu))
+            {
+                object obj = dicInst[enmInstrumentType.YM2413emu][0];
+                if (obj == null) return null;
+                return ((emu2413)obj).visVolume;
+            }
+            return null;
         }
 
         public int[][][] getYM2413VisVolume(int ChipIndex)
         {
             if (!dicInst.ContainsKey(enmInstrumentType.YM2413)) return null;
-            return ((ym2413)dicInst[enmInstrumentType.YM2413][ChipIndex]).visVolume;
+            object obj = dicInst[enmInstrumentType.YM2413][ChipIndex];
+            if (obj == null) return null;
+            if (obj is ym2413)
+                return ((ym2413)obj).visVolume;
+            else if (obj is emu2413)
+                return ((emu2413)obj).visVolume;
+            return null;
         }
 
         public int[][][] getYM2608VisVolume()
