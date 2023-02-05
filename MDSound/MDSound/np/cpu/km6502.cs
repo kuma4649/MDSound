@@ -2987,12 +2987,14 @@ namespace MDSound.np.cpu
         //#include "../misc/log_cpu.h"
 
         protected int int_address;
-        protected K6502_Context context;
+        protected K6502_Context context = new K6502_Context();
         protected bool breaked;
         protected UInt32 clock_per_frame;
         protected UInt32 clock_of_frame;
         protected UInt32 frame_quarter;
         protected UInt32 breakpoint;
+        protected UInt32 irqs;
+        protected bool enable_irq;
         protected IDevice bus;// IDevice* bus;
         protected object log_cpu;// CPULogger* log_cpu;
         //protected void startup(UINT32 address);
@@ -3043,6 +3045,8 @@ namespace MDSound.np.cpu
             NES_BASECYCLES = clock;
             bus = null;
             log_cpu = null;
+            irqs = 0;
+            enable_irq = true;
         }
 
         ~km6502() //    NES_CPU::~NES_CPU()
@@ -3200,7 +3204,7 @@ namespace MDSound.np.cpu
         {
             // KM6502のリセット
             //memset(&context, 0, sizeof(K6502_Context));
-            context = new K6502_Context();
+            //context = new K6502_Context();
             //public delegate UInt32 dlgReadHandler(object user, UInt32 adr);
             //public delegate void dlgWriterHandler(object user, UInt32 adr, UInt32 value);
             context.ReadByte = readByte;
@@ -3215,10 +3219,11 @@ namespace MDSound.np.cpu
             context.PC = breakpoint = 0xffff;
             context.illegal = 0;
             breaked = false;
+            irqs = 0;
             K6502_Exec(context);
         }
 
-        public void Start(Int32 start_adr, Int32 int_adr, double int_freq=60.0, Int32 a=0, Int32 x=0, Int32 y=0)
+        public void Start(Int32 start_adr, Int32 int_adr, double int_freq=60.0, Int32 song=0, Int32 region=0, Int32 y=0)
         {
             // 割り込みアドレス設定
             int_address = int_adr;
@@ -3227,12 +3232,13 @@ namespace MDSound.np.cpu
 
             // count clock quarters
             frame_quarter = 3;
-
+            irqs = 0;
+            enable_irq = true;
             //        if (log_cpu!=null)
             //            log_cpu.Init(a, x);
 
-            context.A = (UInt32)a;
-            context.X = (UInt32)x;
+            context.A = (UInt32)song;
+            context.X = (UInt32)region;
             context.Y = (UInt32)y;
             startup((UInt32)start_adr);
 
@@ -3267,5 +3273,31 @@ namespace MDSound.np.cpu
         {
             throw new NotImplementedException();
         }
+
+        public void UpdateIRQ(enmIRQ_devices device, bool irq)
+        {
+            if (!enable_irq) return;
+            if (device < 0 || device >= enmIRQ_devices.IRQD_COUNT) return;
+            UInt32 mask = (UInt32)(1 << (int)device);
+            irqs &= ~mask;
+            if (irq) irqs |= mask;
+            if (irqs != 0)
+            {
+                context.iRequest |= IRQ_INT;
+            }
+            else
+            {
+                context.iRequest &= ~(uint)IRQ_INT;
+            }
+        }
+
     } // namespace xgm    }
+
+    public enum enmIRQ_devices : int
+    {
+        IRQD_FRAME = 0,
+        IRQD_DMC = 1,
+        IRQD_NSF2 = 2,
+        IRQD_COUNT
+    }
 }

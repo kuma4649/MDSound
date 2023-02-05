@@ -183,6 +183,7 @@ namespace MDSound
 
         public class PPZChannelWork
         {
+            public int startAddress;
             public int loopStartOffset;
             public int loopEndOffset;
             public bool playing;
@@ -285,7 +286,7 @@ namespace MDSound
                 {
                     chWk[chipID][al].end = pcmData[chipID][bank].Length - 1;
                 }
-
+                chWk[chipID][al].startAddress = chWk[chipID][al].ptr;
 
                 chWk[chipID][al].loopStartOffset = chWk[chipID][al]._loopStartOffset;
                 if (chWk[chipID][al]._loopStartOffset == -1)
@@ -307,11 +308,13 @@ namespace MDSound
                     + pcmData[chipID][bank][num * 0x12 + 15 + 32] * 0x1000000
                     ;
                 }
-                if (chWk[chipID][al].loopStartOffset == 0xffff && chWk[chipID][al].loopEndOffset == 0xffff)
+
+                if (chWk[chipID][al].loopStartOffset == 0xffff)
                 {
                     chWk[chipID][al].loopStartOffset = -1;
                     chWk[chipID][al].loopEndOffset = -1;
                 }
+                if (chWk[chipID][al].loopStartOffset == -1 || chWk[chipID][al].loopEndOffset == 0xffff) chWk[chipID][al].loopEndOffset = -1;
 
                 //不要っぽい?
                 //chWk[chipID][al].srcFrequency = (ushort)(chWk[chipID][al].ptr
@@ -453,6 +456,7 @@ namespace MDSound
                 chWk[chipID][al]._loopStartOffset = -1;
                 chWk[chipID][al]._loopEndOffset = -1;
             }
+            if (chWk[chipID][al]._loopEndOffset == 0xffff) chWk[chipID][al]._loopEndOffset = -1;
         }
 
         /// <summary>
@@ -588,17 +592,25 @@ namespace MDSound
                     chWk[chipID][i].ptr += (int)chWk[chipID][i].delta;
                     chWk[chipID][i].delta -= (int)chWk[chipID][i].delta;
 
+                    //ループ終了位置まで来た時はループ開始位置に戻る。
+                    if (chWk[chipID][i].loopEndOffset != -1 && chWk[chipID][i].ptr >= chWk[chipID][i].startAddress + chWk[chipID][i].loopEndOffset)
+                    {
+                        chWk[chipID][i].ptr -= chWk[chipID][i].loopEndOffset - chWk[chipID][i].loopStartOffset;
+                    }
+
+                    //データ終了位置まで来た時はループ開始位置に戻る。ループが指定されていない時は再生終了。
                     if (chWk[chipID][i].ptr >= chWk[chipID][i].end)
                     {
                         if (chWk[chipID][i].loopStartOffset != -1)
                         {
-                            chWk[chipID][i].ptr -= chWk[chipID][i].loopEndOffset - chWk[chipID][i].loopStartOffset;
+                            chWk[chipID][i].ptr -= (chWk[chipID][i].end - chWk[chipID][i].startAddress - chWk[chipID][i].loopStartOffset);
                         }
                         else
                         {
                             chWk[chipID][i].playing = false;
                         }
                     }
+
                 }
 
                 l = (short)Math.Max(Math.Min(l, short.MaxValue), short.MinValue);

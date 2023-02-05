@@ -1,4 +1,5 @@
 ﻿
+using MDSound.np.cpu;
 using System;
 
 namespace MDSound.np.chip
@@ -7,6 +8,11 @@ namespace MDSound.np.chip
     {
         public np_nes_dmc dmc = new np_nes_dmc();
         public np_nes_dmc.NES_DMC chip;
+        private km6502 cpu = null;
+
+        public nes_dmc()
+        {
+        }
 
         public override bool Read(uint adr, ref uint val, uint id = 0)
         {
@@ -22,6 +28,12 @@ namespace MDSound.np.chip
 
         public override void Reset()
         {
+        }
+
+        public void Reset(km6502 cpu)
+        {
+            this.cpu = cpu;
+            dmc.SetCPU(chip, cpu);
             dmc.NES_DMC_np_Reset(chip);
         }
 

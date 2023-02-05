@@ -161,6 +161,8 @@ namespace MDSound
             public short[] mix_out = new short[2];
 
             public OPLL_RateConv conv;
+
+            public byte panCh=0;
         }
         //        OPLL;
 
@@ -1832,7 +1834,10 @@ namespace MDSound
             int ch, i;
 
             if (reg >= 0x40)
+            {
+                extendFunction(opll, reg, data);
                 return;
+            }
 
             /* mirror registers */
             if ((0x19 <= reg && reg <= 0x1f) || (0x29 <= reg && reg <= 0x2f) || (0x39 <= reg && reg <= 0x3f))
@@ -2020,6 +2025,28 @@ namespace MDSound
                     break;
 
                 default:
+                    break;
+            }
+        }
+
+        private void extendFunction(OPLL opll, uint reg, byte data)
+        {
+            switch (reg)
+            {
+                case 0x40: //パンChannel指定
+                    opll.panCh = (byte)Math.Min(Math.Max(data, (byte)0), (byte)13);
+                    break;
+                case 0x41: //パン値指定
+                    opll.pan[opll.panCh] = (byte)(
+                        ((data & 0xf0) != 0 ? 0x02 : 0x00)
+                        | ((data & 0x0f) != 0 ? 0x01 : 0x00));
+                    opll.pan[opll.panCh] = (byte)(
+                        (opll.pan[opll.panCh] == 0) 
+                        ? 3 
+                        : opll.pan[opll.panCh]);
+
+                    opll.pan_fine[opll.panCh][0] = 1.0f * (data >> 4) / 15.0f;
+                    opll.pan_fine[opll.panCh][1] = 1.0f * (data & 0xf) / 15.0f;
                     break;
             }
         }

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MDSound.np.cpu;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -160,8 +161,8 @@ namespace MDSound.np
 
             public Counter tick_count = new Counter();
             public UInt32 tick_last;
-        };
-
+            internal km6502 cpu;
+        }
         //INLINE UINT32 calc_tri(NES_DMC* dmc, UINT32 clocks);
         //INLINE UINT32 calc_dmc(NES_DMC* dmc, UINT32 clocks);
         //INLINE UINT32 calc_noise(NES_DMC* dmc, UINT32 clocks);
@@ -347,7 +348,7 @@ namespace MDSound.np
             if (s == 0 && (dmc.frame_sequence_steps == 4))
             {
                 if (dmc.frame_irq_enable) dmc.frame_irq = true;
-                //cpu->UpdateIRQ(NES_CPU::IRQD_FRAME, frame_irq & frame_irq_enable);
+                dmc.cpu.UpdateIRQ(enmIRQ_devices.IRQD_FRAME, dmc.frame_irq && dmc.frame_irq_enable);
             }
 
             // 240hz clock
@@ -564,7 +565,7 @@ namespace MDSound.np
                             else if ((dmc.mode & 2) != 0) // IRQ and not looped
                             {
                                 dmc.irq = true;
-                                //cpu->UpdateIRQ(NES_CPU::IRQD_DMC, true);
+                                dmc.cpu.UpdateIRQ(enmIRQ_devices.IRQD_DMC, true);
                             }
                         }
                     }
@@ -624,7 +625,7 @@ namespace MDSound.np
                             else if ((dmc.mode & 2) != 0) // IRQ and not looped
                             {
                                 dmc.irq = true;
-                                //cpu->UpdateIRQ(NES_CPU::IRQD_DMC, true);
+                                dmc.cpu.UpdateIRQ(enmIRQ_devices.IRQD_DMC, true);
                             }
                         }
                     }
@@ -938,7 +939,7 @@ namespace MDSound.np
             dmc.frame_sequence_count = 0;
             dmc.frame_sequence_steps = 4;
             dmc.frame_sequence_step = 0;
-            //cpu->UpdateIRQ(NES_CPU::IRQD_FRAME, false);
+            dmc.cpu?.UpdateIRQ(enmIRQ_devices.IRQD_FRAME, false);
 
             for (i = 0; i < 0x0f; i++)
                 NES_DMC_np_Write(dmc, (UInt32)(0x4008 + i), 0);
@@ -948,7 +949,7 @@ namespace MDSound.np
             NES_DMC_np_Write(dmc, 0x4015, 0x00);
             if (dmc.option[(Int32)OPT.OPT_UNMUTE_ON_RESET] != 0)
                 NES_DMC_np_Write(dmc, 0x4015, 0x0f);
-            //cpu->UpdateIRQ(NES_CPU::IRQD_DMC, false);
+            dmc.cpu?.UpdateIRQ(enmIRQ_devices.IRQD_DMC, false);
 
             dmc._out[0] = dmc._out[1] = dmc._out[2] = 0;
             dmc.damp = 0;
@@ -1055,7 +1056,7 @@ namespace MDSound.np
                 }
 
                 dmc.irq = false;
-                //cpu->UpdateIRQ(NES_CPU::IRQD_DMC, false);
+                dmc.cpu?.UpdateIRQ(enmIRQ_devices.IRQD_DMC, false);
 
                 dmc.reg[adr - 0x4008] = (byte)val;
                 return true;
@@ -1066,7 +1067,7 @@ namespace MDSound.np
                 //DEBUG_OUT("4017 = %02X\n", val);
                 dmc.frame_irq_enable = ((val & 0x40) != 0x40);
                 if (dmc.frame_irq_enable) dmc.frame_irq = false;
-                //cpu->UpdateIRQ(NES_CPU::IRQD_FRAME, false);
+                dmc.cpu?.UpdateIRQ(enmIRQ_devices.IRQD_FRAME, false);
 
                 dmc.frame_sequence_count = 0;
                 if ((val & 0x80) != 0)
@@ -1151,7 +1152,7 @@ namespace MDSound.np
                     if ((dmc.mode & 2) == 0)
                     {
                         dmc.irq = false;
-                        //cpu->UpdateIRQ(NES_CPU::IRQD_DMC, false);
+                        dmc.cpu?.UpdateIRQ(enmIRQ_devices.IRQD_DMC, false);
                     }
                     dmc.dfreq = freq_table[dmc.pal][val & 15];
                     break;
@@ -1196,7 +1197,7 @@ namespace MDSound.np
                      ;
 
                 dmc.frame_irq = false;
-                //cpu->UpdateIRQ(NES_CPU::IRQD_FRAME, false);
+                dmc.cpu.UpdateIRQ(enmIRQ_devices.IRQD_FRAME, false);
                 return true;
             }
             else if (0x4008 <= adr && adr <= 0x4014)
@@ -1206,6 +1207,12 @@ namespace MDSound.np
             }
             else
                 return false;
+        }
+
+        public void SetCPU(NES_DMC chip, km6502 cpu)
+        {
+            NES_DMC dmc = chip;
+            dmc.cpu=cpu;
         }
     }
 }
