@@ -348,7 +348,7 @@ namespace MDSound.np
             if (s == 0 && (dmc.frame_sequence_steps == 4))
             {
                 if (dmc.frame_irq_enable) dmc.frame_irq = true;
-                dmc.cpu.UpdateIRQ(enmIRQ_devices.IRQD_FRAME, dmc.frame_irq && dmc.frame_irq_enable);
+                dmc.cpu?.UpdateIRQ(enmIRQ_devices.IRQD_FRAME, dmc.frame_irq && dmc.frame_irq_enable);
             }
 
             // 240hz clock
@@ -565,7 +565,7 @@ namespace MDSound.np
                             else if ((dmc.mode & 2) != 0) // IRQ and not looped
                             {
                                 dmc.irq = true;
-                                dmc.cpu.UpdateIRQ(enmIRQ_devices.IRQD_DMC, true);
+                                dmc.cpu?.UpdateIRQ(enmIRQ_devices.IRQD_DMC, true);
                             }
                         }
                     }
@@ -625,7 +625,7 @@ namespace MDSound.np
                             else if ((dmc.mode & 2) != 0) // IRQ and not looped
                             {
                                 dmc.irq = true;
-                                dmc.cpu.UpdateIRQ(enmIRQ_devices.IRQD_DMC, true);
+                                dmc.cpu?.UpdateIRQ(enmIRQ_devices.IRQD_DMC, true);
                             }
                         }
                     }
@@ -1197,7 +1197,7 @@ namespace MDSound.np
                      ;
 
                 dmc.frame_irq = false;
-                dmc.cpu.UpdateIRQ(enmIRQ_devices.IRQD_FRAME, false);
+                dmc.cpu?.UpdateIRQ(enmIRQ_devices.IRQD_FRAME, false);
                 return true;
             }
             else if (0x4008 <= adr && adr <= 0x4014)
