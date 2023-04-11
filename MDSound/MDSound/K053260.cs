@@ -274,9 +274,8 @@ namespace MDSound
                     /* see if the voice is on */
                     if (play[i] != 0)
                     {
-                        UInt32 position = pos[i] >> BASE_SHIFT;
                         /* see if we're done */
-                        if (position >= end[i])
+                        if ((pos[i] >> BASE_SHIFT) >= end[i])
                         {
 
                             ppcm_data[i] = 0;
@@ -288,6 +287,7 @@ namespace MDSound
                                 continue;
                             }
                         }
+                        UInt32 position = pos[i] >> BASE_SHIFT;
 
                         if (ppcm[i] != 0)
                         { /* Packed PCM */
