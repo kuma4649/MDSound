@@ -118,6 +118,7 @@ namespace MDSound
             public UInt32 bank;
             public UInt32 volume;
             public Int32 play;
+            public Int32 dir;
             public UInt32 pan;
             public UInt32 pos;
             public Int32 loop;
@@ -193,6 +194,7 @@ namespace MDSound
                 ic.channels[i].bank = 0;
                 ic.channels[i].volume = 0;
                 ic.channels[i].play = 0;
+                ic.channels[i].dir = 0;
                 ic.channels[i].pan = 0;
                 ic.channels[i].pos = 0;
                 ic.channels[i].loop = 0;
@@ -216,7 +218,7 @@ namespace MDSound
         private const Int32 MINOUT = -0x8000;
 
         private sbyte[] dpcmcnv = new sbyte[] { 0, 1, 2, 4, 8, 16, 32, 64, -128, -64, -32, -16, -8, -4, -2, -1 };
-        private Int32[] lvol = new Int32[4], rvol = new Int32[4], play = new Int32[4], loop = new Int32[4], ppcm = new Int32[4];
+        private Int32[] lvol = new Int32[4], rvol = new Int32[4], play = new Int32[4], dir = new Int32[4], loop = new Int32[4], ppcm = new Int32[4];
         //byte[] rom = new byte[4];
         private UInt32[] ptrRom = new UInt32[4];
         private UInt32[] delta = new UInt32[4], end = new UInt32[4], pos = new UInt32[4];
@@ -254,6 +256,7 @@ namespace MDSound
                 end[i] = ic.channels[i].size;
                 pos[i] = ic.channels[i].pos;
                 play[i] = ic.channels[i].play;
+                dir[i] = ic.channels[i].dir;
                 loop[i] = ic.channels[i].loop;
                 ppcm[i] = ic.channels[i].ppcm;
                 ppcm_data[i] = (sbyte)ic.channels[i].ppcm_data;
@@ -284,6 +287,7 @@ namespace MDSound
                                 continue;
                             }
                         }
+                        UInt32 position = pos[i] >> BASE_SHIFT;
 
                         if (ppcm[i] != 0)
                         { /* Packed PCM */
@@ -297,12 +301,12 @@ namespace MDSound
                                 {
 
                                     //newdata = ((rom[i][pos[i] >> BASE_SHIFT]) >> 4) & 0x0f; /*high nybble*/
-                                    newdata = ((ic.rom[ptrRom[i] + (pos[i] >> BASE_SHIFT)]) >> 4) & 0x0f; /*high nybble*/
+                                    newdata = ((ic.rom[ptrRom[i] + ((dir[i] > 0) ? -position : position)]) >> 4) & 0x0f; /*high nybble*/
                                 }
                                 else
                                 {
                                     //newdata = ((rom[i][pos[i] >> BASE_SHIFT])) & 0x0f; /*low nybble*/
-                                    newdata = ((ic.rom[ptrRom[i] + (pos[i] >> BASE_SHIFT)])) & 0x0f; /*low nybble*/
+                                    newdata = ((ic.rom[ptrRom[i] + ((dir[i] > 0) ? -position : position)])) & 0x0f; /*low nybble*/
                                 }
 
                                 /*ppcm_data[i] = (( ( ppcm_data[i] * 62 ) >> 6 ) + dpcmcnv[newdata]);
@@ -324,7 +328,7 @@ namespace MDSound
                         else
                         { /* PCM */
                             //d = rom[i][pos[i] >> BASE_SHIFT];
-                            d = (sbyte)ic.rom[ptrRom[i] + (pos[i] >> BASE_SHIFT)];
+                            d = (sbyte)ic.rom[ptrRom[i] + ((dir[i] > 0) ? -position : position)];
 
                             pos[i] += delta[i];
                         }
@@ -483,6 +487,7 @@ namespace MDSound
 
                 for (i = 0; i < 4; i++)
                 {
+                    ic.channels[i].dir = (v & (16 << i)) != 0 ? 1 : 0;
                     if ((t & (1 << i)) != 0)
                     {
                         if ((v & (1 << i)) != 0)
