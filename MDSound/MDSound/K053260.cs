@@ -49,7 +49,10 @@ namespace MDSound
             return 0;
         }
 
-
+        public k053260_state GetState(byte chipID)
+        {
+            return K053260Data[chipID]; 
+        }
 
 
         /*********************************************************

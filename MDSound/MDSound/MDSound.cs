@@ -30,6 +30,7 @@ namespace MDSound
         private List<uint[]> segapcmMask = new List<uint[]>(new uint[][] { new uint[] { 0, 0 } });
         private List<uint[]> qsoundMask = new List<uint[]>(new uint[][] { new uint[] { 0, 0 } });
         private List<uint[]> qsoundCtrMask = new List<uint[]>(new uint[][] { new uint[] { 0, 0 } });
+        private List<uint[]> k053260Mask = new List<uint[]>(new uint[][] { new uint[] { 0, 0 } });
         private List<uint[]> okim6295Mask = new List<uint[]>(new uint[][] { new uint[] { 0, 0 } });
         private List<uint[]> c140Mask = new List<uint[]>(new uint[][] { new uint[] { 0, 0 } });
         private List<int[]> ay8910Mask = new List<int[]>(new int[][] { new int[] { 0, 0 } });
@@ -5667,6 +5668,32 @@ namespace MDSound
             }
         }
 
+        public void setK053260Mask(int chipID, int ch)
+        {
+            lock (lockobj)
+            {
+                ch = (1 << ch);
+                k053260Mask[0][chipID] |= (uint)ch;
+                if (dicInst.ContainsKey(enmInstrumentType.K053260))
+                {
+                    ((K053260)(dicInst[enmInstrumentType.K053260][0])).k053260_set_mute_mask((byte)chipID, k053260Mask[0][chipID]);
+                }
+            }
+        }
+
+        public void setK053260Mask(int ChipIndex, int chipID, int ch)
+        {
+            lock (lockobj)
+            {
+                ch = (1 << ch);
+                k053260Mask[ChipIndex][chipID] |= (uint)ch;
+                if (!dicInst.ContainsKey(enmInstrumentType.K053260))
+                {
+                    ((Qsound_ctr)(dicInst[enmInstrumentType.K053260][ChipIndex])).qsound_set_mute_mask((byte)chipID, k053260Mask[ChipIndex][chipID]);
+                }
+            }
+        }
+
         public void setOKIM6295Mask(int ChipIndex, int chipID, int ch)
         {
             lock (lockobj)
@@ -5959,6 +5986,32 @@ namespace MDSound
                 if (!dicInst.ContainsKey(enmInstrumentType.QSoundCtr))
                 {
                     ((Qsound_ctr)(dicInst[enmInstrumentType.QSoundCtr][ChipIndex])).qsound_set_mute_mask((byte)chipID, qsoundCtrMask[ChipIndex][chipID]);
+                }
+            }
+        }
+
+        public void resetK053260Mask(int chipID, int ch)
+        {
+            lock (lockobj)
+            {
+                ch = (1 << ch);
+                k053260Mask[0][chipID] &= ~(uint)ch;
+                if (dicInst.ContainsKey(enmInstrumentType.K053260))
+                {
+                    ((K053260)(dicInst[enmInstrumentType.K053260][0])).k053260_set_mute_mask((byte)chipID, k053260Mask[0][chipID]);
+                }
+            }
+        }
+
+        public void resetK053260Mask(int ChipIndex, int chipID, int ch)
+        {
+            lock (lockobj)
+            {
+                ch = (1 << ch);
+                k053260Mask[ChipIndex][chipID] &= ~(uint)ch;
+                if (!dicInst.ContainsKey(enmInstrumentType.K053260))
+                {
+                    ((K053260)(dicInst[enmInstrumentType.K053260][ChipIndex])).k053260_set_mute_mask((byte)chipID, k053260Mask[ChipIndex][chipID]);
                 }
             }
         }
@@ -6513,6 +6566,18 @@ namespace MDSound
         {
             if (!dicInst.ContainsKey(enmInstrumentType.K053260)) return null;
             return dicInst[enmInstrumentType.K053260][ChipIndex].visVolume;
+        }
+        
+        public K053260.k053260_state getK053260State(int ChipID)
+        {
+            if (!dicInst.ContainsKey(enmInstrumentType.K053260)) return null;
+            return ((K053260)dicInst[enmInstrumentType.K053260][0]).GetState((byte)ChipID);
+        }
+
+        public K053260.k053260_state getK053260State(int ChipIndex,int ChipID)
+        {
+            if (!dicInst.ContainsKey(enmInstrumentType.K053260)) return null;
+            return ((K053260)dicInst[enmInstrumentType.K053260][ChipIndex]).GetState((byte)ChipID);
         }
 
         public int[][][] getQSoundVisVolume()
