@@ -50,7 +50,7 @@ namespace MDSound
             hpflpf[ChipID] = new fmvgen.effect.HPFLPF((int)clock, MaxCh);
             reversePhase[ChipID] = new fmvgen.effect.ReversePhase();
             compressor[ChipID] = new fmvgen.effect.Compressor((int)clock, MaxCh);
-            chip[ChipID] = new fmvgen.OPNA2(reverb[ChipID], distortion[ChipID], chorus[ChipID], ep3band[ChipID], hpflpf[ChipID], reversePhase[ChipID], compressor[ChipID]);
+            chip[ChipID] = new fmvgen.OPNA2(ChipID,reverb[ChipID], distortion[ChipID], chorus[ChipID], ep3band[ChipID], hpflpf[ChipID], reversePhase[ChipID], compressor[ChipID]);
             chip[ChipID].Init(DefaultYM2609ClockValue, clock);
 
             return clock;
@@ -65,7 +65,7 @@ namespace MDSound
             hpflpf[ChipID] = new fmvgen.effect.HPFLPF((int)clock, MaxCh);
             reversePhase[ChipID] = new fmvgen.effect.ReversePhase();
             compressor[ChipID] = new fmvgen.effect.Compressor((int)clock, MaxCh);
-            chip[ChipID] = new fmvgen.OPNA2(reverb[ChipID], distortion[ChipID], chorus[ChipID], ep3band[ChipID], hpflpf[ChipID], reversePhase[ChipID], compressor[ChipID]);
+            chip[ChipID] = new fmvgen.OPNA2(ChipID, reverb[ChipID], distortion[ChipID], chorus[ChipID], ep3band[ChipID], hpflpf[ChipID], reversePhase[ChipID], compressor[ChipID]);
 
             if (option != null && option.Length > 0 && option[0] is Func<string, Stream>)
             {
