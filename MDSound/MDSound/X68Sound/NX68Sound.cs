@@ -94,6 +94,11 @@ namespace MDSound.NX68Sound
             return opm.GetPcm(buf, offset, len, oneFrameProc);
         }
 
+        public void X68Sound_SetMask(int n)
+        {
+            opm.SetMask(n);
+        }
+
         public byte X68Sound_OpmPeek()
         {
             return opm.OpmPeek();
@@ -235,10 +240,6 @@ namespace MDSound.NX68Sound
             return opm.SetTotalVolume(v);
         }
 
-        public void X68Sound_SetMask(int v)
-        {
-            opm.SetMask(v);
-        }
 
 
 

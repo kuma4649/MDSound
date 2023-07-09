@@ -85,6 +85,12 @@ namespace MDSound
             return 0;
         }
 
+        public void SetMask(byte ChipID,int n)
+        {
+            if (x68sound[ChipID] == null) return;
+            x68sound[ChipID].X68Sound_SetMask(n);
+        }
+
         public NX68Sound.X68Sound[] x68sound = new NX68Sound.X68Sound[2] { null, null };
         public NX68Sound.sound_iocs[] sound_Iocs = new NX68Sound.sound_iocs[2] { null, null };
 
