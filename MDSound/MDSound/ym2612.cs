@@ -418,7 +418,10 @@ namespace MDSound
                     CH.SLOT[0].Finc = -1;
 
                     if ((data &= 0x1F) != 0) { SL.AR = AR_TAB; SL.ARindex = data << 1; }
-                    else { SL.AR = NULL_RATE; SL.ARindex = 0; }
+                    else { 
+                        SL.AR = NULL_RATE;
+                        SL.ARindex = 0; 
+                    }
 
                     SL.EincA = (int)SL.AR[SL.ARindex + SL.KSR];
                     if (SL.Ecurp == ATTACK) SL.Einc = SL.EincA;
@@ -444,7 +447,7 @@ namespace MDSound
                     break;
 
                 case 0x70:
-                    if ((data &= 0x1F) > 0) { SL.SR = DR_TAB; SL.SRindex = data << 1; }
+                    if ((data &= 0x1F) != 0) { SL.SR = DR_TAB; SL.SRindex = data << 1; }
                     else { SL.SR = NULL_RATE; SL.SRindex = 0; }
 
                     SL.EincS = (int)SL.SR[SL.SRindex + SL.KSR];
@@ -560,7 +563,8 @@ namespace MDSound
                         YM2612_Special_Update(YM2612);
 
                         YM2612.CHANNEL[2].FNUM[num] = (YM2612.CHANNEL[2].FNUM[num] & 0x700) + data;
-                        YM2612.CHANNEL[2].KC[num] = (int)(((uint)YM2612.CHANNEL[2].FOCT[num] << 2) | FKEY_TAB[YM2612.CHANNEL[2].FNUM[num] >> 7]);
+                        YM2612.CHANNEL[2].KC[num] = (int)(((uint)YM2612.CHANNEL[2].FOCT[num] << 2) |
+                            FKEY_TAB[YM2612.CHANNEL[2].FNUM[num] >> 7]);
 
                         YM2612.CHANNEL[2].SLOT[0].Finc = -1;
 
@@ -577,9 +581,11 @@ namespace MDSound
 
                         YM2612_Special_Update(YM2612);
 
-                        YM2612.CHANNEL[2].FNUM[num] = (YM2612.CHANNEL[2].FNUM[num] & 0x0FF) + ((int)(data & 0x07) << 8);
+                        YM2612.CHANNEL[2].FNUM[num] = (YM2612.CHANNEL[2].FNUM[num] & 0x0FF) +
+                            ((int)(data & 0x07) << 8);
                         YM2612.CHANNEL[2].FOCT[num] = (data & 0x38) >> 3;
-                        YM2612.CHANNEL[2].KC[num] = (int)(((uint)YM2612.CHANNEL[2].FOCT[num] << 2) | FKEY_TAB[YM2612.CHANNEL[2].FNUM[num] >> 7]);
+                        YM2612.CHANNEL[2].KC[num] = (int)(((uint)YM2612.CHANNEL[2].FOCT[num] << 2) |
+                            FKEY_TAB[YM2612.CHANNEL[2].FNUM[num] >> 7]);
 
                         YM2612.CHANNEL[2].SLOT[0].Finc = -1;
 
@@ -884,7 +890,7 @@ namespace MDSound
 
         private static void UPDATE_PHASE_LFO(ym2612_ YM2612, channel_ CH, int i, ref int freq_LFO)
         {
-            if ((freq_LFO = (CH.FMS * YM2612.LFO_FREQ_UP[i]) >> (LFO_HBITS - 1)) > 0)
+            if ((freq_LFO = (CH.FMS * YM2612.LFO_FREQ_UP[i]) >> (LFO_HBITS - 1)) != 0)
             {
                 CH.SLOT[S0].Fcnt += CH.SLOT[S0].Finc + ((CH.SLOT[S0].Finc * freq_LFO) >> LFO_FMS_LBITS);
                 CH.SLOT[S1].Fcnt += CH.SLOT[S1].Finc + ((CH.SLOT[S1].Finc * freq_LFO) >> LFO_FMS_LBITS);
@@ -1037,7 +1043,8 @@ namespace MDSound
         {
             DO_FEEDBACK(YM2612, CH);
             YM2612.in1 += CH.S0_OUT[1];
-            YM2612.in3 += TL_TAB[SIN_TAB[(YM2612.in1 >> SIN_LBITS) & SIN_MASK] + YM2612.en1] + TL_TAB[SIN_TAB[(YM2612.in2 >> SIN_LBITS) & SIN_MASK] + YM2612.en2];//SIN_TAB[(YM2612.in1 >> SIN_LBITS) & SIN_MASK][YM2612.en1] + SIN_TAB[(YM2612.in2 >> SIN_LBITS) & SIN_MASK][YM2612.en2];
+            YM2612.in3 += TL_TAB[SIN_TAB[(YM2612.in1 >> SIN_LBITS) & SIN_MASK] + YM2612.en1] +
+                TL_TAB[SIN_TAB[(YM2612.in2 >> SIN_LBITS) & SIN_MASK] + YM2612.en2];//SIN_TAB[(YM2612.in1 >> SIN_LBITS) & SIN_MASK][YM2612.en1] + SIN_TAB[(YM2612.in2 >> SIN_LBITS) & SIN_MASK][YM2612.en2];
             CH.OUTd = (TL_TAB[SIN_TAB[(YM2612.in3 >> SIN_LBITS) & SIN_MASK] + YM2612.en3]) >> OUT_SHIFT;//(SIN_TAB[(YM2612.in3 >> SIN_LBITS) & SIN_MASK][YM2612.en3]) >> OUT_SHIFT;
         }
 
@@ -1046,7 +1053,8 @@ namespace MDSound
             DO_FEEDBACK(YM2612, CH);
             YM2612.in1 += CH.S0_OUT[1];
             YM2612.in3 += TL_TAB[SIN_TAB[(YM2612.in2 >> SIN_LBITS) & SIN_MASK] + YM2612.en2];//SIN_TAB[(YM2612.in2 >> SIN_LBITS) & SIN_MASK][YM2612.en2];
-            CH.OUTd = ((int)TL_TAB[SIN_TAB[(YM2612.in3 >> SIN_LBITS) & SIN_MASK] + YM2612.en3] + (int)TL_TAB[SIN_TAB[(YM2612.in1 >> SIN_LBITS) & SIN_MASK] + YM2612.en1]) >> OUT_SHIFT;//((int)SIN_TAB[(YM2612.in3 >> SIN_LBITS) & SIN_MASK][YM2612.en3] + (int)SIN_TAB[(YM2612.in1 >> SIN_LBITS) & SIN_MASK][YM2612.en1]) >> OUT_SHIFT;
+            CH.OUTd = ((int)TL_TAB[SIN_TAB[(YM2612.in3 >> SIN_LBITS) & SIN_MASK] + YM2612.en3] 
+                + (int)TL_TAB[SIN_TAB[(YM2612.in1 >> SIN_LBITS) & SIN_MASK] + YM2612.en1]) >> OUT_SHIFT;//((int)SIN_TAB[(YM2612.in3 >> SIN_LBITS) & SIN_MASK][YM2612.en3] + (int)SIN_TAB[(YM2612.in1 >> SIN_LBITS) & SIN_MASK][YM2612.en1]) >> OUT_SHIFT;
             DO_LIMIT(CH);
         }
 
@@ -1056,7 +1064,9 @@ namespace MDSound
             YM2612.in1 += CH.S0_OUT[1];
             YM2612.in2 += CH.S0_OUT[1];
             YM2612.in3 += CH.S0_OUT[1];
-            CH.OUTd = ((int)TL_TAB[SIN_TAB[(YM2612.in3 >> SIN_LBITS) & SIN_MASK] + YM2612.en3] + (int)TL_TAB[SIN_TAB[(YM2612.in1 >> SIN_LBITS) & SIN_MASK] + YM2612.en1] + (int)TL_TAB[SIN_TAB[(YM2612.in2 >> SIN_LBITS) & SIN_MASK] + YM2612.en2]) >> OUT_SHIFT;
+            CH.OUTd = ((int)TL_TAB[SIN_TAB[(YM2612.in3 >> SIN_LBITS) & SIN_MASK] + YM2612.en3] +
+                (int)TL_TAB[SIN_TAB[(YM2612.in1 >> SIN_LBITS) & SIN_MASK] + YM2612.en1] +
+                (int)TL_TAB[SIN_TAB[(YM2612.in2 >> SIN_LBITS) & SIN_MASK] + YM2612.en2]) >> OUT_SHIFT;
             //CH.OUTd = ((int)SIN_TAB[(YM2612.in3 >> SIN_LBITS) & SIN_MASK][YM2612.en3] + (int)SIN_TAB[(YM2612.in1 >> SIN_LBITS) & SIN_MASK][YM2612.en1] + (int)SIN_TAB[(YM2612.in2 >> SIN_LBITS) & SIN_MASK][YM2612.en2]) >> OUT_SHIFT;
             DO_LIMIT(CH);
         }
@@ -1065,7 +1075,9 @@ namespace MDSound
         {
             DO_FEEDBACK(YM2612, CH);
             YM2612.in1 += CH.S0_OUT[1];
-            CH.OUTd = ((int)TL_TAB[SIN_TAB[(YM2612.in3 >> SIN_LBITS) & SIN_MASK] + YM2612.en3] + (int)TL_TAB[SIN_TAB[(YM2612.in1 >> SIN_LBITS) & SIN_MASK] + YM2612.en1] + (int)TL_TAB[SIN_TAB[(YM2612.in2 >> SIN_LBITS) & SIN_MASK] + YM2612.en2]) >> OUT_SHIFT;
+            CH.OUTd = ((int)TL_TAB[SIN_TAB[(YM2612.in3 >> SIN_LBITS) & SIN_MASK] + YM2612.en3] +
+                (int)TL_TAB[SIN_TAB[(YM2612.in1 >> SIN_LBITS) & SIN_MASK] + YM2612.en1] +
+                (int)TL_TAB[SIN_TAB[(YM2612.in2 >> SIN_LBITS) & SIN_MASK] + YM2612.en2]) >> OUT_SHIFT;
             //CH.OUTd = ((int)SIN_TAB[(YM2612.in3 >> SIN_LBITS) & SIN_MASK][YM2612.en3] + (int)SIN_TAB[(YM2612.in1 >> SIN_LBITS) & SIN_MASK][YM2612.en1] + (int)SIN_TAB[(YM2612.in2 >> SIN_LBITS) & SIN_MASK][YM2612.en2]) >> OUT_SHIFT;
             DO_LIMIT(CH);
         }
@@ -1073,7 +1085,9 @@ namespace MDSound
         private static void DO_ALGO_7(ym2612_ YM2612, channel_ CH)
         {
             DO_FEEDBACK(YM2612, CH);
-            CH.OUTd = ((int)TL_TAB[SIN_TAB[(YM2612.in3 >> SIN_LBITS) & SIN_MASK] + YM2612.en3] + (int)TL_TAB[SIN_TAB[(YM2612.in1 >> SIN_LBITS) & SIN_MASK] + YM2612.en1] + (int)TL_TAB[SIN_TAB[(YM2612.in2 >> SIN_LBITS) & SIN_MASK] + YM2612.en2] + CH.S0_OUT[1]) >> OUT_SHIFT;
+            CH.OUTd = ((int)TL_TAB[SIN_TAB[(YM2612.in3 >> SIN_LBITS) & SIN_MASK] + YM2612.en3] + 
+                (int)TL_TAB[SIN_TAB[(YM2612.in1 >> SIN_LBITS) & SIN_MASK] + YM2612.en1] + 
+                (int)TL_TAB[SIN_TAB[(YM2612.in2 >> SIN_LBITS) & SIN_MASK] + YM2612.en2] + CH.S0_OUT[1]) >> OUT_SHIFT;
             //CH.OUTd = ((int)SIN_TAB[(YM2612.in3 >> SIN_LBITS) & SIN_MASK][YM2612.en3] + (int)SIN_TAB[(YM2612.in1 >> SIN_LBITS) & SIN_MASK][YM2612.en1] + (int)SIN_TAB[(YM2612.in2 >> SIN_LBITS) & SIN_MASK][YM2612.en2] + CH.S0_OUT[1]) >> OUT_SHIFT;
             DO_LIMIT(CH);
         }
@@ -1133,7 +1147,8 @@ namespace MDSound
             if (((int_cnt += (int)YM2612.Inter_Step) & 0x04000) != 0)
             {
                 int_cnt &= 0x3FFF;
-                CH.Old_OUTd = (((int_cnt ^ 0x3FFF) * CH.OUTd) + (int_cnt * CH.Old_OUTd)) >> 14;
+                CH.Old_OUTd = (((int_cnt ^ 0x3FFF) * CH.OUTd) + 
+                    (int_cnt * CH.Old_OUTd)) >> 14;
                 buf[0][i] += CH.Old_OUTd & CH.LEFT;
                 buf[1][i] += CH.Old_OUTd & CH.RIGHT;
                 vol[0] = Math.Max(vol[0], Math.Abs(CH.Old_OUTd & CH.LEFT));
@@ -2171,6 +2186,7 @@ namespace MDSound
                     YM2612.CHANNEL[i].FOCT[j] = 0;
                     YM2612.CHANNEL[i].KC[j] = 0;
 
+                    YM2612.CHANNEL[i].SLOT[j].DT = DT_TAB[0];
                     YM2612.CHANNEL[i].SLOT[j].Fcnt = 0;
                     YM2612.CHANNEL[i].SLOT[j].Finc = 0;
                     YM2612.CHANNEL[i].SLOT[j].Ecnt = ENV_END;    // Put it at the end of Decay phase...
@@ -2191,16 +2207,16 @@ namespace MDSound
             for (i = 0xB6; i >= 0xB4; i--)
             {
                 YM2612_Write(YM2612, 0, (byte)i);
-                YM2612_Write(YM2612, 2, (byte)i);
                 YM2612_Write(YM2612, 1, 0xC0);
+                YM2612_Write(YM2612, 2, (byte)i);
                 YM2612_Write(YM2612, 3, 0xC0);
             }
 
             for (i = 0xB2; i >= 0x22; i--)
             {
                 YM2612_Write(YM2612, 0, (byte)i);
-                YM2612_Write(YM2612, 2, (byte)i);
                 YM2612_Write(YM2612, 1, 0);
+                YM2612_Write(YM2612, 2, (byte)i);
                 YM2612_Write(YM2612, 3, 0);
             }
 
@@ -2404,7 +2420,7 @@ namespace MDSound
               CALC_FINC_CH(&YM2612.CHANNEL[5]);
             */
 
-            if ((YM2612.Inter_Step & 0x04000) > 0) algo_type = 0;
+            if ((YM2612.Inter_Step & 0x04000) != 0) algo_type = 0;
             else algo_type = 16;
 
             if ((YM2612.LFOinc) != 0)

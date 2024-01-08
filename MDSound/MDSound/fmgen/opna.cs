@@ -2345,7 +2345,7 @@ namespace MDSound.fmgen
                                 r.adpcmd += (short)decode_tableA1[data];
                                 r.adpcmd = (short)fmgen.Limit(r.adpcmd, 48 * 16, 0);
                             }
-                            int sample = (r.adpcmx * vol) >> 10;
+                            int sample = (r.adpcmx * vol) / (int)(512* 0.60); // >>8 ookii  >>9chiisai //>> 10;
                             fmgen.StoreSample(ref buffer[dest+0], (int)(sample & maskl));
                             fmgen.StoreSample(ref buffer[dest+1], (int)(sample & maskr));
                             visRtmVolume[0] = (int)(sample & maskl);
@@ -2362,15 +2362,41 @@ namespace MDSound.fmgen
         -1, -3, -5, -7, -9,-11,-13,-15,
         };
 
+        static short[] step_size = {
+               16, 17, 19, 21, 23, 25, 28, 31, 34, 37,
+               41, 45, 50, 55, 60, 66, 73, 80, 88, 97,
+               107, 118, 130, 143, 157, 173, 190, 209, 230, 253,
+               279, 307, 337, 371, 408, 449, 494, 544, 598, 658,
+               724, 796, 876, 963, 1060, 1166, 1282, 1411, 1552
+               }; //49 items
+
 
         public static void InitADPCMATable()
         {
-            for (int i = 0; i <= 48; i++)
+            jedi_table_init();
+            return;
+
+            //for (int i = 0; i <= 48; i++)
+            //{
+            //    int s = (int)(16.0 * Math.Pow(1.1, i) * 3);
+            //    for (int j = 0; j < 16; j++)
+            //    {
+            //        jedi_table[i * 16 + j] = (short)(s * table2[j] / 8);
+            //    }
+            //}
+        }
+
+        private static void jedi_table_init()
+        {
+            int step, nib;
+
+            jedi_table = new short[16 * 49];
+            for (step = 0; step < 49; step++)
             {
-                int s = (int)(16.0 * Math.Pow(1.1, i) * 3);
-                for (int j = 0; j < 16; j++)
+                for (nib = 0; nib < 16; nib++)
                 {
-                    jedi_table[i * 16 + j] = (short)(s * table2[j] / 8);
+                    int value = (2 * (nib & 0x07) + 1) * step_size[step] / 8;
+                    jedi_table[step * 16 + nib] = (short)(((nib & 0x08) != 0) ? -value : value);
                 }
             }
         }
