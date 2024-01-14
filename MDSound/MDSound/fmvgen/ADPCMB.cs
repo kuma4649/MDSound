@@ -435,13 +435,13 @@ namespace MDSound.fmvgen
             return adpcmx;
         }
 
-        int[] table1 = new int[16]
+        static readonly int[] table1 = new int[16]
         {
           1,   3,   5,   7,   9,  11,  13,  15,
          -1,  -3,  -5,  -7,  -9, -11, -13, -15,
         };
 
-        int[] table2 = new int[16]
+        static readonly int[] table2 = new int[16]
         {
          57,  57,  57,  57,  77, 102, 128, 153,
          57,  57,  57,  57,  77, 102, 128, 153,

@@ -1127,20 +1127,20 @@ namespace MDSound.fmgen
             return adpcmx;
         }
 
-        protected int DecodeADPCMBSample(uint data)
+        static readonly int[] table1 = new int[16]
         {
-            int[] table1 = new int[16]
-            {
           1,   3,   5,   7,   9,  11,  13,  15,
          -1,  -3,  -5,  -7,  -9, -11, -13, -15,
-            };
+        };
 
-            int[] table2 = new int[16]
-            {
+        static readonly int[] table2 = new int[16]
+        {
          57,  57,  57,  57,  77, 102, 128, 153,
          57,  57,  57,  57,  77, 102, 128, 153,
-            };
+        };
 
+        protected int DecodeADPCMBSample(uint data)
+        {
             adpcmx = fmgen.Limit(adpcmx + table1[data] * adpcmd / 8, 32767, -32768);
             adpcmd = fmgen.Limit(adpcmd * table2[data] / 64, 24576, 127);
             return adpcmx;
@@ -2345,7 +2345,8 @@ namespace MDSound.fmgen
                                 r.adpcmd += (short)decode_tableA1[data];
                                 r.adpcmd = (short)fmgen.Limit(r.adpcmd, 48 * 16, 0);
                             }
-                            int sample = (r.adpcmx * vol) / (int)(512* 0.60); // >>8 ookii  >>9chiisai //>> 10;
+                            //int sample = (r.adpcmx * vol) >> 10; //InitADPCMATableのとき
+                            int sample = (r.adpcmx * vol) / (int)(512 * 0.60); // jedi_table_initのとき
                             fmgen.StoreSample(ref buffer[dest+0], (int)(sample & maskl));
                             fmgen.StoreSample(ref buffer[dest+1], (int)(sample & maskr));
                             visRtmVolume[0] = (int)(sample & maskl);
@@ -2376,14 +2377,14 @@ namespace MDSound.fmgen
             jedi_table_init();
             return;
 
-            //for (int i = 0; i <= 48; i++)
-            //{
-            //    int s = (int)(16.0 * Math.Pow(1.1, i) * 3);
-            //    for (int j = 0; j < 16; j++)
-            //    {
-            //        jedi_table[i * 16 + j] = (short)(s * table2[j] / 8);
-            //    }
-            //}
+            for (int i = 0; i <= 48; i++)
+            {
+                int s = (int)(16.0 * Math.Pow(1.1, i) * 3);
+                for (int j = 0; j < 16; j++)
+                {
+                    jedi_table[i * 16 + j] = (short)(s * table2[j] / 8);
+                }
+            }
         }
 
         private static void jedi_table_init()

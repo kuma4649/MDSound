@@ -194,6 +194,7 @@ namespace MDSound
             public ushort volume;
             public uint frequency;
             public bool KeyOn;
+            public bool mask;
 
             public int _loopStartOffset;
             public int _loopEndOffset;
@@ -222,6 +223,7 @@ namespace MDSound
                 chWk[chipID][i].panL = 1.0;
                 chWk[chipID][i].panR = 1.0;
                 chWk[chipID][i].volume = 8;
+                chWk[chipID][i].mask = false;
                 //chWk[i]._frequency = 0;
                 chWk[chipID][i]._loopStartOffset = -1;
                 chWk[chipID][i]._loopEndOffset = -1;
@@ -579,15 +581,20 @@ namespace MDSound
                     if (!chWk[chipID][i].playing) continue;
                     if (chWk[chipID][i].pan == 0) continue;
 
+                    /*
                     if (i == 6)
                     {
-                        //Console.WriteLine(VolumeTable[chWk[i].volume][pcmData[chWk[i].bank][chWk[i].ptr]]
-                        //* chWk[i].panL);
+                        Console.WriteLine(VolumeTable[chWk[i].volume][pcmData[chWk[i].bank][chWk[i].ptr]]
+                        * chWk[i].panL);
                     }
+                    */
 
                     int n = (uint)chWk[chipID][i].ptr >= pcmData[chipID][chWk[chipID][i].bank].Length ? 0x80 : pcmData[chipID][chWk[chipID][i].bank][chWk[chipID][i].ptr];
-                    l += (int)(VolumeTable[chipID][chWk[chipID][i].volume][n] * chWk[chipID][i].panL);
-                    r += (int)(VolumeTable[chipID][chWk[chipID][i].volume][n] * chWk[chipID][i].panR);
+                    if (!chWk[chipID][i].mask)
+                    {
+                        l += (int)(VolumeTable[chipID][chWk[chipID][i].volume][n] * chWk[chipID][i].panL);
+                        r += (int)(VolumeTable[chipID][chWk[chipID][i].volume][n] * chWk[chipID][i].panR);
+                    }
                     chWk[chipID][i].delta += ((ulong)chWk[chipID][i].srcFrequency * (ulong)chWk[chipID][i].frequency / (ulong)0x8000) / SamplingRate;
                     chWk[chipID][i].ptr += (int)chWk[chipID][i].delta;
                     chWk[chipID][i].delta -= (int)chWk[chipID][i].delta;
@@ -737,10 +744,17 @@ namespace MDSound
                 chWkBk[chipID][ch].srcFrequency = chWk[chipID][ch].srcFrequency;
                 chWkBk[chipID][ch].volume = chWk[chipID][ch].volume;
                 chWkBk[chipID][ch].KeyOn = chWk[chipID][ch].KeyOn;
+                chWkBk[chipID][ch].mask = chWk[chipID][ch].mask;
 
                 chWk[chipID][ch].KeyOn = false;
             }
             return chWkBk[chipID];
         }
+
+        public void SetMask(byte chipID,byte channel,bool isMask)
+        {
+            chWk[chipID][channel].mask = isMask;
+        }
+
     }
 }

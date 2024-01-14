@@ -652,10 +652,10 @@ namespace MDSound
                         b += buf[offset + i + 1];
                     }
 
-#if LIMIT_CHECKER
+//#if LIMIT_CHECKER
                     if (a > 0x7fff || a < -0x8000)
                         Console.Write("limit over [{0:d8}] : [{1:d8}]\r\n", a, b);
-#endif
+//#endif
 
                     Clip(ref a, ref b);
 
@@ -5368,6 +5368,23 @@ namespace MDSound
             }
         }
 
+        public void SetPPZ8Mask(int chipID, byte channel, bool isMask)
+        {
+            lock (lockobj)
+            {
+                if (!dicInst.ContainsKey(enmInstrumentType.PPZ8)) return;
+                ((PPZ8)dicInst[enmInstrumentType.PPZ8][0]).SetMask((byte)chipID, channel, isMask);
+            }
+        }
+
+        public void SetPPZ8Mask(int ChipIndex, int chipID, byte channel, bool isMask)
+        {
+            lock (lockobj)
+            {
+                if (!dicInst.ContainsKey(enmInstrumentType.PPZ8)) return;
+                ((PPZ8)dicInst[enmInstrumentType.PPZ8][0]).SetMask((byte)chipID, channel, isMask);
+            }
+        }
 
 
         public int[] ReadYM2612KeyOn(byte chipID)
