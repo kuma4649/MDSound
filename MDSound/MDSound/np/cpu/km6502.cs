@@ -3040,13 +3040,13 @@ namespace MDSound.np.cpu
         //    namespace xgm
         //    {
 
-        public km6502(double clock=DEFAULT_CLOCK)
+        public km6502(bool enableIRQ,double clock=DEFAULT_CLOCK)
         {
             NES_BASECYCLES = clock;
             bus = null;
             log_cpu = null;
             irqs = 0;
-            enable_irq = true;
+            enable_irq = enableIRQ;
         }
 
         ~km6502() //    NES_CPU::~NES_CPU()
@@ -3223,7 +3223,7 @@ namespace MDSound.np.cpu
             K6502_Exec(context);
         }
 
-        public void Start(Int32 start_adr, Int32 int_adr, double int_freq=60.0, Int32 song=0, Int32 region=0, Int32 y=0)
+        public void Start(Int32 start_adr, Int32 int_adr, bool enableIRQ , double int_freq=60.0, Int32 song=0, Int32 region=0, Int32 y=0)
         {
             // 割り込みアドレス設定
             int_address = int_adr;
@@ -3233,7 +3233,7 @@ namespace MDSound.np.cpu
             // count clock quarters
             frame_quarter = 3;
             irqs = 0;
-            enable_irq = true;
+            enable_irq = enableIRQ;
             //        if (log_cpu!=null)
             //            log_cpu.Init(a, x);
 
