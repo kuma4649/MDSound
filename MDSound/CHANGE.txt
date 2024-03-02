@@ -1,4 +1,7 @@
 更新履歴
+TAG123 2024/03/02
+  XGMfunction:XGM/XGM2向けPCM処理の修正
+
 TAG122 2024/01/14
   OPNA/B/A2:ADPCM/Bのテーブルをグローバル変数に変更
   OPNB:ADPCMAのテーブルを修正

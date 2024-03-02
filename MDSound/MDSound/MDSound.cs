@@ -2003,7 +2003,7 @@ namespace MDSound
             {
                 if (!dicInst.ContainsKey(enmInstrumentType.YM2612)) return;
                 if (!(dicInst[enmInstrumentType.YM2612][ChipIndex] is ym2612X)) return;
-                ((ym2612X)dicInst[enmInstrumentType.YM2612][ChipIndex]).XGMfunction.PlayPCM(ChipID, Adr, Data);
+                ((ym2612X)dicInst[enmInstrumentType.YM2612][ChipIndex]).XGMfunction.PlayPCM(ChipID, Port, Adr, Data);
             }
         }
 
@@ -2040,7 +2040,7 @@ namespace MDSound
             {
                 if (!dicInst.ContainsKey(enmInstrumentType.YM3438)) return;
                 if (!(dicInst[enmInstrumentType.YM3438][ChipIndex] is ym3438X)) return;
-                ((ym3438X)dicInst[enmInstrumentType.YM3438][ChipIndex]).XGMfunction.PlayPCM(ChipID, Adr, Data);
+                ((ym3438X)dicInst[enmInstrumentType.YM3438][ChipIndex]).XGMfunction.PlayPCM(ChipID, Port, Adr, Data);
             }
         }
 
@@ -2077,7 +2077,7 @@ namespace MDSound
             {
                 if (!dicInst.ContainsKey(enmInstrumentType.YM2612mame)) return;
                 if (!(dicInst[enmInstrumentType.YM2612mame][ChipIndex] is ym2612mameX)) return;
-                ((ym2612mameX)dicInst[enmInstrumentType.YM2612mame][ChipIndex]).XGMfunction.PlayPCM(ChipID, Adr, Data);
+                ((ym2612mameX)dicInst[enmInstrumentType.YM2612mame][ChipIndex]).XGMfunction.PlayPCM(ChipID, Port, Adr, Data);
             }
         }
 

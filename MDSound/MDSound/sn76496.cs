@@ -9,7 +9,7 @@ namespace MDSound
         public override string Name { get => "SN76496"; set => throw new NotImplementedException(); }
         public override string ShortName { get => "DCSGmame"; set => throw new NotImplementedException(); }
 
-        private List<sn76496_state> chips = new List<sn76496_state>();
+        private sn76496_state[] chips = new sn76496_state[] { new sn76496_state(), new sn76496_state() };
 
         public override void Reset(byte ChipID)
         {
@@ -23,7 +23,7 @@ namespace MDSound
             uint i = (uint)sn76496_start(out chip, (int)3579545, 0, 0, 0, 0, 0, 0);
             sn76496_freq_limiter(3579545 & 0x3FFFFFFF, 0, (int)clock);
 
-            while (ChipID >= chips.Count) chips.Add(null);
+            //while (ChipID >= chips.Count) chips.Add(null);
             chips[ChipID] = chip;
 
             return i;
@@ -61,7 +61,7 @@ namespace MDSound
             uint i = (uint)sn76496_start(out chip, (int)ClockValue, shiftreg, noisetaps, negate, stereo, divider, freq0);
             sn76496_freq_limiter((int)(ClockValue & 0x3FFFFFFF), 0, (int)clock);
 
-            while (ChipID >= chips.Count) chips.Add(null);
+            //while (ChipID >= chips.Count) chips.Add(null);
             chips[ChipID] = chip;
 
             return i;
@@ -81,15 +81,23 @@ namespace MDSound
 
         public override int Write(byte ChipID, int port, int adr, int data)
         {
-            if (chips[ChipID] == null) return 0;
-            sn76496_write_reg(chips[ChipID], adr, (byte)data);//adr 未使用
+            try
+            {
+                if (chips[ChipID] == null) return 0;
+                sn76496_write_reg(chips[ChipID], adr, (byte)data);//adr 未使用
+            }
+            catch { }
             return 0;
         }
 
         public int SN76496_GGStereoWrite(byte ChipID, int port, int adr, int data)
         {
-            if (chips[ChipID] == null) return 0;
-            sn76496_stereo_w(chips[ChipID], adr, (byte)data);//adr 未使用
+            try
+            {
+                if (chips[ChipID] == null) return 0;
+                sn76496_stereo_w(chips[ChipID], adr, (byte)data);//adr 未使用
+            }
+            catch { }
             return 0;
         }
 
