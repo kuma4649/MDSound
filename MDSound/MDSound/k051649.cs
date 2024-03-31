@@ -307,7 +307,13 @@ namespace MDSound
                 info.channel_list[4].waveram[offset & 0x1f] = (sbyte)data;
             }
             else
-                info.channel_list[offset >> 5].waveram[offset & 0x1f] = (sbyte)data;
+            {
+                int ch = offset >> 5;
+                if (ch < info.channel_list.Length)
+                {
+                    info.channel_list[offset >> 5].waveram[offset & 0x1f] = (sbyte)data;
+                }
+            }
         }
 
         //READ8_DEVICE_HANDLER ( k051649_waveform_r )
@@ -315,18 +321,36 @@ namespace MDSound
         {
             //k051649_state *info = get_safe_token(device);
             k051649_state info = SCC1Data[ChipID];
-
+            int ch;
             // test-register bits 6/7 expose the internal counter
             if ((info.test & 0xc0) != 0)
             {
                 //stream_update(info->stream);
 
                 if (offset >= 0x60)
-                    offset += (Int32)((info.channel_list[3 + (info.test >> 6 & 1)].counter >> FREQ_BITS));
+                {
+                    ch = 3 + (info.test >> 6 & 1);
+                    if (ch < info.channel_list.Length)
+                    {
+                        offset += (Int32)((info.channel_list[ch].counter >> FREQ_BITS));
+                    }
+                }
                 else if ((info.test & 0x40) != 0)
-                    offset += (Int32)((info.channel_list[offset >> 5].counter >> FREQ_BITS));
+                {
+                    ch = offset >> 5;
+                    if (ch < info.channel_list.Length)
+                    {
+                        offset += (Int32)((info.channel_list[ch].counter >> FREQ_BITS));
+                    }
+                }
             }
-            return (byte)info.channel_list[offset >> 5].waveram[offset & 0x1f];
+
+            ch = offset >> 5;
+            if (ch < info.channel_list.Length)
+            {
+                return (byte)info.channel_list[ch].waveram[offset & 0x1f];
+            }
+            return 0;
         }
 
         /* SY 20001114: Channel 5 doesn't share the waveform with channel 4 on this chip */
@@ -341,7 +365,11 @@ namespace MDSound
                 return;
 
             //stream_update(info->stream);
-            info.channel_list[offset >> 5].waveram[offset & 0x1f] = (sbyte)data;
+            int ch = offset >> 5;
+            if (ch < info.channel_list.Length)
+            {
+                info.channel_list[ch].waveram[offset & 0x1f] = (sbyte)data;
+            }
         }
 
         //READ8_DEVICE_HANDLER ( k052539_waveform_r )
@@ -349,14 +377,23 @@ namespace MDSound
         {
             //k051649_state *info = get_safe_token(device);
             k051649_state info = SCC1Data[ChipID];
-
+            int ch;
             // test-register bit 6 exposes the internal counter
             if ((info.test & 0x40) != 0)
             {
                 //stream_update(info->stream);
-                offset += (Int32)((info.channel_list[offset >> 5].counter >> FREQ_BITS));
+                ch = offset >> 5;
+                if (ch < info.channel_list.Length)
+                {
+                    offset += (Int32)((info.channel_list[ch].counter >> FREQ_BITS));
+                }
             }
-            return (byte)info.channel_list[offset >> 5].waveram[offset & 0x1f];
+            ch = offset >> 5;
+            if (ch < info.channel_list.Length)
+            {
+                return (byte)info.channel_list[ch].waveram[offset & 0x1f];
+            }
+            return 0;
         }
 
         //WRITE8_DEVICE_HANDLER( k051649_volume_w )
@@ -365,7 +402,11 @@ namespace MDSound
             //k051649_state *info = get_safe_token(device);
             k051649_state info = SCC1Data[ChipID];
             //stream_update(info->stream);
-            info.channel_list[offset & 0x7].volume = data & 0xf;
+            int ch = offset &0x7;
+            if (ch < info.channel_list.Length)
+            {
+                info.channel_list[ch].volume = data & 0xf;
+            }
         }
 
         //WRITE8_DEVICE_HANDLER( k051649_frequency_w )
@@ -373,7 +414,11 @@ namespace MDSound
         {
             //k051649_state *info = get_safe_token(device);
             k051649_state info = SCC1Data[ChipID];
-            k051649_sound_channel chn = info.channel_list[offset >> 1];
+            k051649_sound_channel chn;
+
+            int ch = offset >> 1;
+            if (ch >= info.channel_list.Length) return;
+            chn = info.channel_list[ch];
 
             //stream_update(info->stream);
 
