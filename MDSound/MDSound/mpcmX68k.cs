@@ -471,7 +471,7 @@ namespace MDSound
                 }
                 else if (dnote > 0)
                 {
-                    for (dnote -= 64 * 12; dnote > 0; dnote -= 64 * 12, doct++) ;
+                    for (dnote -= 64 * 12; dnote >= 0; dnote -= 64 * 12, doct++) ;
                     dnote += 64 * 12;
                     pitch += pitchtbl[dnote];
                     pitch <<= doct;
@@ -547,6 +547,20 @@ namespace MDSound
             {
                 // 128
                 m[chipID].voltbl = voltbl[1];
+            }
+        }
+
+        public void SetVolTableZms(int chipID, int sel, int[] tbl)
+        {
+            if (sel == 1)
+            {
+                // 16
+                m[chipID].voltbl = tbl;
+            }
+            else
+            {
+                // 128
+                m[chipID].voltbl = tbl;
             }
         }
 
