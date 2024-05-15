@@ -532,6 +532,19 @@ namespace MDSound
                 else
                 {
                     // 128段階
+                    pan -= 0x80;
+                    if(pan>=0 && pan <= 31)
+                    {
+                        m[chipID].work[ch].lr[0] = 1; m[chipID].work[ch].lr[1] = 0;
+                    }
+                    else if (pan >= 32 && pan <= 95)
+                    {
+                        m[chipID].work[ch].lr[0] = 1; m[chipID].work[ch].lr[1] = 1;
+                    }
+                    else if (pan >= 96 && pan <= 127)
+                    {
+                        m[chipID].work[ch].lr[0] = 0; m[chipID].work[ch].lr[1] = 1;
+                    }
                 }
             }
         }
@@ -681,8 +694,12 @@ namespace MDSound
 
                     if (!mute)
                     {
-                        _buffer[0][buf_ptr] += (Int16)(sample * m[chipID].work[ch].lr[0]);
-                        _buffer[1][buf_ptr] += (Int16)(sample * m[chipID].work[ch].lr[1]);
+                        int a = _buffer[0][buf_ptr] + (sample * m[chipID].work[ch].lr[0]);
+                        int b = _buffer[1][buf_ptr] + (sample * m[chipID].work[ch].lr[1]);
+                        a = Math.Min(Math.Max(a, Int16.MinValue), Int16.MaxValue);
+                        b = Math.Min(Math.Max(b, Int16.MinValue), Int16.MaxValue);
+                        _buffer[0][buf_ptr] = a;
+                        _buffer[1][buf_ptr] = b;
                         buf_ptr++;
                     }
 
@@ -701,8 +718,10 @@ namespace MDSound
                             m[chipID].work[ch].ppos = ofst;
                             m[chipID].work[ch].sample = m[chipID].work[ch].lp_sample;
                             m[chipID].work[ch].offset = m[chipID].work[ch].lp_offset;
+                            //Console.WriteLine("loop!");
                         }
                     }
+                    //Console.WriteLine("t:{0} ofst:{1:X} sample:{2:X} pitch:{3:X}", m[chipID].work[ch].type, ofst >> 16,sample,pitch);
                 }
                 m[chipID].work[ch].pos = ofst;
             }
