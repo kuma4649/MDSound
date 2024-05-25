@@ -103,7 +103,20 @@ namespace MDSound
             public int sample;
             public int lp_sample;
             public int lp_offset;
+            public float base_;
+            public int lastNote;
         }
+
+        private int[] baseClockTbl = new int[]
+        {
+            3900,
+            5200,
+            7800,
+            10400,
+            15600,
+            20800,
+            31200
+        };
 
         public class M
         {
@@ -320,6 +333,7 @@ namespace MDSound
                 m[chipID].work[ch].ppos = -1;
                 m[chipID].work[ch].lr[0] = 1;
                 m[chipID].work[ch].lr[1] = 1;
+                m[chipID].work[ch].base_ = (float)baseClockTbl[4] / m[chipID].rate;
             }
 
             m[chipID].mask = 0;
@@ -444,6 +458,22 @@ namespace MDSound
             return true;
         }
 
+        public void SetFreq(int chipID, int ch, int num)
+        {
+            if (ch == 0xff)
+            {
+                for (int i = 0; i < (int)VOICE.MAX; i++) SetFreq(chipID, i, num);
+            }
+            else
+            {
+                num = (byte)num;
+                if (num < 0 || num > 6) return;
+                m[chipID].work[ch].base_ = (float)baseClockTbl[num] / m[chipID].rate;
+                SetPitch(chipID, ch, m[chipID].work[ch].lastNote);
+            }
+        }
+
+
         public void SetPitch(int chipID, int ch, int note)
         {
             if (ch == 0xff)
@@ -456,11 +486,12 @@ namespace MDSound
                 UInt32 pitch = 0x10000;
                 Int16 doct = 0, dnote = 0;
 
+                m[chipID].work[ch].lastNote = note;
                 dnote = (Int16)note;
 
                 if (orig > 0x1fc0)
                 {
-                    m[chipID].work[ch].pitch = (UInt32)(0x10000 * m[chipID].base_);
+                    m[chipID].work[ch].pitch = (UInt32)(0x10000 * m[chipID].work[ch].base_);
                     return;
                 }
 
@@ -482,7 +513,7 @@ namespace MDSound
                     pitch += pitchtbl[dnote];
                     pitch >>= doct;
                 }
-                m[chipID].work[ch].pitch = (UInt32)(pitch * m[chipID].base_);
+                m[chipID].work[ch].pitch = (UInt32)(pitch * m[chipID].work[ch].base_);
             }
         }
 
