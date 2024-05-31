@@ -3208,6 +3208,26 @@ namespace MDSound
             }
         }
 
+        public iremga20.ga20_state ReadGA20Status(byte ChipID)
+        {
+            lock (lockobj)
+            {
+                if (!dicInst.ContainsKey(enmInstrumentType.GA20)) return null;
+
+                return ((iremga20)(dicInst[enmInstrumentType.GA20][0])).GA20Data[ChipID];
+            }
+        }
+
+        public iremga20.ga20_state ReadGA20Status(int ChipIndex, byte ChipID)
+        {
+            lock (lockobj)
+            {
+                if (!dicInst.ContainsKey(enmInstrumentType.GA20)) return null;
+
+                return ((iremga20)(dicInst[enmInstrumentType.GA20][ChipIndex])).GA20Data[ChipID];
+            }
+        }
+
         #endregion
 
 
@@ -3365,6 +3385,26 @@ namespace MDSound
                 if (!dicInst.ContainsKey(enmInstrumentType.K054539)) return;
 
                 ((K054539)(dicInst[enmInstrumentType.K054539][ChipIndex])).k054539_write_rom2(ChipID, (int)ROMSize, (int)DataStart, (int)DataLength, ROMData, (int)SrcStartAdr);
+            }
+        }
+
+        public K054539.k054539_state ReadK054539Status(byte ChipID, int Adr, byte Data)
+        {
+            lock (lockobj)
+            {
+                if (!dicInst.ContainsKey(enmInstrumentType.K054539)) return null;
+
+                return ((K054539)(dicInst[enmInstrumentType.K054539][0])).K054539Data[ChipID];
+            }
+        }
+
+        public K054539.k054539_state ReadK054539Status(int ChipIndex, byte ChipID, int Adr, byte Data)
+        {
+            lock (lockobj)
+            {
+                if (!dicInst.ContainsKey(enmInstrumentType.K054539)) return null;
+
+                return ((K054539)(dicInst[enmInstrumentType.K054539][ChipIndex])).K054539Data[ChipID];
             }
         }
 

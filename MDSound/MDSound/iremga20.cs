@@ -145,7 +145,7 @@ Revisions:
 
 
         private const Int32 MAX_CHIPS = 0x02;
-        private ga20_state[] GA20Data = new ga20_state[MAX_CHIPS] { new ga20_state(), new ga20_state() };
+        public ga20_state[] GA20Data = new ga20_state[MAX_CHIPS] { new ga20_state(), new ga20_state() };
 
         /*INLINE ga20_state *get_safe_token(device_t *device)
         {

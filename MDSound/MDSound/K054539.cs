@@ -118,7 +118,7 @@ namespace MDSound
             The reverb delay is actually an offset in this buffer.
         */
 
-        private class k054539_channel
+        public class k054539_channel
         {
             public uint pos;
             public uint pfrac;
@@ -126,7 +126,7 @@ namespace MDSound
             public int pval;
         };
 
-        private class k054539_state
+        public class k054539_state
         {
             //const k054539_interface *intf;
             //device_t *device;
@@ -171,7 +171,7 @@ namespace MDSound
         };
 
         private const int MAX_CHIPS = 0x02;
-        private static k054539_state[] K054539Data = new k054539_state[MAX_CHIPS] { new k054539_state(), new k054539_state() };
+        public k054539_state[] K054539Data = new k054539_state[MAX_CHIPS] { new k054539_state(), new k054539_state() };
 
         public override string Name { get { return "K054539"; } set { } }
         public override string ShortName { get { return "K054"; } set { } }
