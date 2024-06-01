@@ -32,7 +32,20 @@ namespace MDSound
 			ay8910_context ch;
 			sampleRate = clock;
 			masterClock = ClockValue / 4;
-			ay8910_start(out ch, ClockValue, 0, 0);
+            byte ay_type = 0;
+            byte ay_flags = 0;
+			if (option == null || option.Length < 2)
+			{
+				ay_type = 0;
+				ay_flags = 0;
+			}
+			else
+			{
+                ay_type = (byte)option[0];
+                ay_flags = (byte)option[1];
+            }
+
+            ay8910_start(out ch, ClockValue, ay_type, ay_flags);
 
 			chip[ChipID] = ch;
 
