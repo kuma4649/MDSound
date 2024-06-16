@@ -26,6 +26,7 @@ namespace MDSound
 
         private List<int[]> sn76489Mask = new List<int[]>(new int[][] { new int[] { 15, 15 } });// psgはmuteを基準にしているのでビットが逆です
         private List<int[]> ym2151Mask = new List<int[]>(new int[][] { new int[] { 0, 0 } });
+        private List<int[]> mpcmX68kMask = new List<int[]>(new int[][] { new int[] { 0, 0 } });
         private List<int[]> ym2612Mask = new List<int[]>(new int[][] { new int[] { 0, 0 } });
         private List<int[]> ym2203Mask = new List<int[]>(new int[][] { new int[] { 0, 0 } });
         private List<uint[]> segapcmMask = new List<uint[]>(new uint[][] { new uint[] { 0, 0 } });
@@ -3388,7 +3389,7 @@ namespace MDSound
             }
         }
 
-        public K054539.k054539_state ReadK054539Status(byte ChipID, int Adr, byte Data)
+        public K054539.k054539_state ReadK054539Status(byte ChipID)
         {
             lock (lockobj)
             {
@@ -3398,7 +3399,7 @@ namespace MDSound
             }
         }
 
-        public K054539.k054539_state ReadK054539Status(int ChipIndex, byte ChipID, int Adr, byte Data)
+        public K054539.k054539_state ReadK054539Status(int ChipIndex, byte ChipID)
         {
             lock (lockobj)
             {
@@ -5619,6 +5620,45 @@ namespace MDSound
                 ym2151Mask[ChipIndex][chipID] &= ~(1 << ch);
                 if (!dicInst.ContainsKey(enmInstrumentType.YM2151x68soundPCM)) return;
                 ((ym2151_x68sound)(dicInst[enmInstrumentType.YM2151x68soundPCM][ChipIndex])).SetMask((byte)chipID, ym2151Mask[ChipIndex][chipID]);
+            }
+        }
+
+        public void setMPCMX68kMask(int chipID, int ch)
+        {
+            lock (lockobj)
+            {
+                mpcmX68kMask[0][chipID] &= ~(1 << ch);
+                mpcmX68kMask[0][chipID] |= 1 << ch;
+                if (!dicInst.ContainsKey(enmInstrumentType.mpcmX68k)) return;
+                ((mpcmX68k)(dicInst[enmInstrumentType.mpcmX68k][0])).SetMask((byte)chipID, mpcmX68kMask[0][chipID]);
+            }
+        }
+        public void setMPCMX68kMask(int ChipIndex, int chipID, int ch)
+        {
+            lock (lockobj)
+            {
+                mpcmX68kMask[ChipIndex][chipID] &= ~(1 << ch);
+                mpcmX68kMask[ChipIndex][chipID] |= 1 << ch;
+                if (!dicInst.ContainsKey(enmInstrumentType.mpcmX68k)) return;
+                ((mpcmX68k)(dicInst[enmInstrumentType.mpcmX68k][ChipIndex])).SetMask((byte)chipID, mpcmX68kMask[ChipIndex][chipID]);
+            }
+        }
+        public void resetMPCMX68kMask(int chipID, int ch)
+        {
+            lock (lockobj)
+            {
+                mpcmX68kMask[0][chipID] &= ~(1 << ch);
+                if (!dicInst.ContainsKey(enmInstrumentType.mpcmX68k)) return;
+                ((mpcmX68k)(dicInst[enmInstrumentType.mpcmX68k][0])).SetMask((byte)chipID, mpcmX68kMask[0][chipID]);
+            }
+        }
+        public void resetMPCMX68kMask(int ChipIndex, int chipID, int ch)
+        {
+            lock (lockobj)
+            {
+                mpcmX68kMask[ChipIndex][chipID] &= ~(1 << ch);
+                if (!dicInst.ContainsKey(enmInstrumentType.mpcmX68k)) return;
+                ((mpcmX68k)(dicInst[enmInstrumentType.mpcmX68k][ChipIndex])).SetMask((byte)chipID, mpcmX68kMask[ChipIndex][chipID]);
             }
         }
 

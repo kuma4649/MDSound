@@ -339,6 +339,11 @@ namespace MDSound
             m[chipID].mask = 0;
         }
 
+        public void SetMask(int chipID, int mask)
+        {
+            m[chipID].mask = mask;
+        }
+
         private void MakeTable(int chipID)
         {
             int i;
