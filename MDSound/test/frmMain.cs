@@ -1251,9 +1251,9 @@ namespace test
             if (waitCnt == 1000)
             {
                 //keyon
-                uint adrsPtr = 0x000C_6950;
-                int mode = 0x00080D03;
-                int len = 0x000057E4;
+                uint adrsPtr = 0x0004E42C;
+                int mode = 0x00080403;
+                int len = 0x00000B80;
                 //opm?.x68sound[0].X68Sound_Pcm8_Out((int)n & 0xff, null,adrsPtr,mode,len);//指定チャンネル発音開始
                 p8p.KeyOn(n & 0xff, adrsPtr, mode, len);//指定チャンネル発音開始
             }
