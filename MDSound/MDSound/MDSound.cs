@@ -154,7 +154,8 @@ namespace MDSound
             uPD7759,
             Gigatron,
             ES5503,
-            YM2151x68soundPCM
+            YM2151x68soundPCM,
+            PCM8PP
         }
 
         public class Chip

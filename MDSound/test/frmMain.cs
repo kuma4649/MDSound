@@ -1129,29 +1129,53 @@ namespace test
         //    sdl.Paused = false;
 
         //}
+        static MDSound.ym2151_x68sound opm;
+        static MDSound.PCM8PP p8p;
+        static byte[] mem = new byte[16 * 1024 * 1024];
+
         private static void Play(string fileName)
         {
             MDSound.MDSound.Chip[] chips = null;
             List<MDSound.MDSound.Chip> lstChip = new List<MDSound.MDSound.Chip>();
 
             MDSound.MDSound.Chip chip = new MDSound.MDSound.Chip();
-            chip.type = MDSound.MDSound.enmInstrumentType.Gigatron;
+            chip.type = MDSound.MDSound.enmInstrumentType.YM2151x68soundPCM;
             chip.ID = 0;
-            MDSound.gigatron gig = new MDSound.gigatron();
-            chip.Instrument = gig;
-            chip.Update = gig.Update;
-            chip.Start = gig.Start;
-            chip.Stop = gig.Stop;
-            chip.Reset = gig.Reset;
+            opm = new MDSound.ym2151_x68sound();
+            chip.Instrument = opm;
+            chip.Update = opm.Update;
+            chip.Start = opm.Start;
+            chip.Stop = opm.Stop;
+            chip.Reset = opm.Reset;
             chip.SamplingRate = SamplingRate;
-            chip.Clock = (int)(521.0 * 59.98);
+            chip.Clock = 48000;
+            chip.Volume = 0;
+            chip.Option = new object[] { 0, 1, 0 };
+            lstChip.Add(chip);
+
+            chip = new MDSound.MDSound.Chip();
+            chip.type = MDSound.MDSound.enmInstrumentType.PCM8PP;
+            chip.ID = 0;
+            p8p = new MDSound.PCM8PP();
+            chip.Instrument = p8p;
+            chip.Update = p8p.Update;
+            chip.Start = p8p.Start;
+            chip.Stop = p8p.Stop;
+            chip.Reset = p8p.Reset;
+            chip.SamplingRate = SamplingRate;
+            chip.Clock = 48000;
             chip.Volume = 0;
             chip.Option = null;
+
 
             lstChip.Add(chip);
 
             chips = lstChip.ToArray();
             mds.Init(SamplingRate, samplingBuffer, chips);
+
+            mem = File.ReadAllBytes("c:\\temp\\test.bin");
+            opm?.x68sound[0].MountMemory(mem);
+            p8p.MountMemory(mem);
 
             sdl.Paused = false;
 
@@ -1220,16 +1244,20 @@ namespace test
                 return;
             }
 
-            mds.WriteGigatron(0, 0x100 + 250, (byte)wavA);//WavA:effect
-            mds.WriteGigatron(0, 0x100 + 251, (byte)wavX);//WavX:0:noise 1:tri. 2:pulse 3:saw
-            mds.WriteGigatron(0, 0x100 + 252, (byte)(key & 0x7f));
-            mds.WriteGigatron(0, 0x100 + 253, (byte)((key & 0xff80) >> 7));
+            //setup
+            //opm.x68sound[0].X68Sound_Reset();
 
-            if (waitCnt == 0)
+            int n = 0;
+            if (waitCnt == 1000)
             {
-                key = seq[seqPos++];
-                seqPos &= 3;
+                //keyon
+                uint adrsPtr = 0x000C_6950;
+                int mode = 0x00080D03;
+                int len = 0x000057E4;
+                //opm?.x68sound[0].X68Sound_Pcm8_Out((int)n & 0xff, null,adrsPtr,mode,len);//指定チャンネル発音開始
+                p8p.KeyOn(n & 0xff, adrsPtr, mode, len);//指定チャンネル発音開始
             }
+
             waitCnt++;
             waitCnt &= 0x7fff;
 

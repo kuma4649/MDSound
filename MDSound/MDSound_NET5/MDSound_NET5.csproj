@@ -92,6 +92,7 @@
     <Compile Include="..\MDSound\okim6295.cs" Link="okim6295.cs" />
     <Compile Include="..\MDSound\Ootake_PSG.cs" Link="Ootake_PSG.cs" />
     <Compile Include="..\MDSound\P86.cs" Link="P86.cs" />
+    <Compile Include="..\MDSound\PCM8PP.cs" Link="PCM8PP.cs" />
     <Compile Include="..\MDSound\pokey.cs" Link="pokey.cs" />
     <Compile Include="..\MDSound\PPSDRV.cs" Link="PPSDRV.cs" />
     <Compile Include="..\MDSound\PPZ8.cs" Link="PPZ8.cs" />
