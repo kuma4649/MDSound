@@ -46,6 +46,7 @@ namespace MDSound
             public int Scale = 0;
             public int Pcm16Prev = 0;
             public bool adpcmUpdate = true;
+            public bool mute = false;
         }
 
         private chStats[] ch;
@@ -62,9 +63,9 @@ namespace MDSound
             10416.7,
             15625.0,
             //16bit signed PCM mono
-            -1,
+            15625.0,
             //8bit signed PCM mono
-            -1,
+            15625.0,
             //16bit signed PCM (Through) mono
             -1,
             //16bit signed PCM mono
@@ -195,16 +196,25 @@ namespace MDSound
                         if (st.PcmKind == 5)
                         {   // 16bitPCM
                             valL= (short)((mem[st.adrsPtr] << 8) + mem[st.adrsPtr + 1]);
-                            pcm16_2pcm(st, valL);
-                            st.OutPcm = ((st.InpPcm << 9) - (st.InpPcm_prev << 9) + 459 * st.OutPcm) >> 9;
-                            st.InpPcm_prev = st.InpPcm;
+                            //pcm16_2pcm(st, valL);
+                            //st.OutPcm = ((st.InpPcm << 9) - (st.InpPcm_prev << 9) + 459 * st.OutPcm) >> 9;
+                            //st.InpPcm_prev = st.InpPcm;
+                            //音量反映
+                            valL = valL * st.volume;
+                            valL = valL >> 3;//3 適当
+                            valR = valL;
                         }
                         else if (st.PcmKind == 6)
                         {   // 8bitPCM
-                            valL = (sbyte)mem[st.adrsPtr];
-                            pcm16_2pcm(st,valL);
-                            st.OutPcm = ((st.InpPcm << 9) - (st.InpPcm_prev << 9) + 459 * st.OutPcm) >> 9;
-                            st.InpPcm_prev = st.InpPcm;
+                            valL = (byte)mem[st.adrsPtr];
+                            //pcm16_2pcm(st,valL);
+                            //st.OutPcm = ((st.InpPcm << 9) - (st.InpPcm_prev << 9) + 459 * st.OutPcm) >> 9;
+                            //st.InpPcm_prev = st.InpPcm;
+                            //音量反映
+                            valL = valL * st.volume;
+                            valL <<= 5;
+                            valL = valL >> 3;//3 適当
+                            valR = valL;
                         }
                         else
                         {
@@ -225,10 +235,8 @@ namespace MDSound
                                 st.OutPcm = ((st.InpPcm << 9) - (st.InpPcm_prev << 9) + 459 * st.OutPcm) >> 9;
                                 st.InpPcm_prev = st.InpPcm;
                             }
+                            valR = valL = ((st.OutPcm * st.volume) >> 8);// >> 4);
                         }
-
-
-                        valR = valL = ((st.OutPcm * st.volume) >> 8);// >> 4);
                     }
                     else
                     {
@@ -265,9 +273,11 @@ namespace MDSound
                     }
 
                     //バッファへ格納(加算)
-                    outputs[0][i] += valL * ((st.pan & 1) != 0 ? 1 : 0);
-                    outputs[1][i] += valR * ((st.pan & 2) != 0 ? 1 : 0);
-
+                    if (!st.mute)
+                    {
+                        outputs[0][i] += valL * ((st.pan & 1) != 0 ? 1 : 0);
+                        outputs[1][i] += valR * ((st.pan & 2) != 0 ? 1 : 0);
+                    }
 
                     //ポインタ移動
                     double step = st.freq / sampleRate;
@@ -353,6 +363,10 @@ namespace MDSound
             ch[c].endAdrs = (uint)0;
         }
 
+        public void SetMute(int c,bool b)
+        {
+            ch[c].mute = b; 
+        }
 
         public void MountMemory(byte[] mem)
         {
@@ -363,7 +377,7 @@ namespace MDSound
 
         // adpcmを入力して InpPcm の値を変化させる
         // -2047<<(4+4) <= InpPcm <= +2047<<(4+4)
-        public void adpcm2pcm(chStats st, byte adpcm)
+        private void adpcm2pcm(chStats st, byte adpcm)
         {
 
 
@@ -429,6 +443,7 @@ namespace MDSound
             st.InpPcm = (st.Pcm & -4)//(int)0xFFFFFFFC) 
                 << (4 + 4);
         }
+
 
 
     }

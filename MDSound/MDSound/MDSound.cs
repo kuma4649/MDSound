@@ -4144,6 +4144,23 @@ namespace MDSound
             }
         }
 
+        public void SetVolumePCM8PP(int vol)
+        {
+            if (!dicInst.ContainsKey(enmInstrumentType.PCM8PP)) return;
+
+            if (insts == null) return;
+
+            foreach (Chip c in insts)
+            {
+                if (c.type != enmInstrumentType.PCM8PP) continue;
+                c.Volume = Math.Max(Math.Min(vol, 20), -192);
+                //int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8) / insts.Length;
+                int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8);
+                //16384 = 0x4000 = short.MAXValue + 1
+                c.tVolume = Math.Max(Math.Min((int)(n * volumeMul), short.MaxValue), short.MinValue);
+            }
+        }
+
         public void SetVolumeYM2203(int vol)
         {
             if (!dicInst.ContainsKey(enmInstrumentType.YM2203)) return;
