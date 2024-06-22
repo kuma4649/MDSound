@@ -1251,15 +1251,28 @@ namespace test
             if (waitCnt == 1000)
             {
                 //keyon
-                uint adrsPtr = 0x0004E42C;
-                int mode = 0x00080403;
-                int len = 0x00000B80;
+                uint adrsPtr;
+                int mode;
+                int len;
+                adrsPtr = 0x000442d6; mode = 0x00070a01; len = 0x00004640;
+
+                //opm?.x68sound[0].X68Sound_Pcm8_Out((int)n & 0xff, null,adrsPtr,mode,len);//指定チャンネル発音開始
+                p8p.KeyOn(n & 0xff, adrsPtr, mode, len);//指定チャンネル発音開始
+            }
+            if (waitCnt == 8000)
+            {
+                //keyon
+                uint adrsPtr;
+                int mode;
+                int len;
+                adrsPtr = 0x00040007; mode = 0x00000008; len = 0x00000000;
+
                 //opm?.x68sound[0].X68Sound_Pcm8_Out((int)n & 0xff, null,adrsPtr,mode,len);//指定チャンネル発音開始
                 p8p.KeyOn(n & 0xff, adrsPtr, mode, len);//指定チャンネル発音開始
             }
 
             waitCnt++;
-            waitCnt &= 0x7fff;
+            waitCnt &= 0xffff;
 
             //OneFrameVGM();
         }

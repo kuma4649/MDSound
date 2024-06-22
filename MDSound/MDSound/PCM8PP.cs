@@ -186,22 +186,23 @@ namespace MDSound
                     if (!ch[c].play) continue;
 
                     chStats st = ch[c];
-                    int val = 0;
+                    int valL = 0;
+                    int valR = 0;
 
                     if (st.PcmKind < 7)
                     {
                         //pcm8(既存)の加工処理
                         if (st.PcmKind == 5)
                         {   // 16bitPCM
-                            val= (short)((mem[st.adrsPtr] << 8) + mem[st.adrsPtr + 1]);
-                            pcm16_2pcm(st, val);
+                            valL= (short)((mem[st.adrsPtr] << 8) + mem[st.adrsPtr + 1]);
+                            pcm16_2pcm(st, valL);
                             st.OutPcm = ((st.InpPcm << 9) - (st.InpPcm_prev << 9) + 459 * st.OutPcm) >> 9;
                             st.InpPcm_prev = st.InpPcm;
                         }
                         else if (st.PcmKind == 6)
                         {   // 8bitPCM
-                            val = (sbyte)mem[st.adrsPtr];
-                            pcm16_2pcm(st,val);
+                            valL = (sbyte)mem[st.adrsPtr];
+                            pcm16_2pcm(st,valL);
                             st.OutPcm = ((st.InpPcm << 9) - (st.InpPcm_prev << 9) + 459 * st.OutPcm) >> 9;
                             st.InpPcm_prev = st.InpPcm;
                         }
@@ -227,32 +228,45 @@ namespace MDSound
                         }
 
 
-                        val = ((st.OutPcm * st.volume) >> 8);// >> 4);
+                        valR = valL = ((st.OutPcm * st.volume) >> 8);// >> 4);
                     }
                     else
                     {
                         //pcm8ppの加工処理
 
                         //音声データ加工
-                        val = (sbyte)mem[st.adrsPtr];
-                        if (st.type == 2) val = (short)(((byte)val << 8) + mem[st.adrsPtr + 1]);
+                        valL = (sbyte)mem[st.adrsPtr];
+                        if (st.type == 2) valL = (short)(((byte)valL << 8) + mem[st.adrsPtr + 1]);
                         //音量反映
-                        val = ((val * st.volume) >> 3);//3 適当
+                        valL = valL * st.volume;
+                        if (st.type != 2) valL <<= 5;
+                        valL = valL >> 3;//3 適当
+                        if (st.outs == 1)
+                        {
+                            valR = valL;
+                        }
+                        else
+                        {
+                            if (st.type != 2)
+                            {
+                                valR = (sbyte)mem[st.adrsPtr + 1];
+                                //音量反映
+                                valR = valR * st.volume;
+                                valR <<= 5;
+                            }
+                            else
+                            {
+                                valR = (short)((mem[st.adrsPtr + 2] << 8) + mem[st.adrsPtr + 3]);
+                                //音量反映
+                                valR = valR * st.volume;
+                            }
+                            valR = valR >> 3;//3 適当
+                        }
                     }
 
                     //バッファへ格納(加算)
-                    if (st.outs == 1)
-                    {
-                        //モノラルの場合は左右同じ
-                        outputs[0][i] += val;
-                        outputs[1][i] += val;
-                    }
-                    else
-                    {
-                        //ステレオの場合はpanを反映
-                        outputs[0][i] += val * ((st.pan & 1) != 0 ? 1 : 0);
-                        outputs[1][i] += val * ((st.pan & 2) != 0 ? 1 : 0);
-                    }
+                    outputs[0][i] += valL * ((st.pan & 1) != 0 ? 1 : 0);
+                    outputs[1][i] += valR * ((st.pan & 2) != 0 ? 1 : 0);
 
 
                     //ポインタ移動
@@ -260,7 +274,11 @@ namespace MDSound
                     st.step += step;
                     while (st.step >= 1.0)
                     {
-                        if (st.type != 0) st.adrsPtr += (uint)st.type;
+                        if (st.type != 0)
+                        {
+                            st.adrsPtr += (uint)st.type;
+                            if (st.outs != 1) st.adrsPtr += (uint)st.type;
+                        }
                         else
                         {
                             st.N1DataFlag = !st.N1DataFlag;
@@ -285,15 +303,14 @@ namespace MDSound
 
 
 
-        public void KeyOn(int c, uint adrsPtr, int mode, int len)
+        public void KeyOn(int c, uint adrsPtr, int mode, int len,int d3Freq=0)
         {
-            ch[c].play = true;
             int v = (byte)(mode >> 16) & 0xff;
             if (v != 0xff)
             {
                 v &= 0xf;
                 ch[c].volume = volTable[v];
-                ch[c].mode = (int)(((uint)ch[c].mode & 0xFF00FFFF) | (uint)(v << 16)); ;
+                ch[c].mode = (int)(((uint)ch[c].mode & 0xFF00FFFF) | (uint)(v << 16)); 
             }
             int m = (byte)(mode >> 8);
             if (m != 0xff)
@@ -302,18 +319,27 @@ namespace MDSound
                 ch[c].freq = freqTable[m];
                 ch[c].outs = outsTable[m];
                 ch[c].type = typeTable[m];
-                ch[c].mode = (int)(((uint)ch[c].mode & 0xFFFF00FF) | (uint)(m << 8)); ;
+                ch[c].mode = (int)(((uint)ch[c].mode & 0xFFFF00FF) | (uint)(m << 8));
+                if (freqTable[m] < 0 && m >= 0xf)
+                {
+                    ch[c].freq = d3Freq / 256.0;
+                }
             }
             int p = (byte)mode;
             if (p != 0xff)
             {
-                if ((p&3) != 0)
+                if ((p & 3) != 0)
                 {
+                    ch[c].play = true;
                     ch[c].adrsPtr = adrsPtr;
                     ch[c].len = (uint)len;
                     ch[c].endAdrs = (uint)(adrsPtr + len);
                     ch[c].pan = p;
-                    ch[c].mode = (int)(((uint)ch[c].mode & 0xFFFFFF00) | (uint)(p << 0)); 
+                    ch[c].mode = (int)(((uint)ch[c].mode & 0xFFFFFF00) | (uint)(p << 0));
+                }
+                else
+                {
+                    ch[c].play = false;
                 }
             }
         }
