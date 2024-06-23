@@ -10,6 +10,18 @@ namespace MDSound
         public override string Name { get { return "mpcmX68k"; } set { } }
         public override string ShortName { get { return "mpx"; } set { } }
 
+
+
+
+        public mpcmX68k()
+        {
+            visVolume = new int[2][][] {
+                new int[1][] { new int[2] { 0, 0 } }
+                , new int[1][] { new int[2] { 0, 0 } }
+            };
+
+        }
+
         public override void Reset(byte ChipID)
         {
             Reset_(ChipID);
@@ -35,6 +47,8 @@ namespace MDSound
         public override void Update(byte ChipID, int[][] outputs, int samples)
         {
             Update_(ChipID, outputs, samples);
+            visVolume[ChipID][0][0] = outputs[0][0];
+            visVolume[ChipID][0][1] = outputs[1][0];
         }
 
         public override int Write(byte ChipID, int port, int adr, int data)

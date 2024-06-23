@@ -3483,6 +3483,54 @@ namespace MDSound
 
         #endregion
 
+        #region PCM8
+
+        public int[][][] getPCM8VisVolume()
+        {
+            if (!dicInst.ContainsKey(enmInstrumentType.YM2151x68soundPCM)) return null;
+            return ((ym2151_x68sound)dicInst[enmInstrumentType.YM2151x68soundPCM][0]).visVolume;
+        }
+
+        public int[][][] getPCM8VisVolume(int ChipIndex)
+        {
+            if (!dicInst.ContainsKey(enmInstrumentType.YM2151x68soundPCM)) return null;
+            return ((ym2151_x68sound)dicInst[enmInstrumentType.YM2151x68soundPCM][ChipIndex]).visVolume;
+        }
+
+        #endregion
+
+        #region PCM8PP
+
+        public int[][][] getPCM8PPVisVolume()
+        {
+            if (!dicInst.ContainsKey(enmInstrumentType.PCM8PP)) return null;
+            return ((PCM8PP)dicInst[enmInstrumentType.PCM8PP][0]).visVolume;
+        }
+
+        public int[][][] getPCM8PPVisVolume(int ChipIndex)
+        {
+            if (!dicInst.ContainsKey(enmInstrumentType.PCM8PP)) return null;
+            return ((PCM8PP)dicInst[enmInstrumentType.PCM8PP][ChipIndex]).visVolume;
+        }
+
+        #endregion
+
+        #region MPCMX68k
+
+        public int[][][] getMPCMX68kVisVolume()
+        {
+            if (!dicInst.ContainsKey(enmInstrumentType.mpcmX68k)) return null;
+            return ((mpcmX68k)dicInst[enmInstrumentType.mpcmX68k][0]).visVolume;
+        }
+
+        public int[][][] getMPCMX68kVisVolume(int ChipIndex)
+        {
+            if (!dicInst.ContainsKey(enmInstrumentType.mpcmX68k)) return null;
+            return ((mpcmX68k)dicInst[enmInstrumentType.mpcmX68k][ChipIndex]).visVolume;
+        }
+
+        #endregion
+
 
         #region PPSDRV
 
@@ -4144,6 +4192,23 @@ namespace MDSound
             }
         }
 
+        public void SetVolumePCM8(int vol)
+        {
+            if (!dicInst.ContainsKey(enmInstrumentType.YM2151x68soundPCM)) return;
+
+            if (insts == null) return;
+
+            foreach (Chip c in insts)
+            {
+                if (c.type != enmInstrumentType.YM2151x68soundPCM) continue;
+                c.Volume = Math.Max(Math.Min(vol, 20), -192);
+                //int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8) / insts.Length;
+                int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8);
+                //16384 = 0x4000 = short.MAXValue + 1
+                c.tVolume = Math.Max(Math.Min((int)(n * volumeMul), short.MaxValue), short.MinValue);
+            }
+        }
+
         public void SetVolumePCM8PP(int vol)
         {
             if (!dicInst.ContainsKey(enmInstrumentType.PCM8PP)) return;
@@ -4153,6 +4218,23 @@ namespace MDSound
             foreach (Chip c in insts)
             {
                 if (c.type != enmInstrumentType.PCM8PP) continue;
+                c.Volume = Math.Max(Math.Min(vol, 20), -192);
+                //int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8) / insts.Length;
+                int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8);
+                //16384 = 0x4000 = short.MAXValue + 1
+                c.tVolume = Math.Max(Math.Min((int)(n * volumeMul), short.MaxValue), short.MinValue);
+            }
+        }
+
+        public void SetVolumeMPCMX68k(int vol)
+        {
+            if (!dicInst.ContainsKey(enmInstrumentType.mpcmX68k)) return;
+
+            if (insts == null) return;
+
+            foreach (Chip c in insts)
+            {
+                if (c.type != enmInstrumentType.mpcmX68k) continue;
                 c.Volume = Math.Max(Math.Min(vol, 20), -192);
                 //int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8) / insts.Length;
                 int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8);

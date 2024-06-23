@@ -145,6 +145,18 @@ namespace MDSound
         public override string Name { get { return "PCM8PP"; } set { } }
         public override string ShortName { get { return "PCM8PP"; } set { } }
 
+
+
+
+        public PCM8PP()
+        {
+            visVolume = new int[2][][] {
+                new int[1][] { new int[2] { 0, 0 } }
+                , new int[1][] { new int[2] { 0, 0 } }
+            };
+
+        }
+
         public override void Reset(byte ChipID)
         {
             //2
@@ -303,6 +315,8 @@ namespace MDSound
                         st.play = false;
 
                 }
+                visVolume[ChipID][0][0] = outputs[0][0];
+                visVolume[ChipID][0][1] = outputs[1][0];
             }
         }
 
@@ -310,8 +324,6 @@ namespace MDSound
         {
             return 0;
         }
-
-
 
         public void KeyOn(int c, uint adrsPtr, int mode, int len,int d3Freq=0)
         {
