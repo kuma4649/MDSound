@@ -65,6 +65,7 @@
     <Compile Include="..\MDSound\mame\YM_DELTAT.cs" Link="mame\YM_DELTAT.cs" />
     <Compile Include="..\MDSound\MDSound.cs" Link="MDSound.cs" />
     <Compile Include="..\MDSound\mpcmX68k.cs" Link="mpcmX68k.cs" />
+    <Compile Include="..\MDSound\mpcmpp.cs" Link="mpcmpp.cs" />
     <Compile Include="..\MDSound\multipcm.cs" Link="multipcm.cs" />
     <Compile Include="..\MDSound\nes_intf.cs" Link="nes_intf.cs" />
     <Compile Include="..\MDSound\np\chip\emu2149.cs" Link="np\chip\emu2149.cs" />
