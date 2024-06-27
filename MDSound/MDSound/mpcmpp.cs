@@ -134,9 +134,9 @@ namespace MDSound
             10416.7,
             15625.0,
             //16bit signed PCM mono
-            15625.0,
+            20800.0,
             //8bit signed PCM mono
-            15625.0,
+            31200.0,
             //16bit signed PCM (Through) mono
             -1,
             //16bit signed PCM mono
