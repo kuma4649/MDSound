@@ -1,4 +1,7 @@
 更新履歴
+TAG139 2024/06/29
+  MPCMPP:SetPCM(D0.w=0x02xx)のときSetFreq(D0.w=0x03xx)も実施するよう修正
+
 TAG138 2024/06/28
   MPCMPP:周波数テーブルの5,6の値を修正
   MPCMPP:MPCMX68kのChマスクメソッド中で一緒に処理するよう機能追加
