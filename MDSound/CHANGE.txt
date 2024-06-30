@@ -1,4 +1,19 @@
 更新履歴
+TAG140 2024/06/30
+  PCM8PP:niseSオプション追加。指定するとドライバ側で16bit/8bit指定(例えばF5/F6)を受けた時に以下の様に周波数を切り替えます。
+   0 Stereo 32kHz
+   1 Stereo 44.1kHz
+   2 Stereo 48kHz
+   3 Stereo 16kHz
+   4 Stereo 22.05kHz
+   5 Stereo 24kHz
+   6 Mono   32kHz
+   7 Mono   44.1kHz
+   8 Mono   48kHz
+   9 Mono   16kHz
+  10 Mono   22.05kHz
+  11 Mono   24kHz
+
 TAG139 2024/06/29
   MPCMPP:SetPCM(D0.w=0x02xx)のときSetFreq(D0.w=0x03xx)も実施するよう修正
 

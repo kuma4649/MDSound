@@ -57,57 +57,57 @@ namespace MDSound
         private double[] freqTable = new double[]
         {
             //ADPCM mono
-            3906.2,
-            5208.0,
-            7812.5,
-            10416.7,
-            15625.0,
+            3906.2,//0
+            5208.0,//1
+            7812.5,//2
+            10416.7,//3
+            15625.0,//4
             //16bit signed PCM mono
-            15625.0,
+            15625.0,//5
             //8bit signed PCM mono
-            15625.0,
+            15625.0,//6
             //16bit signed PCM (Through) mono
-            -1,
+            -1,//7
             //16bit signed PCM mono
-            15625.0,
-            16000.0,
-            22050.0,
-            24000.0,
-            32000.0,
-            44100.0,
-            48000.0,
-            -1,
+            15625.0,//8
+            16000.0,//9
+            22050.0,//10
+            24000.0,//11
+            32000.0,//12
+            44100.0,//13
+            48000.0,//14
+            -1,//15
             //8bit signed PCM mono
-            15625.0,
-            16000.0,
-            22050.0,
-            24000.0,
-            32000.0,
-            44100.0,
-            48000.0,
-            -1,
+            15625.0,//16
+            16000.0,//17
+            22050.0,//18
+            24000.0,//19
+            32000.0,//20
+            44100.0,//21
+            48000.0,//22
+            -1,//23
             //16bit signed PCM stereo
-            15625.0,
-            16000.0,
-            22050.0,
-            24000.0,
-            32000.0,
-            44100.0,
-            48000.0,
-            -1,
+            15625.0,//24
+            16000.0,//25
+            22050.0,//26
+            24000.0,//27
+            32000.0,//28
+            44100.0,//29
+            48000.0,//30
+            -1,//31
             //8bit signed PCM stereo
-            15625.0,
-            16000.0,
-            22050.0,
-            24000.0,
-            32000.0,
-            44100.0,
-            48000.0,
-            -1,
+            15625.0,//32
+            16000.0,//33
+            22050.0,//34
+            24000.0,//35
+            32000.0,//36
+            44100.0,//37
+            48000.0,//38
+            -1,//39
             //variabled ADPCM mono
-            -1,
+            -1,//40
             //variabled 16bit signed PCM mono
-            -1
+            -1//41
         };
         private int[] outsTable = new int[]
         {
@@ -141,6 +141,22 @@ namespace MDSound
             -1,-1,-1,-1,2,4,6,8,
         };
         private const int MAXPCMVAL = (2047);
+        public int sOption = -1;//-1:default 
+        private int[] sOpTable = new int[] {
+            28,36, //s0: 16s32k    8s32k
+            29,37, //s1: 16s44.1k  8s44.1k
+            30,38, //s2: 16s48k    8s48k
+            25,33, //s3: 16s16k    8s16k
+            26,34, //s4: 16s22.05k 8s22.05k
+            27,35, //s5: 16s24k    8s24k
+
+            12,20, //s6: 16m32k    8m32k
+            13,21, //s7: 16m44.1k  8m44.1k
+            14,22, //s8: 16m48k    8m48k
+             9,17, //s9: 16m16k    8m16k
+            10,18, //sA: 16m22.05k 8m22.05k
+            11,19, //sB: 16m24k    8m24k
+                   };
 
         public override string Name { get { return "PCM8PP"; } set { } }
         public override string ShortName { get { return "PCM8PP"; } set { } }
@@ -178,6 +194,10 @@ namespace MDSound
             //1
             sampleRate = clock;
             baseClock = ClockValue;
+
+            if (option == null || option.Length < 1) sOption = -1;
+            else sOption = (int)option[0];
+
             return clock;
         }
 
@@ -325,18 +345,24 @@ namespace MDSound
             return 0;
         }
 
-        public void KeyOn(int c, uint adrsPtr, int mode, int len,int d3Freq=0)
+        public void KeyOn(int c, uint adrsPtr, int mode, int len, int d3Freq = 0)
         {
             int v = (byte)(mode >> 16) & 0xff;
             if (v != 0xff)
             {
                 v &= 0xf;
                 ch[c].volume = volTable[v];
-                ch[c].mode = (int)(((uint)ch[c].mode & 0xFF00FFFF) | (uint)(v << 16)); 
+                ch[c].mode = (int)(((uint)ch[c].mode & 0xFF00FFFF) | (uint)(v << 16));
             }
             int m = (byte)(mode >> 8);
             if (m != 0xff)
             {
+
+                if (sOption != -1 && (m == 5 || m == 6))
+                {
+                    m = sOpTable[sOption * 2 + (m - 5)];
+                }
+
                 ch[c].PcmKind = m;
                 ch[c].freq = freqTable[m];
                 ch[c].outs = outsTable[m];
