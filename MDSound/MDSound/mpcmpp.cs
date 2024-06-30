@@ -520,19 +520,19 @@ namespace MDSound
             switch (ptr.type)
             {
                 case (byte)TYPE._8:
-                    SetFreq(chipID, ch, 0x10);
+                    //SetFreq(chipID, ch, 0x10);
                     break;
                 case (byte)TYPE._16:
                     m[chipID].work[ch].size /= 2;
                     m[chipID].work[ch].lp_start /= 2;
                     m[chipID].work[ch].lp_end /= 2;
-                    SetFreq(chipID, ch, 8);
+                    //SetFreq(chipID, ch, 8);
                     break;
                 case (byte)TYPE._ADPCM:
                     m[chipID].work[ch].size *= 2;
                     m[chipID].work[ch].lp_start *= 2;
                     m[chipID].work[ch].lp_end *= 2;
-                    SetFreq(chipID, ch, 4);
+                    //SetFreq(chipID, ch, 4);
                     break;
             }
 
