@@ -347,6 +347,16 @@ namespace MDSound
 
         public void KeyOn(int c, uint adrsPtr, int mode, int len, int d3Freq = 0)
         {
+            ch[c].N1DataFlag = false;
+            ch[c].N1Data = 0;
+            ch[c].InpPcm = 0;
+            ch[c].InpPcm_prev = 0;
+            ch[c].OutPcm = 0;
+            ch[c].Pcm = 0;
+            ch[c].Scale = 0;
+            ch[c].Pcm16Prev = 0;
+            ch[c].adpcmUpdate = true;
+
             int v = (byte)(mode >> 16) & 0xff;
             if (v != 0xff)
             {
