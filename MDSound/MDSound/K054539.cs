@@ -363,6 +363,10 @@ namespace MDSound
                                         cur_pos += (uint)pdelta;
 
                                         cur_pval = cur_val;
+                                        if (rom.Length <= cur_pos)
+                                        {
+                                            cur_pos = (uint)(rom.Length - 1);
+                                        }
                                         cur_val = (short)(rom[cur_pos] << 8);
                                         //if(cur_val == (INT16)0x8000 && (base2[1] & 1))
                                         if (rom[cur_pos] == 0x80 && (base2[ptrBase2 + 1] & 1) != 0)

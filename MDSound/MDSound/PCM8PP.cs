@@ -175,6 +175,7 @@ namespace MDSound
 
         public override void Reset(byte ChipID)
         {
+            if (ChipID != 0) return;
             //2
             ch = new chStats[16];
             for (int i = 0; i < ch.Length; i++)
@@ -191,6 +192,7 @@ namespace MDSound
 
         public override uint Start(byte ChipID, uint clock, uint ClockValue, params object[] option)
         {
+            if (ChipID != 0) return clock;
             //1
             sampleRate = clock;
             baseClock = ClockValue;
@@ -203,10 +205,12 @@ namespace MDSound
 
         public override void Stop(byte ChipID)
         {
+            if (ChipID != 0) return;
         }
 
         public override void Update(byte ChipID, int[][] outputs, int samples)
         {
+            if (ChipID != 0) return;
             for (int i = 0; i < samples; i++)
             {
                 //バッファクリア
@@ -342,6 +346,7 @@ namespace MDSound
 
         public override int Write(byte ChipID, int port, int adr, int data)
         {
+            if (ChipID != 0) return 0;
             return 0;
         }
 
@@ -415,6 +420,17 @@ namespace MDSound
         {
             ch[c].mute = b; 
         }
+
+        public void SetMask(byte ChipID, int n)
+        {
+            if (ChipID != 0) return;
+            n >>= 8;
+            for (int i = 0; i < 16; i++)
+            {
+                SetMute(i, ((n >> i) & 1) != 0);
+            }
+        }
+
 
         public void MountMemory(byte[] mem)
         {
