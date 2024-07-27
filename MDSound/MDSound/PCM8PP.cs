@@ -231,7 +231,8 @@ namespace MDSound
                         //pcm8(既存)の加工処理
                         if (st.PcmKind == 5)
                         {   // 16bitPCM
-                            valL= (short)((mem[st.adrsPtr] << 8) + mem[st.adrsPtr + 1]);
+                            if (mem.Length <= st.adrsPtr) valL = 0;
+                            else valL = (short)((mem[st.adrsPtr] << 8) + mem[st.adrsPtr + 1]);
                             //pcm16_2pcm(st, valL);
                             //st.OutPcm = ((st.InpPcm << 9) - (st.InpPcm_prev << 9) + 459 * st.OutPcm) >> 9;
                             //st.InpPcm_prev = st.InpPcm;
@@ -242,7 +243,8 @@ namespace MDSound
                         }
                         else if (st.PcmKind == 6)
                         {   // 8bitPCM
-                            valL = (byte)mem[st.adrsPtr];
+                            if (mem.Length <= st.adrsPtr) valL = 0;
+                            else valL = (byte)mem[st.adrsPtr];
                             //pcm16_2pcm(st,valL);
                             //st.OutPcm = ((st.InpPcm << 9) - (st.InpPcm_prev << 9) + 459 * st.OutPcm) >> 9;
                             //st.InpPcm_prev = st.InpPcm;
@@ -260,7 +262,8 @@ namespace MDSound
                                 if (!st.N1DataFlag)
                                 {
                                     int N10Data;
-                                    N10Data = mem[st.adrsPtr];
+                                    if (mem.Length <= st.adrsPtr) N10Data = 0;
+                                    else N10Data = mem[st.adrsPtr];
                                     adpcm2pcm(st, (byte)(N10Data & 0x0F));
                                     st.N1Data = (byte)((N10Data >> 4) & 0x0F);
                                 }
@@ -279,8 +282,14 @@ namespace MDSound
                         //pcm8ppの加工処理
 
                         //音声データ加工
-                        valL = (sbyte)mem[st.adrsPtr];
-                        if (st.type == 2) valL = (short)(((byte)valL << 8) + mem[st.adrsPtr + 1]);
+                        if (mem.Length <= st.adrsPtr) valL = 0;
+                        else valL = (sbyte)mem[st.adrsPtr];
+                        if (st.type == 2)
+                        {
+                            if (mem.Length <= st.adrsPtr+1) valL = 0;
+                            else valL = (short)(((byte)valL << 8) + mem[st.adrsPtr + 1]);
+                        }
+
                         //音量反映
                         valL = valL * st.volume;
                         if (st.type != 2) valL <<= 5;
@@ -293,14 +302,16 @@ namespace MDSound
                         {
                             if (st.type != 2)
                             {
-                                valR = (sbyte)mem[st.adrsPtr + 1];
+                                if (mem.Length <= st.adrsPtr + 1) valR = 0;
+                                else valR = (sbyte)mem[st.adrsPtr + 1];
                                 //音量反映
                                 valR = valR * st.volume;
                                 valR <<= 5;
                             }
                             else
                             {
-                                valR = (short)((mem[st.adrsPtr + 2] << 8) + mem[st.adrsPtr + 3]);
+                                if (mem.Length <= st.adrsPtr + 2) valR = 0;
+                                else valR = (short)((mem[st.adrsPtr + 2] << 8) + mem[st.adrsPtr + 3]);
                                 //音量反映
                                 valR = valR * st.volume;
                             }
