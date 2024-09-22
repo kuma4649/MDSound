@@ -145,6 +145,7 @@
     <Compile Include="..\MDSound\ymz280b.cs" Link="ymz280b.cs" />
     <Compile Include="..\MDSound\zsg2.cs" Link="zsg2.cs" />
     <Compile Include="..\MDSound\msm5232.cs" Link="msm5232.cs" />
+    <Compile Include="..\MDSound\zxbeep.cs" Link="zxbeep.cs" />
   </ItemGroup>
 
   <ItemGroup>

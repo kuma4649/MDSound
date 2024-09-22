@@ -156,7 +156,8 @@ namespace MDSound
             ES5503,
             YM2151x68soundPCM,
             PCM8PP,
-            mpcmpp
+            mpcmpp,
+            ZXBeep
         }
 
         public class Chip
@@ -1306,7 +1307,6 @@ namespace MDSound
 
         #endregion
 
-
         #region AY8910mame
 
         public void WriteAY8910mame(byte ChipID, byte Adr, byte Data)
@@ -1406,6 +1406,31 @@ namespace MDSound
             if (dicInst[enmInstrumentType.AY8910mame][ChipIndex] == null) return null;
 
             return ((ay8910_mame)dicInst[enmInstrumentType.AY8910mame][ChipIndex]).visVolume;
+        }
+
+        #endregion
+
+        #region ZXBeep
+
+        public void WriteZXBeep(byte ChipID)
+        {
+            lock (lockobj)
+            {
+                if (!dicInst.ContainsKey(enmInstrumentType.ZXBeep)) return;
+
+                ((zxbeep)(dicInst[enmInstrumentType.ZXBeep][0])).Write(ChipID,0,0,0);
+                //((ay8910_mame)(dicInst[enmInstrumentType.AY8910][0])).Write(ChipID, 0, Adr, Data);
+            }
+        }
+
+        public void WriteZXBeep(int ChipIndex, byte ChipID, byte Adr, byte Data)
+        {
+            lock (lockobj)
+            {
+                if (!dicInst.ContainsKey(enmInstrumentType.ZXBeep)) return;
+
+                ((zxbeep)(dicInst[enmInstrumentType.ZXBeep][ChipIndex])).Write(ChipID, 0, 0, 0);
+            }
         }
 
         #endregion
@@ -1644,6 +1669,26 @@ namespace MDSound
 
                 ((pokey)(dicInst[enmInstrumentType.POKEY][ChipIndex])).Write(ChipID, 0, Adr, Data);
             }
+        }
+
+        public pokey.pokey_state ReadPOKEY(byte ChipID)
+        {
+            lock (lockobj)
+            {
+                if (!dicInst.ContainsKey(enmInstrumentType.POKEY)) return null;
+                return ((pokey)dicInst[enmInstrumentType.POKEY][0]).Read((byte)ChipID);
+            }
+
+        }
+
+        public pokey.pokey_state ReadPOKEY(int ChipIndex,int ChipID)
+        {
+            lock (lockobj)
+            {
+                if (!dicInst.ContainsKey(enmInstrumentType.POKEY)) return null;
+                return ((pokey)dicInst[enmInstrumentType.POKEY][ChipIndex]).Read((byte)ChipID);
+            }
+
         }
 
         #endregion

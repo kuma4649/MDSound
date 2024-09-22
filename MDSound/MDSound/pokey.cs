@@ -40,6 +40,10 @@ namespace MDSound
             return 0;
         }
 
+        public pokey_state Read(byte ChipID)
+        {
+            return PokeyData[ChipID];
+        }
 
 
 
