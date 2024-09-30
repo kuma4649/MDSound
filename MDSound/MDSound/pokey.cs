@@ -9,6 +9,14 @@ namespace MDSound
         public override string Name { get => "POKEY"; set => throw new NotImplementedException(); }
         public override string ShortName { get => "POKEY"; set => throw new NotImplementedException(); }
 
+        public pokey()
+        {
+            visVolume = new int[2][][] {
+                new int[1][] { new int[2] { 0, 0 } }
+                , new int[1][] { new int[2] { 0, 0 } }
+            };
+        }
+
         public override void Reset(byte ChipID)
         {
             device_reset_pokey(ChipID);
@@ -32,6 +40,9 @@ namespace MDSound
         public override void Update(byte ChipID, int[][] outputs, int samples)
         {
             pokey_update(ChipID, outputs, samples);
+
+            visVolume[ChipID][0][0] = outputs[0][0];
+            visVolume[ChipID][0][1] = outputs[1][0];
         }
 
         public override int Write(byte ChipID, int port, int adr, int data)

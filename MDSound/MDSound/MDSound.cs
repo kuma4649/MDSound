@@ -1671,6 +1671,33 @@ namespace MDSound
             }
         }
 
+        public void setVolumePOKEY(int vol)
+        {
+            if (!dicInst.ContainsKey(enmInstrumentType.POKEY)) return;
+
+            foreach (Chip c in insts)
+            {
+                if (c.type != enmInstrumentType.POKEY) continue;
+                c.Volume = Math.Max(Math.Min(vol, 20), -192);
+                //int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8) / insts.Length;
+                int n = (((int)(16384.0 * Math.Pow(10.0, c.Volume / 40.0)) * c.tVolumeBalance) >> 8);
+                //16384 = 0x4000 = short.MAXValue + 1
+                c.tVolume = Math.Max(Math.Min((int)(n * volumeMul), short.MaxValue), short.MinValue);
+            }
+        }
+
+        public int[][][] getPOKEYVisVolume()
+        {
+            if (!dicInst.ContainsKey(enmInstrumentType.POKEY)) return null;
+            return ((pokey)dicInst[enmInstrumentType.POKEY][0]).visVolume;
+        }
+
+        public int[][][] getPOKEYVisVolume(int ChipIndex)
+        {
+            if (!dicInst.ContainsKey(enmInstrumentType.POKEY)) return null;
+            return ((pokey)dicInst[enmInstrumentType.POKEY][ChipIndex]).visVolume;
+        }
+
         public pokey.pokey_state ReadPOKEY(byte ChipID)
         {
             lock (lockobj)
