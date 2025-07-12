@@ -96,7 +96,7 @@ namespace MDSound
         private PPSHeader[][] ppsHd = null;
         private bool[] single_flag; // 単音モードか？
         private bool[] low_cpu_check_flag;// 周波数半分で再生か？
-        private bool[] keyon_flag; // Keyon 中か？
+        private bool[] keyon_flag = new bool[2]; // Keyon 中か？
         private int[] data_offset1;
         private int[] data_offset2;
         private int[] data_xor1;                              // 現在の位置(小数部)
@@ -109,7 +109,7 @@ namespace MDSound
         private int[] data_size2;
         private int[] volume1;
         private int[] volume2;
-        private int[] keyoff_vol;
+        private int[] keyoff_vol = new int[2];
         private int[][] EmitTable = new int[][] { new int[16], new int[16] };
         private bool[] interpolation = new bool[] { true, true };
         private bool real = false;

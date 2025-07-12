@@ -186,8 +186,8 @@ namespace MDSound
             public uint SmpP;
             public uint SmpLast;
             public uint SmpNext;
-            public int[] LSmpl;
-            public int[] NSmpl;
+            public int[] LSmpl=new int[2];
+            public int[] NSmpl = new int[2];
 
             public object[] Option = null;
 
