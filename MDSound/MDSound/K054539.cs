@@ -258,6 +258,7 @@ namespace MDSound
 
             rom = info.rom;
             rom_mask = info.rom_mask;
+            if (rom == null) return;
 
             for (i = 0; i != samples; i++)
             {
