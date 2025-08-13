@@ -157,7 +157,8 @@ namespace MDSound
             YM2151x68soundPCM,
             PCM8PP,
             mpcmpp,
-            ZXBeep
+            ZXBeep,
+            CS4231
         }
 
         public class Chip
@@ -2664,6 +2665,47 @@ namespace MDSound
 
         #endregion
 
+        #region CS4231
+
+        public void WriteCS4231(byte ChipID, byte port, byte Adr, byte Data)
+        {
+            lock (lockobj)
+            {
+                if (!dicInst.ContainsKey(enmInstrumentType.CS4231)) return;
+
+                ((dicInst[enmInstrumentType.CS4231][0])).Write(ChipID, port, Adr, Data);
+            }
+        }
+
+        public void WriteCS4231(int ChipIndex, byte ChipID, byte port, byte Adr, byte Data)
+        {
+            lock (lockobj)
+            {
+                if (!dicInst.ContainsKey(enmInstrumentType.CS4231)) return;
+
+                ((dicInst[enmInstrumentType.CS4231][ChipIndex])).Write(ChipID, port, Adr, Data);
+            }
+        }
+
+        public byte ReadCS4231(byte ChipID,byte adr)
+        {
+            lock (lockobj)
+            {
+                if (!dicInst.ContainsKey(enmInstrumentType.CS4231)) return 0;
+                return ((CS4231)(dicInst[enmInstrumentType.CS4231][0])).ReadReg(ChipID, adr);
+            }
+        }
+
+        public byte ReadCS4231(int ChipIndex,byte ChipID,byte adr)
+        {
+            lock (lockobj)
+            {
+                if (!dicInst.ContainsKey(enmInstrumentType.CS4231)) return 0;
+                return ((CS4231)(dicInst[enmInstrumentType.CS4231][ChipIndex])).ReadReg(ChipID, adr);
+            }
+        }
+
+        #endregion
 
         #region YM2151
 

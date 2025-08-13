@@ -19,11 +19,16 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="CS4231.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Compile Include="..\MDSound\ay8910.cs" Link="ay8910.cs" />
     <Compile Include="..\MDSound\ay8910_mame.cs" Link="ay8910_mame.cs" />
     <Compile Include="..\MDSound\c140.cs" Link="c140.cs" />
     <Compile Include="..\MDSound\c352.cs" Link="c352.cs" />
     <Compile Include="..\MDSound\common.cs" Link="common.cs" />
+    <Compile Include="..\MDSound\CS4231.cs" Link="CS4231.cs" />
     <Compile Include="..\MDSound\dacControl.cs" Link="dacControl.cs" />
     <Compile Include="..\MDSound\emu2413.cs" Link="emu2413.cs" />
     <Compile Include="..\MDSound\es5503.cs" Link="es5503.cs" />
