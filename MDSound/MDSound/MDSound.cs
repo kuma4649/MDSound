@@ -2667,6 +2667,46 @@ namespace MDSound
 
         #region CS4231
 
+        public void SetCS4231FIFOBuf(byte ChipID, byte[] buf)
+        {
+            lock (lockobj)
+            {
+                if (!dicInst.ContainsKey(enmInstrumentType.CS4231)) return;
+
+                (((CS4231)dicInst[enmInstrumentType.CS4231][0])).setFIFOBuf(ChipID, buf);
+            }
+        }
+
+        public void SetCS4231FIFOBuf(int ChipIndex, byte ChipID, byte[] buf)
+        {
+            lock (lockobj)
+            {
+                if (!dicInst.ContainsKey(enmInstrumentType.CS4231)) return;
+
+                (((CS4231)dicInst[enmInstrumentType.CS4231][ChipIndex])).setFIFOBuf(ChipID, buf);
+            }
+        }
+
+        public void SetCS4231Int0bEnt(byte ChipID, Action act)
+        {
+            lock (lockobj)
+            {
+                if (!dicInst.ContainsKey(enmInstrumentType.CS4231)) return;
+
+                (((CS4231)dicInst[enmInstrumentType.CS4231][0])).setInt0bEnt(ChipID, act);
+            }
+        }
+
+        public void SetCS4231Int0bEnt(int ChipIndex, byte ChipID, Action act)
+        {
+            lock (lockobj)
+            {
+                if (!dicInst.ContainsKey(enmInstrumentType.CS4231)) return;
+
+                (((CS4231)dicInst[enmInstrumentType.CS4231][ChipIndex])).setInt0bEnt(ChipID, act);
+            }
+        }
+
         public void WriteCS4231(byte ChipID, byte port, byte Adr, byte Data)
         {
             lock (lockobj)
