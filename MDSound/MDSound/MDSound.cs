@@ -6130,7 +6130,7 @@ namespace MDSound
         {
             lock (lockobj)
             {
-                huc6280Mask[0][chipID] |= ch;
+                huc6280Mask[0][chipID] |= (1<<ch);
                 if (!dicInst.ContainsKey(enmInstrumentType.HuC6280)) return;
                 ((Ootake_PSG)(dicInst[enmInstrumentType.HuC6280][0])).HuC6280_SetMute((byte)chipID, huc6280Mask[0][chipID]);
             }
@@ -6443,7 +6443,7 @@ namespace MDSound
         {
             lock (lockobj)
             {
-                huc6280Mask[0][chipID] &= ~ch;
+                huc6280Mask[0][chipID] &= ~(1<<ch);
                 if (!dicInst.ContainsKey(enmInstrumentType.HuC6280)) return;
                 ((Ootake_PSG)(dicInst[enmInstrumentType.HuC6280][0])).HuC6280_SetMute((byte)chipID, huc6280Mask[0][chipID]);
             }
