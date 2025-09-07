@@ -6,6 +6,13 @@ using System.Text;
 
 namespace MDSound
 {
+    //
+    // このCS4231エミュレータは、以下の資料,ソースを参考,移植しています。
+    //
+    // みゅあっぷ/iv  主にPLAY4
+    // CS4231Aのデータシート
+    //
+
     public class CS4231 : Instrument
     {
         private Chip[] chip = new Chip[] { new Chip(), new Chip() };
