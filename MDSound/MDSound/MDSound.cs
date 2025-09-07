@@ -2687,25 +2687,25 @@ namespace MDSound
             }
         }
 
-        public void SetCS4231Int0bEnt(byte ChipID, Action act)
-        {
-            lock (lockobj)
-            {
-                if (!dicInst.ContainsKey(enmInstrumentType.CS4231)) return;
+        //public void SetCS4231Int0bEnt(byte ChipID, Action act)
+        //{
+        //    lock (lockobj)
+        //    {
+        //        if (!dicInst.ContainsKey(enmInstrumentType.CS4231)) return;
 
-                (((CS4231)dicInst[enmInstrumentType.CS4231][0])).setInt0bEnt(ChipID, act);
-            }
-        }
+        //        (((CS4231)dicInst[enmInstrumentType.CS4231][0])).setInt0bEnt(ChipID, act);
+        //    }
+        //}
 
-        public void SetCS4231Int0bEnt(int ChipIndex, byte ChipID, Action act)
-        {
-            lock (lockobj)
-            {
-                if (!dicInst.ContainsKey(enmInstrumentType.CS4231)) return;
+        //public void SetCS4231Int0bEnt(int ChipIndex, byte ChipID, Action act)
+        //{
+        //    lock (lockobj)
+        //    {
+        //        if (!dicInst.ContainsKey(enmInstrumentType.CS4231)) return;
 
-                (((CS4231)dicInst[enmInstrumentType.CS4231][ChipIndex])).setInt0bEnt(ChipID, act);
-            }
-        }
+        //        (((CS4231)dicInst[enmInstrumentType.CS4231][ChipIndex])).setInt0bEnt(ChipID, act);
+        //    }
+        //}
 
         public void WriteCS4231(byte ChipID, byte port, byte Adr, byte Data)
         {
@@ -6140,7 +6140,7 @@ namespace MDSound
         {
             lock (lockobj)
             {
-                huc6280Mask[ChipIndex][chipID] |= ch;
+                huc6280Mask[ChipIndex][chipID] |= (1<<ch);
                 if (!dicInst.ContainsKey(enmInstrumentType.HuC6280)) return;
                 ((Ootake_PSG)(dicInst[enmInstrumentType.HuC6280][ChipIndex])).HuC6280_SetMute((byte)chipID, huc6280Mask[ChipIndex][chipID]);
             }
@@ -6453,7 +6453,7 @@ namespace MDSound
         {
             lock (lockobj)
             {
-                huc6280Mask[ChipIndex][chipID] &= ~ch;
+                huc6280Mask[ChipIndex][chipID] &= ~(1<<ch);
                 if (!dicInst.ContainsKey(enmInstrumentType.HuC6280)) return;
                 ((Ootake_PSG)(dicInst[enmInstrumentType.HuC6280][ChipIndex])).HuC6280_SetMute((byte)chipID, huc6280Mask[ChipIndex][chipID]);
             }
