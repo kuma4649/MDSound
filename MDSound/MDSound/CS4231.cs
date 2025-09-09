@@ -316,6 +316,7 @@ namespace MDSound
             {
                 this.ptr = 0;
                 this.cnt = 0;
+                for (int i = 0; i < fifoBuf.Length; i++) fifoBuf[i] = 0x80;
                 //this.fifoBuf = fifoBuf;
                 //this.int0bEnt = int0bEnt;
             }
