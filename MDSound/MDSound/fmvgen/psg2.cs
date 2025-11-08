@@ -228,10 +228,15 @@ namespace MDSound.fmvgen
                             sample = 0;
                             for (int j = 0; j < (1 << oversampling); j++)
                             {
-                                noise = (int)(noisetable[((uint)ncountDbl >> (int)((noiseshift + oversampling + 6)) & (noisetablesize - 1))]
-                                    >> (int)((uint)ncountDbl >> (noiseshift + oversampling + 1)));
+                                //noise = (int)(noisetable[((uint)ncountDbl >> (int)((noiseshift + oversampling + 6)) & (noisetablesize - 1))]
+                                //    >> (int)((uint)ncountDbl >> (noiseshift + oversampling + 1)));
 
-                                ncountDbl += ((double)nperiod / ((reg[6] & 0x20) != 0 ? ncountDiv : 1.0));
+                                //ncountDbl += ((double)nperiod / ((reg[6] & 0x20) != 0 ? ncountDiv : 1.0));
+
+                                noise = (int)(noisetable[(ncount >> (noiseshift + oversampling + 6)) & (noisetablesize - 1)]
+                                    >> (int)(ncount >> (noiseshift + oversampling + 1)));
+
+                                ncount += (uint)(nperiod / ((reg[6] & 0x20) != 0 ? ncountDiv : 1.0));
 
                                 for (int k = 0; k < 3; k++)
                                 {
