@@ -214,6 +214,13 @@ namespace MDSound
             return 0;
         }
 
+        public void MutePCM(byte ChipID, int ch, bool sw)
+        {
+            Chip c = chip[ChipID & 1];
+            if (ch < 0 || ch >= c.dma.pcm0work.Length) return;
+            c.dma.pcm0work[ch].mask = sw;
+        }
+
         public byte ReadReg(byte ChipID, int adr)
         {
             Chip c = chip[ChipID & 1];
@@ -427,6 +434,7 @@ namespace MDSound
                 public ushort[] pcm0freq = new ushort[] { 0, 0 };// 周波数
                 public ushort[] pcm0pan = new ushort[] { 0, 0 };// right+leftのパンandデータ(0/FFFF)
                 public ushort[] pcm0vol = new ushort[] { 0, 0 };// 音量
+                public bool mask=false;// ミュートフラグ
             }
             public Pcm0work[] pcm0work = new Pcm0work[]{
                 new Pcm0work(),new Pcm0work(),new Pcm0work(),new Pcm0work(),
@@ -603,8 +611,15 @@ namespace MDSound
                         }
 
                     fifo_lop2:
-                        fifoBuf[di++] += al;// L,Rの値を加算して格納
-                        fifoBuf[di++] += ah;
+                        if (pcm0work[si].mask)
+                        {
+                            di += 2;
+                        }
+                        else
+                        {
+                            fifoBuf[di++] += al;// L,Rの値を加算して格納
+                            fifoBuf[di++] += ah;
+                        }
                         cx += bx;
 
                         if ((cx & 0x8000) != 0)

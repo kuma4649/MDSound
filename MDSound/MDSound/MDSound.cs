@@ -2865,6 +2865,24 @@ namespace MDSound
             }
         }
 
+        public void MuteCS4231(byte ChipID,byte ch, bool mute)
+        {
+            lock (lockobj)
+            {
+                if (!dicInst.ContainsKey(enmInstrumentType.CS4231)) return;
+                (((CS4231)dicInst[enmInstrumentType.CS4231][0])).MutePCM(ChipID, ch, mute);
+            }
+        }
+
+        public void MuteCS4231(int ChipIndex, byte ChipID, byte ch, bool mute)
+        {
+            lock (lockobj)
+            {
+                if (!dicInst.ContainsKey(enmInstrumentType.CS4231)) return;
+                (((CS4231)dicInst[enmInstrumentType.CS4231][ChipIndex])).MutePCM(ChipID, ch, mute);
+            }
+        }
+
         #endregion
 
         #region YM2151
