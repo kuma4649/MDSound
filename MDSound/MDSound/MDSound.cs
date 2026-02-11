@@ -6333,7 +6333,7 @@ namespace MDSound
             {
                 ch = (1 << ch);
                 ymz280bMask[ChipIndex][chipID] |= (uint)ch;
-                if (!dicInst.ContainsKey(enmInstrumentType.YMZ280B))
+                if (dicInst.ContainsKey(enmInstrumentType.YMZ280B))
                 {
                     ((ymz280b)(dicInst[enmInstrumentType.YMZ280B][ChipIndex])).ymz280b_set_mute_mask((byte)chipID, ymz280bMask[ChipIndex][chipID]);
                 }
@@ -6346,7 +6346,7 @@ namespace MDSound
             {
                 ch = (1 << ch);
                 ymz280bMask[0][chipID] |= (uint)ch;
-                if (!dicInst.ContainsKey(enmInstrumentType.YMZ280B))
+                if (dicInst.ContainsKey(enmInstrumentType.YMZ280B))
                 {
                     ((ymz280b)(dicInst[enmInstrumentType.YMZ280B][0])).ymz280b_set_mute_mask((byte)chipID, ymz280bMask[0][chipID]);
                 }
@@ -6358,7 +6358,7 @@ namespace MDSound
             lock (lockobj)
             {
                 ymz280bMask[ChipIndex][chipID] &= (uint)~(1 << ch);
-                if (!dicInst.ContainsKey(enmInstrumentType.YMZ280B))
+                if (dicInst.ContainsKey(enmInstrumentType.YMZ280B))
                 {
                     ((ymz280b)(dicInst[enmInstrumentType.YMZ280B][ChipIndex])).ymz280b_set_mute_mask((byte)chipID, ymz280bMask[ChipIndex][chipID]);
                 }
@@ -6370,7 +6370,7 @@ namespace MDSound
             lock (lockobj)
             {
                 ymz280bMask[0][chipID] &= (uint)~(1 << ch);
-                if (!dicInst.ContainsKey(enmInstrumentType.YMZ280B))
+                if (dicInst.ContainsKey(enmInstrumentType.YMZ280B))
                 {
                     ((ymz280b)(dicInst[enmInstrumentType.YMZ280B][0])).ymz280b_set_mute_mask((byte)chipID, ymz280bMask[0][chipID]);
                 }
