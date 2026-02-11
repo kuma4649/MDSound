@@ -31,6 +31,7 @@ namespace MDSound
             public uint len = 0;
             public uint endAdrs = 0;
             public double freq = 0;
+            public double freqPerSampleRate = 0;
             public int outs = 0;
             public int type = 0;
             public int volume = 0;
@@ -223,39 +224,17 @@ namespace MDSound
                     if (!ch[c].play) continue;
 
                     chStats st = ch[c];
-                    int valL = 0;
-                    int valR = 0;
-
-                    if (st.PcmKind < 7)
+                    int valL;
+                    int valR;
+                    switch (st.PcmKind)
                     {
                         //pcm8(既存)の加工処理
-                        if (st.PcmKind == 5)
-                        {   // 16bitPCM
-                            if (mem.Length <= st.adrsPtr) valL = 0;
-                            else valL = (short)((mem[st.adrsPtr] << 8) + mem[st.adrsPtr + 1]);
-                            //pcm16_2pcm(st, valL);
-                            //st.OutPcm = ((st.InpPcm << 9) - (st.InpPcm_prev << 9) + 459 * st.OutPcm) >> 9;
-                            //st.InpPcm_prev = st.InpPcm;
-                            //音量反映
-                            valL = valL * st.volume;
-                            valL = valL >> 3;//3 適当
-                            valR = valL;
-                        }
-                        else if (st.PcmKind == 6)
-                        {   // 8bitPCM
-                            if (mem.Length <= st.adrsPtr) valL = 0;
-                            else valL = (byte)mem[st.adrsPtr];
-                            //pcm16_2pcm(st,valL);
-                            //st.OutPcm = ((st.InpPcm << 9) - (st.InpPcm_prev << 9) + 459 * st.OutPcm) >> 9;
-                            //st.InpPcm_prev = st.InpPcm;
-                            //音量反映
-                            valL = valL * st.volume;
-                            valL <<= 5;
-                            valL = valL >> 3;//3 適当
-                            valR = valL;
-                        }
-                        else
-                        {
+                        case 0:
+                        case 1:
+                        case 2:
+                        case 3:
+                        case 4:
+                            //ADPCM mono
                             if (st.adpcmUpdate)
                             {
                                 st.adpcmUpdate = false;
@@ -274,61 +253,94 @@ namespace MDSound
                                 st.OutPcm = ((st.InpPcm << 9) - (st.InpPcm_prev << 9) + 459 * st.OutPcm) >> 9;
                                 st.InpPcm_prev = st.InpPcm;
                             }
-                            valR = valL = ((st.OutPcm * st.volume) >> 8);// >> 4);
-                        }
-                    }
-                    else
-                    {
-                        //pcm8ppの加工処理
-
-                        //音声データ加工
-                        if (mem.Length <= st.adrsPtr) valL = 0;
-                        else valL = (sbyte)mem[st.adrsPtr];
-                        if (st.type == 2)
-                        {
-                            if (mem.Length <= st.adrsPtr+1) valL = 0;
-                            else valL = (short)(((byte)valL << 8) + mem[st.adrsPtr + 1]);
-                        }
-
-                        //音量反映
-                        valL = valL * st.volume;
-                        if (st.type != 2) valL <<= 5;
-                        valL = valL >> 3;//3 適当
-                        if (st.outs == 1)
-                        {
+                            valR = valL = ((st.OutPcm * st.volume) >> 8);
+                            break;
+                        case 5:
+                            //16bit signed PCM mono
+                            if (mem.Length <= st.adrsPtr) valL = 0;
+                            else valL = (short)((mem[st.adrsPtr] << 8) + mem[st.adrsPtr + 1]);
+                            //音量反映
+                            valL *= st.volume;
+                            valL >>= 3;//3 適当
                             valR = valL;
-                        }
-                        else
-                        {
-                            if (st.type != 2)
+                            break;
+                        case 6:
+                            //8bit signed PCM mono
+                            if (mem.Length <= st.adrsPtr) valL = 0;
+                            else valL = (byte)mem[st.adrsPtr];
+                            //音量反映
+                            valL *= st.volume;
+                            //valL <<= 5;
+                            //valL >>= 3;//3 適当
+                            valL <<= 2;
+                            valR = valL;
+                            break;
+                        /// 7以降は新規実装
+                        default:
+                            //pcm8ppの加工処理
+                            switch (st.type)
                             {
-                                if (mem.Length <= st.adrsPtr + 1) valR = 0;
-                                else valR = (sbyte)mem[st.adrsPtr + 1];
-                                //音量反映
-                                valR = valR * st.volume;
-                                valR <<= 5;
+                                case 2:
+                                    //音声データ加工
+                                    //if (mem.Length <= st.adrsPtr) valL = 0;
+                                    //else valL = (sbyte)mem[st.adrsPtr];
+                                    //if (mem.Length <= st.adrsPtr + 1) valL = 0;
+                                    //else valL = (short)(((byte)valL << 8) + mem[st.adrsPtr + 1]);
+
+                                    if (mem.Length <= st.adrsPtr) valL = 0;
+                                    else valL = (short)((mem[st.adrsPtr] << 8) + mem[st.adrsPtr + 1]);
+
+                                    //音量反映
+                                    valL *= st.volume;
+                                    valL >>= 3;//3 適当
+                                    if (st.outs == 1) valR = valL;
+                                    else
+                                    {
+                                        if (mem.Length <= st.adrsPtr + 2) valR = 0;
+                                        else valR = (short)((mem[st.adrsPtr + 2] << 8) + mem[st.adrsPtr + 3]);
+                                        //音量反映
+                                        valR *= st.volume;
+                                        valR >>= 3;//3 適当
+                                    }
+                                    break;
+                                default:
+                                    //音声データ加工
+                                    if (mem.Length <= st.adrsPtr) valL = 0;
+                                    else valL = (sbyte)mem[st.adrsPtr];
+
+                                    //音量反映
+                                    valL *= st.volume;
+                                    //valL <<= 5;
+                                    //valL >>= 3;//3 適当
+                                    valL <<= 2;
+                                    if (st.outs == 1) valR = valL;
+                                    else
+                                    {
+                                        if (mem.Length <= st.adrsPtr + 1) valR = 0;
+                                        else valR = (sbyte)mem[st.adrsPtr + 1];
+                                        //音量反映
+                                        valR *= st.volume;
+                                        //valR <<= 5;
+                                        //valR >>= 3;//3 適当
+                                        valR <<= 2;
+                                    }
+                                    break;
                             }
-                            else
-                            {
-                                if (mem.Length <= st.adrsPtr + 2) valR = 0;
-                                else valR = (short)((mem[st.adrsPtr + 2] << 8) + mem[st.adrsPtr + 3]);
-                                //音量反映
-                                valR = valR * st.volume;
-                            }
-                            valR = valR >> 3;//3 適当
-                        }
+                            break;
                     }
 
                     //バッファへ格納(加算)
                     if (!st.mute)
                     {
-                        outputs[0][i] += valL * ((st.pan & 1) != 0 ? 1 : 0);
-                        outputs[1][i] += valR * ((st.pan & 2) != 0 ? 1 : 0);
+                        outputs[0][i] += ((st.pan & 1) != 0 ? valL : 0);
+                        outputs[1][i] += ((st.pan & 2) != 0 ? valR : 0);
                     }
 
                     //ポインタ移動
-                    double step = st.freq / sampleRate;
-                    st.step += step;
+                    //double step = st.freq / sampleRate;
+                    //st.step += step;
+                    st.step += st.freqPerSampleRate;
+
                     while (st.step >= 1.0)
                     {
                         if (st.type != 0)
@@ -350,9 +362,9 @@ namespace MDSound
                         st.play = false;
 
                 }
-                visVolume[ChipID][0][0] = outputs[0][0];
-                visVolume[ChipID][0][1] = outputs[1][0];
             }
+            visVolume[ChipID][0][0] = outputs[0][0];
+            visVolume[ChipID][0][1] = outputs[1][0];
         }
 
         public override int Write(byte ChipID, int port, int adr, int data)
@@ -398,6 +410,7 @@ namespace MDSound
                 {
                     ch[c].freq = d3Freq / 256.0;
                 }
+                ch[c].freqPerSampleRate = ch[c].freq / sampleRate;
             }
             int p = (byte)mode;
             if (p != 0xff)
@@ -455,7 +468,6 @@ namespace MDSound
         private void adpcm2pcm(chStats st, byte adpcm)
         {
 
-
             int dltL;
             dltL = dltLTBL[st.Scale];
             dltL = (dltL & ((adpcm & 4) != 0 ? -1 : 0))
@@ -464,7 +476,6 @@ namespace MDSound
             int sign = (adpcm & 8) != 0 ? -1 : 0;
             dltL = (dltL ^ sign) + (sign & 1);
             st.Pcm += dltL;
-
 
             if ((uint)(st.Pcm + MAXPCMVAL) > (uint)(MAXPCMVAL * 2))
             {

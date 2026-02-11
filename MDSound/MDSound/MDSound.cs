@@ -42,6 +42,7 @@ namespace MDSound
         private List<int[]> x1_010Mask = new List<int[]>(new int[][] { new int[] { 0, 0 } });
         private List<int[]> WSwanMask = new List<int[]>(new int[][] { new int[] { 0, 0 } });
         private List<int[]> ES5503Mask = new List<int[]>(new int[][] { new int[] { 0, 0 } });
+        private List<uint[]> ymz280bMask = new List<uint[]>(new uint[][] { new uint[] { 0, 0 } });
 
         private int[][][] rf5c164Vol = new int[][][] {
             new int[8][] { new int[2], new int[2], new int[2], new int[2], new int[2], new int[2], new int[2], new int[2] }
@@ -295,6 +296,8 @@ namespace MDSound
                 if (dicInst.ContainsKey(enmInstrumentType.C140)) for (int i = 0; i < dicInst[enmInstrumentType.C140].Length; i++) c140Mask.Add(new uint[] { 0, 0 });
                 ay8910Mask = new List<int[]>();
                 if (dicInst.ContainsKey(enmInstrumentType.AY8910)) for (int i = 0; i < dicInst[enmInstrumentType.AY8910].Length; i++) ay8910Mask.Add(new int[] { 0, 0 });
+                ymz280bMask = new List<uint[]>();
+                if (dicInst.ContainsKey(enmInstrumentType.YMZ280B)) for (int i = 0; i < dicInst[enmInstrumentType.YMZ280B].Length; i++) ymz280bMask.Add(new uint[] { 0, 0 });
             }
         }
 
@@ -6321,6 +6324,56 @@ namespace MDSound
                 nesMask[ChipIndex][chipID] |= 0x20;
                 if (!dicInst.ContainsKey(enmInstrumentType.Nes)) return;
                 ((nes_intf)(dicInst[enmInstrumentType.Nes][ChipIndex])).nes_set_mute_mask((byte)chipID, nesMask[ChipIndex][chipID]);
+            }
+        }
+
+        public void setYMZ280BMask(int ChipIndex, int chipID, int ch)
+        {
+            lock (lockobj)
+            {
+                ch = (1 << ch);
+                ymz280bMask[ChipIndex][chipID] |= (uint)ch;
+                if (!dicInst.ContainsKey(enmInstrumentType.YMZ280B))
+                {
+                    ((ymz280b)(dicInst[enmInstrumentType.YMZ280B][ChipIndex])).ymz280b_set_mute_mask((byte)chipID, ymz280bMask[ChipIndex][chipID]);
+                }
+            }
+        }
+
+        public void setYMZ280BMask(int chipID, int ch)
+        {
+            lock (lockobj)
+            {
+                ch = (1 << ch);
+                ymz280bMask[0][chipID] |= (uint)ch;
+                if (!dicInst.ContainsKey(enmInstrumentType.YMZ280B))
+                {
+                    ((ymz280b)(dicInst[enmInstrumentType.YMZ280B][0])).ymz280b_set_mute_mask((byte)chipID, ymz280bMask[0][chipID]);
+                }
+            }
+        }
+
+        public void resetYMZ280BMask(int ChipIndex, int chipID, int ch)
+        {
+            lock (lockobj)
+            {
+                ymz280bMask[ChipIndex][chipID] &= (uint)~(1 << ch);
+                if (!dicInst.ContainsKey(enmInstrumentType.YMZ280B))
+                {
+                    ((ymz280b)(dicInst[enmInstrumentType.YMZ280B][ChipIndex])).ymz280b_set_mute_mask((byte)chipID, ymz280bMask[ChipIndex][chipID]);
+                }
+            }
+        }
+
+        public void resetYMZ280BMask(int chipID, int ch)
+        {
+            lock (lockobj)
+            {
+                ymz280bMask[0][chipID] &= (uint)~(1 << ch);
+                if (!dicInst.ContainsKey(enmInstrumentType.YMZ280B))
+                {
+                    ((ymz280b)(dicInst[enmInstrumentType.YMZ280B][0])).ymz280b_set_mute_mask((byte)chipID, ymz280bMask[0][chipID]);
+                }
             }
         }
 
