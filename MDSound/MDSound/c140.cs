@@ -379,11 +379,11 @@ namespace MDSound
                 case C140_TYPE.SYSTEM21:
                     // System 21 banking.
                     // similar to System 2's.
-                    return ((adrs & 0x300000) >> 1) | (adrs & 0x7ffff);
+                    return ((adrs & 0x300000) >> 1) + (adrs & 0x7ffff);
 
                 case C140_TYPE.ASIC219:
                     // ASIC219's banking is fairly simple
-                    return (long)((info.REG[asic219banks[voice / 4]] & 0x3) * 0x20000) | adrs;
+                    return (long)((info.REG[asic219banks[voice / 4]] & 0x3) * 0x20000) + adrs;
             }
 
             return 0;
@@ -426,9 +426,9 @@ namespace MDSound
                         // on the 219 asic, addresses are in words
                         if (info.banking_type == C140_TYPE.ASIC219)
                         {
-                            v.sample_loop = ((info.REG[vreg + 10] * 256) | info.REG[vreg + 11]) * 2;
-                            v.sample_start = ((info.REG[vreg + 6] * 256) | info.REG[vreg + 7]) * 2;
-                            v.sample_end = ((info.REG[vreg + 8] * 256) | info.REG[vreg + 9]) * 2;
+                            v.sample_loop = ((info.REG[vreg + 10] * 256) + info.REG[vreg + 11]) * 2;
+                            v.sample_start = ((info.REG[vreg + 6] * 256) + info.REG[vreg + 7]) * 2;
+                            v.sample_end = ((info.REG[vreg + 8] * 256) + info.REG[vreg + 9]) * 2;
 
                             //#if 0
                             //logerror("219: play v %d mode %02x start %x loop %x end %x\n",
@@ -774,9 +774,9 @@ namespace MDSound
             if (clock < 1000000)
                 info.baserate = (int)clock;
             else
-                info.baserate = (int)clock / 384;   // based on MAME's notes on Namco System II
+                info.baserate = (int)clock / 576;// 384;   // based on MAME's notes on Namco System II
             info.sample_rate = info.baserate;
-            if ((CHIP_SAMPLING_MODE == 0x01 && info.sample_rate < CHIP_SAMPLE_RATE) ||
+            if (((CHIP_SAMPLING_MODE & 0x01) != 0 && info.sample_rate < CHIP_SAMPLE_RATE) ||
                 CHIP_SAMPLING_MODE == 0x02)
                 info.sample_rate = CHIP_SAMPLE_RATE;
             if (info.sample_rate >= 0x1000000) // limit to 16 MHz sample rate (32 MB buffer)
